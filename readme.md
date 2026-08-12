@@ -19,7 +19,18 @@ Các shortcode của VibeCode bắt đầu bằng tiền tố `vbc_`. Chúng h�
 * `[vbc_hr]`, `[vbc_br]`
 * `[vbc_img]` (Thuộc tính: `img_source="default|manual|post_meta|acf" img_attachment="ID" alt="..."`)
 
-### C. Thuộc tính CSS Tự Do (`custom_css`)
+### C. Thư Viện Icon Thông Minh (`[vbc_icon]`)
+* Nạp **duy nhất** thư viện icon được gọi (Selective Lazy Loading), hoàn toàn không làm nặng website.
+* Hỗ trợ 5 bộ icon hàng đầu thế giới:
+  1. `pack="fontawesome"` (Font Awesome 6): `name="fa-solid fa-shield-halved"`
+  2. `pack="remix"` (Remix Icon): `name="ri-shield-check-line"`
+  3. `pack="lucide"` (Lucide Icons): `name="shield-check"`
+  4. `pack="phosphor"` (Phosphor Icons): `name="ph-bold ph-shield-check"`
+  5. `pack="material"` (Google Material Symbols): `name="security"`
+* Thuộc tính: `color="#ef4444"`, `size="24px"`, `custom_class="..."`, `custom_css="..."`.
+* Ví dụ: `[vbc_icon pack="fontawesome" name="fa-solid fa-shield-halved" color="#ef4444" size="32px"]`
+
+### D. Thuộc tính CSS Tự Do (`custom_css`)
 Sử dụng từ khóa `selector` để định vị phần tử hiện tại.
 * Ví dụ: `custom_css="selector { border-radius: 12px; transition: 0.3s; } selector:hover { transform: translateY(-5px); }"`
 

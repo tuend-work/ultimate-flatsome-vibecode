@@ -36,11 +36,22 @@ async function main() {
     console.log('\x1b[1m\x1b[36m   VIBECODE AI LANDING PAGE BUILDER SKILL\x1b[0m');
     console.log('\x1b[36m==================================================\x1b[0m');
 
+    // Đọc file config nếu có
+    let config = {};
+    const configPath = path.join(process.cwd(), 'vbc-config.json');
+    if (fs.existsSync(configPath)) {
+        try {
+            config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+        } catch (e) {
+            console.warn('\x1b[33m[CẢNH BÁO] Không thể đọc file vbc-config.json: ' + e.message + '\x1b[0m');
+        }
+    }
+
     // Kiểm tra các thông số bắt buộc
-    const apiUrl = args['api-url'];
-    const token = args['token'];
+    const apiUrl = args['api-url'] || config['api-url'] || config['apiUrl'];
+    const token = args['token'] || config['token'];
     const description = args['description'];
-    const apiKey = process.env.GEMINI_API_KEY || args['gemini-key'];
+    const apiKey = process.env.GEMINI_API_KEY || args['gemini-key'] || config['gemini-key'] || config['geminiKey'];
 
     if (!apiUrl) {
         console.error('\x1b[31m[LỖI] Thiếu tham số bắt buộc --api-url (Ví dụ: https://my-site.com/wp-json)\x1b[0m');

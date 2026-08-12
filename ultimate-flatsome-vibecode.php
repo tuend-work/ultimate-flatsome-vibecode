@@ -3,7 +3,7 @@
  * Plugin Name: Ultimate Flatsome VibeCode Elements
  * Plugin URI: https://github.com/tuend-work/ultimate-flatsome-vibecode
  * Description: Thêm các phần tử HTML cơ bản tích hợp sâu với Flatsome UX Builder, hỗ trợ responsive hoàn hảo, chèn dữ liệu động (Post Meta, ACF) và chỉnh sửa CSS nâng cao.
- * Version: 1.0.4
+ * Version: 1.0.5
  * Author: Antigravity AI
  * Author URI: https://github.com/tuend-work
  * License: GPL2
@@ -1010,11 +1010,30 @@ function vbc_api_upload_handler($request) {
 function vbc_api_page_handler($request) {
     $params = $request->get_params();
     $post_id = !empty($params['post_id']) ? intval($params['post_id']) : 0;
+    $action_type = !empty($params['action_type']) ? sanitize_key($params['action_type']) : '';
     $title = !empty($params['title']) ? sanitize_text_field($params['title']) : '';
     $content = !empty($params['content']) ? $params['content'] : ''; 
     $status = !empty($params['status']) ? sanitize_key($params['status']) : 'publish';
     $slug = !empty($params['slug']) ? sanitize_title($params['slug']) : '';
     $post_type = !empty($params['post_type']) ? sanitize_key($params['post_type']) : 'page';
+
+    if ($action_type === 'delete') {
+        if ($post_id <= 0) {
+            return new WP_Error('vbc_invalid_id', 'Post ID is required for deletion.', array('status' => 400));
+        }
+        if (!current_user_can('delete_post', $post_id)) {
+            return new WP_Error('vbc_forbidden', 'You do not have permission to delete this post.', array('status' => 403));
+        }
+        $deleted = wp_delete_post($post_id, true);
+        if (!$deleted) {
+            return new WP_Error('vbc_delete_failed', 'Failed to delete post.', array('status' => 500));
+        }
+        return array(
+            'success' => true,
+            'deleted_id' => $post_id,
+            'action' => 'delete',
+        );
+    }
     
     if ($post_id > 0) {
         $post = get_post($post_id);

@@ -3,7 +3,7 @@
  * Plugin Name: Ultimate Flatsome VibeCode Elements
  * Plugin URI: https://github.com/tuend-work/ultimate-flatsome-vibecode
  * Description: Thêm các phần tử HTML cơ bản tích hợp sâu với Flatsome UX Builder, hỗ trợ responsive hoàn hảo, chèn dữ liệu động (Post Meta, ACF) và chỉnh sửa CSS nâng cao.
- * Version: 1.0.5
+ * Version: 1.0.6
  * Author: Antigravity AI
  * Author URI: https://github.com/tuend-work
  * License: GPL2
@@ -1096,5 +1096,155 @@ function vbc_api_page_handler($request) {
             'url' => get_permalink($new_id),
             'action' => 'create',
         );
+    }
+}
+
+
+/**
+ * 5. QUẢN LÝ THƯ VIỆN ICON THÔNG MINH (CONDITIONAL ICON LOADING)
+ */
+add_action('wp_enqueue_scripts', 'vbc_register_icon_libraries');
+
+function vbc_register_icon_libraries() {
+    // Đăng ký danh sách các CDN thư viện icon (Chỉ đăng ký, chưa nạp vào trang)
+    wp_register_style('vbc-fontawesome6', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css', array(), '6.5.1');
+    wp_register_style('vbc-remixicon', 'https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css', array(), '4.2.0');
+    wp_register_style('vbc-material-symbols', 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined', array(), '1.0');
+    wp_register_script('vbc-lucide', 'https://unpkg.com/lucide@latest', array(), 'latest', true);
+    wp_register_script('vbc-phosphor', 'https://unpkg.com/@phosphor-icons/web', array(), 'latest', true);
+}
+
+function vbc_enqueue_icon_pack($pack) {
+    $pack = strtolower(trim($pack));
+    if ($pack === 'fontawesome' || $pack === 'fa') {
+        wp_enqueue_style('vbc-fontawesome6');
+    } elseif ($pack === 'remix' || $pack === 'ri') {
+        wp_enqueue_style('vbc-remixicon');
+    } elseif ($pack === 'material' || $pack === 'google') {
+        wp_enqueue_style('vbc-material-symbols');
+    } elseif ($pack === 'lucide') {
+        wp_enqueue_script('vbc-lucide');
+        add_action('wp_footer', 'vbc_lucide_trigger_script', 99);
+    } elseif ($pack === 'phosphor' || $pack === 'ph') {
+        wp_enqueue_script('vbc-phosphor');
+    }
+}
+
+function vbc_lucide_trigger_script() {
+    echo '<script>document.addEventListener("DOMContentLoaded", function(){ if(typeof lucide !== "undefined"){ lucide.createIcons(); } });</script>';
+}
+
+// Đăng ký UX Builder & Shortcode handler cho [vbc_icon]
+add_action('ux_builder_setup', 'vbc_register_icon_ux_builder');
+function vbc_register_icon_ux_builder() {
+    if (function_exists('add_ux_builder_shortcode')) {
+        add_ux_builder_shortcode('vbc_icon', array(
+            'name' => 'VBC Icon Pack',
+            'category' => 'VibeCode HTML',
+            'options' => array(
+                'pack' => array(
+                    'type' => 'select',
+                    'heading' => 'Bộ Icon',
+                    'default' => 'fontawesome',
+                    'options' => array(
+                        'fontawesome' => 'Font Awesome 6',
+                        'remix' => 'Remix Icon',
+                        'lucide' => 'Lucide Icons',
+                        'phosphor' => 'Phosphor Icons',
+                        'material' => 'Google Material Symbols',
+                    ),
+                ),
+                'name' => array(
+                    'type' => 'textfield',
+                    'heading' => 'Tên Icon / Class',
+                    'default' => 'fa-solid fa-shield-halved',
+                    'description' => 'Ví dụ FA: fa-solid fa-shield-halved | Remix: ri-shield-check-line | Lucide: shield-check | Material: security',
+                ),
+                'color' => array(
+                    'type' => 'colorpicker',
+                    'heading' => 'Màu sắc Icon',
+                    'default' => '',
+                ),
+                'size' => array(
+                    'type' => 'textfield',
+                    'heading' => 'Kích thước (Size)',
+                    'default' => '24px',
+                ),
+                'custom_class' => array(
+                    'type' => 'textfield',
+                    'heading' => 'Custom Class',
+                    'default' => '',
+                ),
+                'custom_css' => array(
+                    'type' => 'textarea',
+                    'heading' => 'Custom CSS',
+                    'default' => '',
+                ),
+            ),
+        ));
+    }
+}
+
+add_action('init', function() {
+    add_shortcode('vbc_icon', 'vbc_icon_shortcode_renderer');
+});
+
+function vbc_icon_shortcode_renderer($atts) {
+    $atts = shortcode_atts(array(
+        'pack' => 'fontawesome',
+        'name' => '',
+        'color' => '',
+        'size' => '',
+        'custom_class' => '',
+        'custom_css' => '',
+    ), $atts);
+
+    $pack = strtolower(trim($atts['pack']));
+    $name = trim($atts['name']);
+
+    if (empty($atts['pack']) || $atts['pack'] === 'fontawesome') {
+        if (strpos($name, 'ri-') !== false) {
+            $pack = 'remix';
+        } elseif (strpos($name, 'ph-') !== false) {
+            $pack = 'phosphor';
+        }
+    }
+
+    // Nạp THÔNG MINH duy nhất thư viện icon được gọi
+    vbc_enqueue_icon_pack($pack);
+
+    $random_id = wp_generate_password(8, false);
+    $unique_class = 'vbc-icn-' . $random_id;
+
+    $styles = array();
+    if (!empty($atts['color'])) {
+        $styles[] = 'color: ' . esc_attr($atts['color']) . ';';
+    }
+    if (!empty($atts['size'])) {
+        $styles[] = 'font-size: ' . esc_attr($atts['size']) . ';';
+    }
+
+    $css_rule = '';
+    if (!empty($styles) || !empty($atts['custom_css'])) {
+        $css_rule .= '.' . $unique_class . ' { ' . implode(' ', $styles) . ' } ';
+        if (!empty($atts['custom_css'])) {
+            $raw_css = trim($atts['custom_css']);
+            if (strpos($raw_css, '{') === false) {
+                $css_rule .= '.' . $unique_class . ' { ' . $raw_css . ' } ';
+            } else {
+                $css_rule .= str_replace('selector', '.' . $unique_class, $raw_css);
+            }
+        }
+    }
+
+    $style_tag = !empty($css_rule) ? '<style>' . $css_rule . '</style>' : '';
+    $class_str = esc_attr(trim($unique_class . ' ' . $atts['custom_class']));
+
+    if ($pack === 'lucide') {
+        return $style_tag . '<i data-lucide="' . esc_attr($name) . '" class="' . $class_str . '"></i>';
+    } elseif ($pack === 'material') {
+        return $style_tag . '<span class="material-symbols-outlined ' . $class_str . '">' . esc_html($name) . '</span>';
+    } else {
+        return $style_tag . '<i class="' . esc_attr($name) . ' ' . $class_str . '"></i>';
     }
 }

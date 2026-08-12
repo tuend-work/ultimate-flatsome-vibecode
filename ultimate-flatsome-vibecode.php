@@ -3,7 +3,7 @@
  * Plugin Name: Ultimate Flatsome VibeCode Elements
  * Plugin URI: https://github.com/tuend-work/ultimate-flatsome-vibecode
  * Description: Thêm các phần tử HTML cơ bản tích hợp sâu với Flatsome UX Builder, hỗ trợ responsive hoàn hảo, chèn dữ liệu động (Post Meta, ACF) và chỉnh sửa CSS nâng cao.
- * Version: 1.0.7
+ * Version: 1.0.9
  * Author: Antigravity AI
  * Author URI: https://github.com/tuend-work
  * License: GPL2
@@ -107,6 +107,12 @@ function vbc_get_common_options($tag_type) {
                     'heading' => 'Màu nền',
                     'responsive' => true,
                     'default' => '',
+                ),
+                'font_family' => array(
+                    'type' => 'textfield',
+                    'heading' => 'Font chữ (Google Font)',
+                    'default' => '',
+                    'description' => 'Ví dụ: Outfit, Inter, Montserrat. Sẽ tự động nạp từ Google Fonts.',
                 ),
             ),
         ),
@@ -356,6 +362,518 @@ function vbc_register_ux_builder_elements() {
 
         add_ux_builder_shortcode('vbc_' . $tag, $args);
     }
+
+    // Đăng ký các Advanced Components vào UX Builder
+    add_ux_builder_shortcode('vbc_card', array(
+        'name' => 'VBC Card',
+        'category' => 'VibeCode Components',
+        'type' => 'container',
+        'options' => array(
+            'variant' => array(
+                'type' => 'select',
+                'heading' => 'Biến thể (Variant)',
+                'default' => 'glass',
+                'options' => array(
+                    'glass' => 'Kính mờ (Glassmorphism)',
+                    'custom' => 'Tùy chỉnh',
+                ),
+            ),
+            'padding' => array(
+                'type' => 'textfield',
+                'heading' => 'Padding',
+                'responsive' => true,
+                'default' => '35px 30px',
+            ),
+            'margin' => array(
+                'type' => 'textfield',
+                'heading' => 'Margin',
+                'responsive' => true,
+                'default' => '',
+            ),
+            'width' => array(
+                'type' => 'textfield',
+                'heading' => 'Độ rộng (Width)',
+                'responsive' => true,
+                'default' => '',
+            ),
+            'height' => array(
+                'type' => 'textfield',
+                'heading' => 'Chiều cao (Height)',
+                'responsive' => true,
+                'default' => '',
+            ),
+            'background_color' => array(
+                'type' => 'colorpicker',
+                'heading' => 'Màu nền',
+                'responsive' => true,
+                'default' => '',
+            ),
+            'border_radius' => array(
+                'type' => 'textfield',
+                'heading' => 'Bo góc (Border Radius)',
+                'default' => '20px',
+            ),
+            'border_color' => array(
+                'type' => 'colorpicker',
+                'heading' => 'Màu viền',
+                'default' => 'rgba(255,255,255,0.08)',
+            ),
+            'glow_color' => array(
+                'type' => 'colorpicker',
+                'heading' => 'Màu phát sáng (Hover Glow)',
+                'default' => 'rgba(239, 68, 68, 0.2)',
+            ),
+            'font_family' => array(
+                'type' => 'textfield',
+                'heading' => 'Font chữ (Google Font)',
+                'default' => '',
+            ),
+            'custom_class' => array(
+                'type' => 'textfield',
+                'heading' => 'CSS Class',
+                'default' => '',
+            ),
+            'custom_css' => array(
+                'type' => 'textarea',
+                'heading' => 'Custom CSS',
+                'default' => '',
+            ),
+        ),
+    ));
+
+    add_ux_builder_shortcode('vbc_testimonial', array(
+        'name' => 'VBC Testimonial',
+        'category' => 'VibeCode Components',
+        'type' => 'container',
+        'options' => array(
+            'name' => array(
+                'type' => 'textfield',
+                'heading' => 'Tên khách hàng',
+                'default' => 'Khách Hàng',
+            ),
+            'company' => array(
+                'type' => 'textfield',
+                'heading' => 'Công ty / Chức vụ',
+                'default' => '',
+            ),
+            'stars' => array(
+                'type' => 'select',
+                'heading' => 'Đánh giá (Sao)',
+                'default' => '5',
+                'options' => array(
+                    '1' => '1 Sao',
+                    '2' => '2 Sao',
+                    '3' => '3 Sao',
+                    '4' => '4 Sao',
+                    '5' => '5 Sao',
+                ),
+            ),
+            'avatar_url' => array(
+                'type' => 'textfield',
+                'heading' => 'URL ảnh đại diện',
+                'default' => '',
+            ),
+            'padding' => array(
+                'type' => 'textfield',
+                'heading' => 'Padding',
+                'responsive' => true,
+                'default' => '35px 28px',
+            ),
+            'margin' => array(
+                'type' => 'textfield',
+                'heading' => 'Margin',
+                'responsive' => true,
+                'default' => '',
+            ),
+            'width' => array(
+                'type' => 'textfield',
+                'heading' => 'Độ rộng (Width)',
+                'responsive' => true,
+                'default' => '',
+            ),
+            'height' => array(
+                'type' => 'textfield',
+                'heading' => 'Chiều cao (Height)',
+                'responsive' => true,
+                'default' => '',
+            ),
+            'background_color' => array(
+                'type' => 'colorpicker',
+                'heading' => 'Màu nền',
+                'responsive' => true,
+                'default' => '',
+            ),
+            'border_radius' => array(
+                'type' => 'textfield',
+                'heading' => 'Bo góc (Border Radius)',
+                'default' => '20px',
+            ),
+            'border_color' => array(
+                'type' => 'colorpicker',
+                'heading' => 'Màu viền',
+                'default' => 'rgba(255,255,255,0.08)',
+            ),
+            'text_color' => array(
+                'type' => 'colorpicker',
+                'heading' => 'Màu chữ quote',
+                'default' => '#cbd5e1',
+            ),
+            'author_color' => array(
+                'type' => 'colorpicker',
+                'heading' => 'Màu chữ tác giả',
+                'default' => '#ffffff',
+            ),
+            'font_family' => array(
+                'type' => 'textfield',
+                'heading' => 'Font chữ (Google Font)',
+                'default' => '',
+            ),
+            'custom_class' => array(
+                'type' => 'textfield',
+                'heading' => 'CSS Class',
+                'default' => '',
+            ),
+            'custom_css' => array(
+                'type' => 'textarea',
+                'heading' => 'Custom CSS',
+                'default' => '',
+            ),
+        ),
+    ));
+
+    add_ux_builder_shortcode('vbc_accordion', array(
+        'name' => 'VBC Accordion',
+        'category' => 'VibeCode Components',
+        'type' => 'container',
+        'options' => array(
+            'faq_schema' => array(
+                'type' => 'select',
+                'heading' => 'FAQ Schema (SEO)',
+                'default' => 'true',
+                'options' => array(
+                    'true' => 'Có',
+                    'false' => 'Không',
+                ),
+            ),
+            'padding' => array(
+                'type' => 'textfield',
+                'heading' => 'Padding',
+                'responsive' => true,
+                'default' => '35px 45px',
+            ),
+            'margin' => array(
+                'type' => 'textfield',
+                'heading' => 'Margin',
+                'responsive' => true,
+                'default' => '',
+            ),
+            'width' => array(
+                'type' => 'textfield',
+                'heading' => 'Độ rộng (Width)',
+                'responsive' => true,
+                'default' => '',
+            ),
+            'height' => array(
+                'type' => 'textfield',
+                'heading' => 'Chiều cao (Height)',
+                'responsive' => true,
+                'default' => '',
+            ),
+            'background_color' => array(
+                'type' => 'colorpicker',
+                'heading' => 'Màu nền',
+                'responsive' => true,
+                'default' => '',
+            ),
+            'border_radius' => array(
+                'type' => 'textfield',
+                'heading' => 'Bo góc (Border Radius)',
+                'default' => '24px',
+            ),
+            'border_color' => array(
+                'type' => 'colorpicker',
+                'heading' => 'Màu viền',
+                'default' => 'rgba(255,255,255,0.08)',
+            ),
+            'font_family' => array(
+                'type' => 'textfield',
+                'heading' => 'Font chữ (Google Font)',
+                'default' => '',
+            ),
+            'custom_class' => array(
+                'type' => 'textfield',
+                'heading' => 'CSS Class',
+                'default' => '',
+            ),
+            'custom_css' => array(
+                'type' => 'textarea',
+                'heading' => 'Custom CSS',
+                'default' => '',
+            ),
+        ),
+    ));
+
+    add_ux_builder_shortcode('vbc_accordion_item', array(
+        'name' => 'VBC Accordion Item',
+        'category' => 'VibeCode Components',
+        'type' => 'container',
+        'options' => array(
+            'title' => array(
+                'type' => 'textfield',
+                'heading' => 'Tiêu đề câu hỏi',
+                'default' => '',
+            ),
+            'open' => array(
+                'type' => 'select',
+                'heading' => 'Mặc định mở',
+                'default' => 'false',
+                'options' => array(
+                    'true' => 'Có',
+                    'false' => 'Không',
+                ),
+            ),
+            'title_color' => array(
+                'type' => 'colorpicker',
+                'heading' => 'Màu chữ tiêu đề',
+                'default' => '',
+            ),
+            'content_color' => array(
+                'type' => 'colorpicker',
+                'heading' => 'Màu chữ nội dung',
+                'default' => '',
+            ),
+            'font_size' => array(
+                'type' => 'textfield',
+                'heading' => 'Cỡ chữ tiêu đề',
+                'default' => '',
+            ),
+        ),
+    ));
+
+    add_ux_builder_shortcode('vbc_button', array(
+        'name' => 'VBC Button',
+        'category' => 'VibeCode Components',
+        'type' => 'container',
+        'options' => array(
+            'text' => array(
+                'type' => 'textfield',
+                'heading' => 'Chữ nút bấm',
+                'default' => 'Click Here',
+            ),
+            'url' => array(
+                'type' => 'textfield',
+                'heading' => 'Liên kết (URL)',
+                'default' => '#',
+            ),
+            'target' => array(
+                'type' => 'select',
+                'heading' => 'Mở liên kết',
+                'default' => '_self',
+                'options' => array(
+                    '_self' => 'Cửa sổ hiện tại (_self)',
+                    '_blank' => 'Cửa sổ mới (_blank)',
+                ),
+            ),
+            'variant' => array(
+                'type' => 'select',
+                'heading' => 'Giao diện mẫu (Variant)',
+                'default' => 'danger',
+                'options' => array(
+                    'danger' => 'Gradient Đỏ',
+                    'glass' => 'Kính mờ (Glassmorphism)',
+                    'custom' => 'Tùy chỉnh màu riêng',
+                ),
+            ),
+            'padding' => array(
+                'type' => 'textfield',
+                'heading' => 'Padding',
+                'responsive' => true,
+                'default' => '16px 38px',
+            ),
+            'margin' => array(
+                'type' => 'textfield',
+                'heading' => 'Margin',
+                'responsive' => true,
+                'default' => '',
+            ),
+            'width' => array(
+                'type' => 'textfield',
+                'heading' => 'Độ rộng (Width)',
+                'responsive' => true,
+                'default' => '',
+            ),
+            'height' => array(
+                'type' => 'textfield',
+                'heading' => 'Chiều cao (Height)',
+                'responsive' => true,
+                'default' => '',
+            ),
+            'border_radius' => array(
+                'type' => 'textfield',
+                'heading' => 'Bo góc (Border Radius)',
+                'default' => '30px',
+            ),
+            'font_size' => array(
+                'type' => 'textfield',
+                'heading' => 'Cỡ chữ',
+                'responsive' => true,
+                'default' => '15px',
+            ),
+            'background_color' => array(
+                'type' => 'colorpicker',
+                'heading' => 'Màu nền (variant Custom)',
+                'default' => '',
+            ),
+            'text_color' => array(
+                'type' => 'colorpicker',
+                'heading' => 'Màu chữ (variant Custom)',
+                'default' => '',
+            ),
+            'font_family' => array(
+                'type' => 'textfield',
+                'heading' => 'Font chữ (Google Font)',
+                'default' => '',
+            ),
+            'custom_class' => array(
+                'type' => 'textfield',
+                'heading' => 'CSS Class',
+                'default' => '',
+            ),
+            'custom_css' => array(
+                'type' => 'textarea',
+                'heading' => 'Custom CSS',
+                'default' => '',
+            ),
+        ),
+    ));
+
+    add_ux_builder_shortcode('vbc_slider', array(
+        'name' => 'VBC Slider',
+        'category' => 'VibeCode Components',
+        'type' => 'container',
+        'options' => array(
+            'per_page' => array(
+                'type' => 'textfield',
+                'heading' => 'Slides mỗi trang (Desktop)',
+                'default' => '1',
+            ),
+            'speed' => array(
+                'type' => 'textfield',
+                'heading' => 'Tốc độ chuyển (ms)',
+                'default' => '400',
+            ),
+            'autoplay' => array(
+                'type' => 'select',
+                'heading' => 'Tự động chạy (Autoplay)',
+                'default' => 'false',
+                'options' => array(
+                    'true' => 'Có',
+                    'false' => 'Không',
+                ),
+            ),
+            'arrows' => array(
+                'type' => 'select',
+                'heading' => 'Hiện nút mũi tên',
+                'default' => 'true',
+                'options' => array(
+                    'true' => 'Có',
+                    'false' => 'Không',
+                ),
+            ),
+            'pagination' => array(
+                'type' => 'select',
+                'heading' => 'Hiện dấu chấm chuyển trang',
+                'default' => 'true',
+                'options' => array(
+                    'true' => 'Có',
+                    'false' => 'Không',
+                ),
+            ),
+            'gap' => array(
+                'type' => 'textfield',
+                'heading' => 'Khoảng cách giữa các Slide',
+                'default' => '20px',
+            ),
+            'custom_class' => array(
+                'type' => 'textfield',
+                'heading' => 'CSS Class',
+                'default' => '',
+            ),
+            'custom_css' => array(
+                'type' => 'textarea',
+                'heading' => 'Custom CSS',
+                'default' => '',
+            ),
+        ),
+    ));
+
+    add_ux_builder_shortcode('vbc_slide', array(
+        'name' => 'VBC Slide Item',
+        'category' => 'VibeCode Components',
+        'type' => 'container',
+        'options' => array(
+            'background_color' => array(
+                'type' => 'colorpicker',
+                'heading' => 'Màu nền Slide',
+                'default' => '',
+            ),
+            'padding' => array(
+                'type' => 'textfield',
+                'heading' => 'Padding',
+                'default' => '',
+            ),
+            'custom_class' => array(
+                'type' => 'textfield',
+                'heading' => 'CSS Class',
+                'default' => '',
+            ),
+            'custom_css' => array(
+                'type' => 'textarea',
+                'heading' => 'Custom CSS',
+                'default' => '',
+            ),
+        ),
+    ));
+
+    add_ux_builder_shortcode('vbc_fullpage', array(
+        'name' => 'VBC FullPage Wrapper',
+        'category' => 'VibeCode Components',
+        'type' => 'container',
+        'options' => array(
+            'navigation' => array(
+                'type' => 'select',
+                'heading' => 'Hiện menu điều hướng bên cạnh',
+                'default' => 'true',
+                'options' => array(
+                    'true' => 'Có',
+                    'false' => 'Không',
+                ),
+            ),
+            'navigation_position' => array(
+                'type' => 'select',
+                'heading' => 'Vị trí menu điều hướng',
+                'default' => 'right',
+                'options' => array(
+                    'left' => 'Bên trái',
+                    'right' => 'Bên phải',
+                ),
+            ),
+            'scroll_bar' => array(
+                'type' => 'select',
+                'heading' => 'Hiện thanh cuộn mặc định',
+                'default' => 'false',
+                'options' => array(
+                    'true' => 'Có',
+                    'false' => 'Không',
+                ),
+            ),
+            'custom_class' => array(
+                'type' => 'textfield',
+                'heading' => 'CSS Class',
+                'default' => '',
+            ),
+        ),
+    ));
 }
 
 
@@ -388,6 +906,7 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
         'custom_class' => '',
         'custom_css' => '',
         'custom_attributes' => '',
+        'font_family' => '',
         
         // Responsive Options (được tự động ánh xạ bằng __md và __sm)
         'width' => '', 'width__md' => '', 'width__sm' => '',
@@ -477,6 +996,10 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
         }
     }
 
+    if (!empty($atts['font_family'])) {
+        $styles_desktop[] = 'font-family: \'' . esc_attr($atts['font_family']) . '\', sans-serif;';
+    }
+
     $compiled_css = '';
     $class_attr = $atts['custom_class'];
 
@@ -510,6 +1033,10 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
                 $css_rules .= str_replace('selector', '.' . $unique_class, $raw_css) . "\n";
             }
         }
+        
+        // Compress CSS to prevent wpautop from adding <br> tags
+        $css_rules = str_replace(array("\r", "\n"), ' ', $css_rules);
+        $css_rules = preg_replace('/\s+/', ' ', $css_rules);
         
         $compiled_css = '<style>' . $css_rules . '</style>';
         $class_attr = trim($class_attr . ' ' . $unique_class);
@@ -689,7 +1216,19 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
         }
     }
 
-    return $compiled_css . '<' . $html_tag . $class_attr_str . $tag_attrs . $custom_attrs . '>' . $final_content . '</' . $html_tag . '>';
+    if (!empty($atts['font_family'])) {
+        $font_family = trim($atts['font_family']);
+        $font_slug = 'vbc-font-' . sanitize_title($font_family);
+        $font_url = "https://fonts.googleapis.com/css2?family=" . str_replace(' ', '+', $font_family) . ":wght@300;400;500;600;700;800;900&display=swap";
+        wp_enqueue_style($font_slug, $font_url, array(), null);
+    }
+
+    // Strip automatic <p> and <br> generated by wpautop on inline tags
+    if (in_array($html_tag, array('span', 'i', 'b', 'strong', 'em', 'u', 'a'))) {
+        $final_content = str_replace(array('<p>', '</p>', '<br>', '<br />'), '', $final_content);
+    }
+
+    return '<' . $html_tag . $class_attr_str . $tag_attrs . $custom_attrs . '>' . $compiled_css . $final_content . '</' . $html_tag . '>';
 }
 
 
@@ -704,6 +1243,97 @@ function vbc_register_component_shortcodes() {
     add_shortcode('vbc_accordion', 'vbc_accordion_shortcode');
     add_shortcode('vbc_accordion_item', 'vbc_accordion_item_shortcode');
     add_shortcode('vbc_button', 'vbc_button_shortcode');
+    add_shortcode('vbc_slider', 'vbc_slider_shortcode');
+    add_shortcode('vbc_slide', 'vbc_slide_shortcode');
+    add_shortcode('vbc_fullpage', 'vbc_fullpage_shortcode');
+}
+
+function vbc_compile_element_css(&$atts, $base_class = 'vbc-comp') {
+    $random_id = wp_generate_password(8, false);
+    $unique_class = $base_class . '-' . $random_id;
+
+    $styles_desktop = array();
+    $styles_tablet = array();
+    $styles_mobile = array();
+
+    $responsive_props = array(
+        'width' => 'width',
+        'height' => 'height',
+        'margin' => 'margin',
+        'padding' => 'padding',
+        'font_size' => 'font-size',
+        'text_align' => 'text-align',
+        'display' => 'display',
+        'background_color' => 'background-color',
+    );
+
+    foreach ($responsive_props as $attr_key => $css_prop) {
+        if (isset($atts[$attr_key]) && $atts[$attr_key] !== '') {
+            $val = $atts[$attr_key];
+            if ($css_prop === 'background-color' && preg_match('/^[0-9a-fA-F]{3,8}$/', $val)) {
+                $val = '#' . $val;
+            }
+            $styles_desktop[] = $css_prop . ': ' . $val . ';';
+        }
+        $md_key = $attr_key . '__md';
+        if (isset($atts[$md_key]) && $atts[$md_key] !== '') {
+            $val = $atts[$md_key];
+            if ($css_prop === 'background-color' && preg_match('/^[0-9a-fA-F]{3,8}$/', $val)) {
+                $val = '#' . $val;
+            }
+            $styles_tablet[] = $css_prop . ': ' . $val . ';';
+        }
+        $sm_key = $attr_key . '__sm';
+        if (isset($atts[$sm_key]) && $atts[$sm_key] !== '') {
+            $val = $atts[$sm_key];
+            if ($css_prop === 'background-color' && preg_match('/^[0-9a-fA-F]{3,8}$/', $val)) {
+                $val = '#' . $val;
+            }
+            $styles_mobile[] = $css_prop . ': ' . $val . ';';
+        }
+    }
+
+    if (!empty($atts['font_family'])) {
+        $font_family = trim($atts['font_family']);
+        $font_slug = 'vbc-font-' . sanitize_title($font_family);
+        $font_url = "https://fonts.googleapis.com/css2?family=" . str_replace(' ', '+', $font_family) . ":wght@300;400;500;600;700;800;900&display=swap";
+        wp_enqueue_style($font_slug, $font_url, array(), null);
+
+        $styles_desktop[] = "font-family: '" . esc_attr($font_family) . "', sans-serif;";
+    }
+
+    $compiled_css = '';
+    if (!empty($styles_desktop) || !empty($styles_tablet) || !empty($styles_mobile) || !empty($atts['custom_css'])) {
+        $css_rules = '';
+        if (!empty($styles_desktop)) {
+            $css_rules .= '.' . $unique_class . ' { ' . implode(' ', $styles_desktop) . ' }' . "\n";
+        }
+        if (!empty($styles_tablet)) {
+            $css_rules .= '@media (max-width: 849px) { .' . $unique_class . ' { ' . implode(' ', $styles_tablet) . ' } }' . "\n";
+        }
+        if (!empty($styles_mobile)) {
+            $css_rules .= '@media (max-width: 549px) { .' . $unique_class . ' { ' . implode(' ', $styles_mobile) . ' } }' . "\n";
+        }
+        if (!empty($atts['custom_css'])) {
+            $raw_css = trim($atts['custom_css']);
+            if (strpos($raw_css, '{') === false) {
+                $css_rules .= '.' . $unique_class . ' { ' . $raw_css . ' }' . "\n";
+            } else {
+                $css_rules .= str_replace('selector', '.' . $unique_class, $raw_css) . "\n";
+            }
+        }
+        
+        // Compress CSS to prevent wpautop from adding <br> tags
+        $css_rules = str_replace(array("\r", "\n"), ' ', $css_rules);
+        $css_rules = preg_replace('/\s+/', ' ', $css_rules);
+        
+        $compiled_css = '<style>' . $css_rules . '</style>';
+    }
+
+    return array(
+        'class' => $unique_class,
+        'css' => $compiled_css
+    );
 }
 
 function vbc_card_shortcode($atts, $content = null) {
@@ -711,42 +1341,47 @@ function vbc_card_shortcode($atts, $content = null) {
         'variant' => 'glass',
         'custom_class' => '',
         'custom_css' => '',
-        'padding' => '35px 30px',
-        'border_radius' => '20px',
-        'border_color' => 'rgba(255,255,255,0.08)',
-        'glow_color' => 'rgba(239, 68, 68, 0.2)',
+        'padding' => '', 'padding__md' => '', 'padding__sm' => '',
+        'margin' => '', 'margin__md' => '', 'margin__sm' => '',
+        'width' => '', 'width__md' => '', 'width__sm' => '',
+        'height' => '', 'height__md' => '', 'height__sm' => '',
+        'background_color' => '', 'background_color__md' => '', 'background_color__sm' => '',
+        'border_radius' => '',
+        'border_color' => '',
+        'glow_color' => '',
+        'font_family' => '',
     ), $atts);
 
-    $random_id = wp_generate_password(8, false);
-    $unique_class = 'vbc-card-' . $random_id;
+    $padding = !empty($atts['padding']) ? $atts['padding'] : '35px 30px';
+    $radius = !empty($atts['border_radius']) ? $atts['border_radius'] : '20px';
+    $border = !empty($atts['border_color']) ? $atts['border_color'] : 'rgba(255,255,255,0.08)';
+    $glow = !empty($atts['glow_color']) ? $atts['glow_color'] : 'rgba(239, 68, 68, 0.2)';
+    $bg = !empty($atts['background_color']) ? $atts['background_color'] : 'rgba(255, 255, 255, 0.03)';
 
-    $css = '.' . $unique_class . ' { ';
-    $css .= 'background: rgba(255, 255, 255, 0.03); ';
-    $css .= 'backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); ';
-    $css .= 'border: 1px solid ' . esc_attr($atts['border_color']) . '; ';
-    $css .= 'border-radius: ' . esc_attr($atts['border_radius']) . '; ';
-    $css .= 'padding: ' . esc_attr($atts['padding']) . '; ';
-    $css .= 'box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4); ';
-    $css .= 'transition: all 0.3s ease; ';
-    $css .= '} ';
-    $css .= '.' . $unique_class . ':hover { ';
-    $css .= 'transform: translateY(-8px); ';
-    $css .= 'border-color: ' . esc_attr($atts['glow_color']) . '; ';
-    $css .= 'box-shadow: 0 20px 40px ' . esc_attr($atts['glow_color']) . '; ';
-    $css .= '} ';
+    $res = vbc_compile_element_css($atts, 'vbc-card');
+    $unique_class = $res['class'];
+    $compiled_css = $res['css'];
 
-    if (!empty($atts['custom_css'])) {
-        $raw_css = trim($atts['custom_css']);
-        if (strpos($raw_css, '{') === false) {
-            $css .= '.' . $unique_class . ' { ' . $raw_css . ' } ';
-        } else {
-            $css .= str_replace('selector', '.' . $unique_class, $raw_css);
-        }
-    }
+    $default_css = '<style>';
+    $default_css .= '.' . $unique_class . ' { ';
+    $default_css .= 'background: ' . $bg . '; ';
+    $default_css .= 'backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); ';
+    $default_css .= 'border: 1px solid ' . $border . '; ';
+    $default_css .= 'border-radius: ' . $radius . '; ';
+    $default_css .= 'padding: ' . $padding . '; ';
+    $default_css .= 'box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4); ';
+    $default_css .= 'transition: all 0.3s ease; ';
+    $default_css .= '} ';
+    $default_css .= '.' . $unique_class . ':hover { ';
+    $default_css .= 'transform: translateY(-8px); ';
+    $default_css .= 'border-color: ' . $glow . '; ';
+    $default_css .= 'box-shadow: 0 20px 40px ' . $glow . '; ';
+    $default_css .= '} ';
+    $default_css .= '</style>';
 
     $class_str = trim('vbc-component-card ' . $unique_class . ' ' . $atts['custom_class']);
 
-    return '<style>' . $css . '</style><div class="' . esc_attr($class_str) . '">' . do_shortcode($content) . '</div>';
+    return '<div class="' . esc_attr($class_str) . '">' . $default_css . $compiled_css . do_shortcode($content) . '</div>';
 }
 
 function vbc_testimonial_shortcode($atts, $content = null) {
@@ -757,29 +1392,52 @@ function vbc_testimonial_shortcode($atts, $content = null) {
         'avatar_url' => '',
         'custom_class' => '',
         'custom_css' => '',
+        'padding' => '', 'padding__md' => '', 'padding__sm' => '',
+        'margin' => '', 'margin__md' => '', 'margin__sm' => '',
+        'width' => '', 'width__md' => '', 'width__sm' => '',
+        'height' => '', 'height__md' => '', 'height__sm' => '',
+        'background_color' => '', 'background_color__md' => '', 'background_color__sm' => '',
+        'border_radius' => '',
+        'border_color' => '',
+        'text_color' => '',
+        'author_color' => '',
+        'font_family' => '',
     ), $atts);
 
     $stars_count = intval($atts['stars']);
     $stars_html = str_repeat('★', $stars_count);
 
-    $random_id = wp_generate_password(8, false);
-    $unique_class = 'vbc-testi-' . $random_id;
+    $padding = !empty($atts['padding']) ? $atts['padding'] : '35px 28px';
+    $radius = !empty($atts['border_radius']) ? $atts['border_radius'] : '20px';
+    $border = !empty($atts['border_color']) ? $atts['border_color'] : 'rgba(255,255,255,0.08)';
+    $bg = !empty($atts['background_color']) ? $atts['background_color'] : 'rgba(255,255,255,0.03)';
+    $text_color = !empty($atts['text_color']) ? $atts['text_color'] : '#cbd5e1';
+    $author_color = !empty($atts['author_color']) ? $atts['author_color'] : '#ffffff';
 
-    $css = '.' . $unique_class . ' { background: rgba(255,255,255,0.03); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.08); padding: 35px 28px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); transition: all 0.3s; } ';
-    $css .= '.' . $unique_class . ':hover { transform: translateY(-5px); border-color: rgba(239,68,68,0.3); box-shadow: 0 20px 40px rgba(239,68,68,0.15); } ';
-    $css .= '.' . $unique_class . ' .vbc-stars { color: #fbbf24; font-size: 18px; margin-bottom: 15px; letter-spacing: 2px; } ';
-    $css .= '.' . $unique_class . ' .vbc-quote { color: #cbd5e1; font-size: 15px; line-height: 1.7; margin-bottom: 20px; font-style: italic; } ';
-    $css .= '.' . $unique_class . ' .vbc-author { color: #ffffff; font-weight: 700; font-size: 16px; margin-bottom: 3px; } ';
-    $css .= '.' . $unique_class . ' .vbc-company { color: #94a3b8; font-size: 13px; } ';
+    $res = vbc_compile_element_css($atts, 'vbc-testi');
+    $unique_class = $res['class'];
+    $compiled_css = $res['css'];
 
-    if (!empty($atts['custom_css'])) {
-        $raw_css = trim($atts['custom_css']);
-        if (strpos($raw_css, '{') === false) {
-            $css .= '.' . $unique_class . ' { ' . $raw_css . ' } ';
-        } else {
-            $css .= str_replace('selector', '.' . $unique_class, $raw_css);
-        }
-    }
+    $default_css = '<style>';
+    $default_css .= '.' . $unique_class . ' { ';
+    $default_css .= 'background: ' . $bg . '; ';
+    $default_css .= 'backdrop-filter: blur(16px); ';
+    $default_css .= 'border: 1px solid ' . $border . '; ';
+    $default_css .= 'padding: ' . $padding . '; ';
+    $default_css .= 'border-radius: ' . $radius . '; ';
+    $default_css .= 'box-shadow: 0 15px 35px rgba(0,0,0,0.3); ';
+    $default_css .= 'transition: all 0.3s; ';
+    $default_css .= '} ';
+    $default_css .= '.' . $unique_class . ':hover { ';
+    $default_css .= 'transform: translateY(-5px); ';
+    $default_css .= 'border-color: rgba(239,68,68,0.3); ';
+    $default_css .= 'box-shadow: 0 20px 40px rgba(239,68,68,0.15); ';
+    $default_css .= '} ';
+    $default_css .= '.' . $unique_class . ' .vbc-stars { color: #fbbf24; font-size: 18px; margin-bottom: 15px; letter-spacing: 2px; } ';
+    $default_css .= '.' . $unique_class . ' .vbc-quote { color: ' . $text_color . '; font-size: 15px; line-height: 1.7; margin-bottom: 20px; font-style: italic; } ';
+    $default_css .= '.' . $unique_class . ' .vbc-author { color: ' . $author_color . '; font-weight: 700; font-size: 16px; margin-bottom: 3px; } ';
+    $default_css .= '.' . $unique_class . ' .vbc-company { color: #94a3b8; font-size: 13px; } ';
+    $default_css .= '</style>';
 
     $avatar_html = '';
     if (!empty($atts['avatar_url'])) {
@@ -788,7 +1446,7 @@ function vbc_testimonial_shortcode($atts, $content = null) {
 
     $meta_html = '<div style="display: flex; align-items: center;">' . $avatar_html . '<div><div class="vbc-author">' . esc_html($atts['name']) . '</div><div class="vbc-company">' . esc_html($atts['company']) . '</div></div></div>';
 
-    return '<style>' . $css . '</style><div class="' . esc_attr($unique_class . ' ' . $atts['custom_class']) . '"><div class="vbc-stars">' . $stars_html . '</div><div class="vbc-quote">"' . do_shortcode($content) . '"</div>' . $meta_html . '</div>';
+    return '<div class="' . esc_attr($unique_class . ' ' . $atts['custom_class']) . '">' . $default_css . $compiled_css . '<div class="vbc-stars">' . $stars_html . '</div><div class="vbc-quote">"' . do_shortcode($content) . '"</div>' . $meta_html . '</div>';
 }
 
 function vbc_accordion_shortcode($atts, $content = null) {
@@ -796,40 +1454,61 @@ function vbc_accordion_shortcode($atts, $content = null) {
         'faq_schema' => 'true',
         'custom_class' => '',
         'custom_css' => '',
+        'padding' => '', 'padding__md' => '', 'padding__sm' => '',
+        'margin' => '', 'margin__md' => '', 'margin__sm' => '',
+        'width' => '', 'width__md' => '', 'width__sm' => '',
+        'height' => '', 'height__md' => '', 'height__sm' => '',
+        'background_color' => '', 'background_color__md' => '', 'background_color__sm' => '',
+        'border_radius' => '',
+        'border_color' => '',
+        'font_family' => '',
     ), $atts);
 
     $schema_attr = ($atts['faq_schema'] === 'true') ? ' itemscope itemtype="https://schema.org/FAQPage"' : '';
-    
-    $random_id = wp_generate_password(8, false);
-    $unique_class = 'vbc-acc-' . $random_id;
 
-    $css = '.' . $unique_class . ' { background: rgba(255,255,255,0.02); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; padding: 35px 45px; box-shadow: 0 15px 40px rgba(0,0,0,0.3); } ';
+    $padding = !empty($atts['padding']) ? $atts['padding'] : '35px 45px';
+    $radius = !empty($atts['border_radius']) ? $atts['border_radius'] : '24px';
+    $border = !empty($atts['border_color']) ? $atts['border_color'] : 'rgba(255,255,255,0.08)';
+    $bg = !empty($atts['background_color']) ? $atts['background_color'] : 'rgba(255,255,255,0.02)';
 
-    if (!empty($atts['custom_css'])) {
-        $raw_css = trim($atts['custom_css']);
-        if (strpos($raw_css, '{') === false) {
-            $css .= '.' . $unique_class . ' { ' . $raw_css . ' } ';
-        } else {
-            $css .= str_replace('selector', '.' . $unique_class, $raw_css);
-        }
-    }
+    $res = vbc_compile_element_css($atts, 'vbc-acc');
+    $unique_class = $res['class'];
+    $compiled_css = $res['css'];
 
-    return '<style>' . $css . '</style><div class="' . esc_attr($unique_class . ' ' . $atts['custom_class']) . '"' . $schema_attr . '>' . do_shortcode($content) . '</div>';
+    $default_css = '<style>';
+    $default_css .= '.' . $unique_class . ' { ';
+    $default_css .= 'background: ' . $bg . '; ';
+    $default_css .= 'backdrop-filter: blur(16px); ';
+    $default_css .= 'border: 1px solid ' . $border . '; ';
+    $default_css .= 'border-radius: ' . $radius . '; ';
+    $default_css .= 'padding: ' . $padding . '; ';
+    $default_css .= 'box-shadow: 0 15px 40px rgba(0,0,0,0.3); ';
+    $default_css .= '} ';
+    $default_css .= '</style>';
+
+    return '<div class="' . esc_attr($unique_class . ' ' . $atts['custom_class']) . '"' . $schema_attr . '>' . $default_css . $compiled_css . do_shortcode($content) . '</div>';
 }
 
 function vbc_accordion_item_shortcode($atts, $content = null) {
     $atts = shortcode_atts(array(
         'title' => '',
         'open' => 'false',
+        'title_color' => '',
+        'content_color' => '',
+        'font_size' => '',
     ), $atts);
 
     $open_attr = ($atts['open'] === 'true') ? ' open' : '';
+    
+    $title_color = !empty($atts['title_color']) ? $atts['title_color'] : '#ffffff';
+    $content_color = !empty($atts['content_color']) ? $atts['content_color'] : '#cbd5e1';
+    $font_size = !empty($atts['font_size']) ? $atts['font_size'] : '18px';
 
     $html = '<details class="vbc-faq-item" style="border-bottom: 1px solid rgba(255,255,255,0.08); padding: 15px 0;" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question"' . $open_attr . '>';
-    $html .= '<summary style="color: #ffffff; font-size: 18px; font-weight: 700; cursor: pointer; outline: none; list-style: none; display: flex; justify-content: space-between; align-items: center;" itemprop="name">';
+    $html .= '<summary style="color: ' . esc_attr($title_color) . '; font-size: ' . esc_attr($font_size) . '; font-weight: 700; cursor: pointer; outline: none; list-style: none; display: flex; justify-content: space-between; align-items: center;" itemprop="name">';
     $html .= '<span>' . esc_html($atts['title']) . '</span><span style="font-size: 20px; color: #f87171;">+</span>';
     $html .= '</summary>';
-    $html .= '<div style="color: #cbd5e1; font-size: 15px; line-height: 1.7; margin-top: 15px; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">';
+    $html .= '<div style="color: ' . esc_attr($content_color) . '; font-size: 15px; line-height: 1.7; margin-top: 15px; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">';
     $html .= '<div itemprop="text">' . do_shortcode($content) . '</div>';
     $html .= '</div>';
     $html .= '</details>';
@@ -845,33 +1524,212 @@ function vbc_button_shortcode($atts, $content = null) {
         'variant' => 'danger',
         'custom_class' => '',
         'custom_css' => '',
+        'padding' => '', 'padding__md' => '', 'padding__sm' => '',
+        'margin' => '', 'margin__md' => '', 'margin__sm' => '',
+        'width' => '', 'width__md' => '', 'width__sm' => '',
+        'height' => '', 'height__md' => '', 'height__sm' => '',
+        'font_size' => '', 'font_size__md' => '', 'font_size__sm' => '',
+        'background_color' => '',
+        'text_color' => '',
+        'border_radius' => '',
+        'font_family' => '',
     ), $atts);
 
-    $random_id = wp_generate_password(8, false);
-    $unique_class = 'vbc-btn-' . $random_id;
+    $res = vbc_compile_element_css($atts, 'vbc-btn');
+    $unique_class = $res['class'];
+    $compiled_css = $res['css'];
 
-    $css = '.' . $unique_class . ' { display: inline-block; padding: 16px 38px; border-radius: 30px; font-weight: 800; font-size: 15px; text-decoration: none; text-align: center; transition: all 0.3s ease; letter-spacing: 0.5px; } ';
-    
+    $padding = !empty($atts['padding']) ? $atts['padding'] : '16px 38px';
+    $radius = !empty($atts['border_radius']) ? $atts['border_radius'] : '30px';
+    $font_size = !empty($atts['font_size']) ? $atts['font_size'] : '15px';
+
+    $default_css = '<style>';
+    $default_css .= '.' . $unique_class . ' { ';
+    $default_css .= 'display: inline-block; ';
+    $default_css .= 'padding: ' . $padding . '; ';
+    $default_css .= 'border-radius: ' . $radius . '; ';
+    $default_css .= 'font-weight: 800; ';
+    $default_css .= 'font-size: ' . $font_size . '; ';
+    $default_css .= 'text-decoration: none; ';
+    $default_css .= 'text-align: center; ';
+    $default_css .= 'transition: all 0.3s ease; ';
+    $default_css .= 'letter-spacing: 0.5px; ';
+    $default_css .= '} ';
+
     if ($atts['variant'] === 'danger' || $atts['variant'] === 'primary') {
-        $css .= '.' . $unique_class . ' { background: linear-gradient(135deg, #ef4444, #dc2626); color: #ffffff; box-shadow: 0 4px 25px rgba(239, 68, 68, 0.5); } ';
-        $css .= '.' . $unique_class . ':hover { transform: translateY(-3px); box-shadow: 0 8px 35px rgba(239, 68, 68, 0.7); color: #ffffff; } ';
+        $default_css .= '.' . $unique_class . ' { background: linear-gradient(135deg, #ef4444, #dc2626); color: #ffffff; box-shadow: 0 4px 25px rgba(239, 68, 68, 0.5); } ';
+        $default_css .= '.' . $unique_class . ':hover { transform: translateY(-3px); box-shadow: 0 8px 35px rgba(239, 68, 68, 0.7); color: #ffffff; } ';
     } elseif ($atts['variant'] === 'glass') {
-        $css .= '.' . $unique_class . ' { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2); color: #ffffff; backdrop-filter: blur(8px); } ';
-        $css .= '.' . $unique_class . ':hover { background: rgba(255, 255, 255, 0.15); border-color: #ffffff; transform: translateY(-3px); color: #ffffff; } ';
-    }
-
-    if (!empty($atts['custom_css'])) {
-        $raw_css = trim($atts['custom_css']);
-        if (strpos($raw_css, '{') === false) {
-            $css .= '.' . $unique_class . ' { ' . $raw_css . ' } ';
-        } else {
-            $css .= str_replace('selector', '.' . $unique_class, $raw_css);
+        $default_css .= '.' . $unique_class . ' { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2); color: #ffffff; backdrop-filter: blur(8px); } ';
+        $default_css .= '.' . $unique_class . ':hover { background: rgba(255, 255, 255, 0.15); border-color: #ffffff; transform: translateY(-3px); color: #ffffff; } ';
+    } elseif ($atts['variant'] === 'custom') {
+        $bg = !empty($atts['background_color']) ? $atts['background_color'] : '#2563eb';
+        if (preg_match('/^[0-9a-fA-F]{3,8}$/', $bg)) {
+            $bg = '#' . $bg;
         }
+        $color = !empty($atts['text_color']) ? $atts['text_color'] : '#ffffff';
+        $default_css .= '.' . $unique_class . ' { background: ' . $bg . '; color: ' . $color . '; } ';
+        $default_css .= '.' . $unique_class . ':hover { transform: translateY(-3px); opacity: 0.9; color: ' . $color . '; } ';
     }
+    $default_css .= '</style>';
 
     $btn_text = !empty($atts['text']) ? esc_html($atts['text']) : do_shortcode($content);
 
-    return '<style>' . $css . '</style><a href="' . esc_url($atts['url']) . '" target="' . esc_attr($atts['target']) . '" class="' . esc_attr($unique_class . ' ' . $atts['custom_class']) . '">' . $btn_text . '</a>';
+    return '<a href="' . esc_url($atts['url']) . '" target="' . esc_attr($atts['target']) . '" class="' . esc_attr($unique_class . ' ' . $atts['custom_class']) . '">' . $default_css . $compiled_css . $btn_text . '</a>';
+}
+
+function vbc_slider_shortcode($atts, $content = null) {
+    $atts = shortcode_atts(array(
+        'per_page' => '1',
+        'speed' => '400',
+        'autoplay' => 'false',
+        'arrows' => 'true',
+        'pagination' => 'true',
+        'gap' => '20px',
+        'custom_class' => '',
+        'custom_css' => '',
+    ), $atts);
+
+    wp_enqueue_style('vbc-splide');
+    wp_enqueue_script('vbc-splide');
+
+    $res = vbc_compile_element_css($atts, 'vbc-sldr');
+    $unique_class = $res['class'];
+    $compiled_css = $res['css'];
+
+    $random_id = wp_generate_password(8, false);
+    $slider_id = 'vbc-splide-' . $random_id;
+
+    $js_script = '<script>
+    (function() {
+        function initSplide() {
+            if (typeof Splide !== "undefined" && document.getElementById("' . $slider_id . '")) {
+                new Splide("#' . $slider_id . '", {
+                    type: "slide",
+                    perPage: ' . intval($atts['per_page']) . ',
+                    speed: ' . intval($atts['speed']) . ',
+                    autoplay: ' . ($atts['autoplay'] === 'true' ? 'true' : 'false') . ',
+                    arrows: ' . ($atts['arrows'] === 'true' ? 'true' : 'false') . ',
+                    pagination: ' . ($atts['pagination'] === 'true' ? 'true' : 'false') . ',
+                    gap: "' . esc_js($atts['gap']) . '",
+                    breakpoints: {
+                        849: { perPage: 1 },
+                        549: { perPage: 1 }
+                    }
+                }).mount();
+            }
+        }
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", initSplide);
+        } else {
+            initSplide();
+        }
+    })();
+    </script>';
+
+    $class_str = esc_attr(trim('splide ' . $unique_class . ' ' . $atts['custom_class']));
+
+    $html = '<div id="' . $slider_id . '" class="' . $class_str . '">';
+    $html .= $compiled_css;
+    $html .= '<div class="splide__track">';
+    $html .= '<ul class="splide__list">';
+    $html .= do_shortcode($content);
+    $html .= '</ul>';
+    $html .= '</div>';
+    $html .= '</div>';
+    $html .= $js_script;
+
+    return $html;
+}
+
+function vbc_slide_shortcode($atts, $content = null) {
+    $atts = shortcode_atts(array(
+        'background_color' => '',
+        'padding' => '',
+        'custom_class' => '',
+        'custom_css' => '',
+    ), $atts);
+
+    $res = vbc_compile_element_css($atts, 'vbc-sld');
+    $unique_class = $res['class'];
+    $compiled_css = $res['css'];
+
+    $class_str = esc_attr(trim('splide__slide ' . $unique_class . ' ' . $atts['custom_class']));
+
+    $html = '<li class="' . $class_str . '">';
+    $html .= $compiled_css;
+    $html .= do_shortcode($content);
+    $html .= '</li>';
+
+    return $html;
+}
+
+function vbc_fullpage_shortcode($atts, $content = null) {
+    $atts = shortcode_atts(array(
+        'navigation' => 'true',
+        'navigation_position' => 'right',
+        'scroll_bar' => 'false',
+        'custom_class' => '',
+    ), $atts);
+
+    wp_enqueue_style('vbc-fullpage');
+    wp_enqueue_script('vbc-fullpage');
+
+    $random_id = wp_generate_password(8, false);
+    $fullpage_id = 'vbc-fullpage-' . $random_id;
+
+    $js_script = '<script>
+    (function() {
+        function initFullPage() {
+            var container = document.getElementById("' . $fullpage_id . '");
+            if (typeof fullpage !== "undefined" && container) {
+                // Di chuyen footer vao trong fullpage container
+                var footer = document.getElementById("footer") || document.querySelector("footer") || document.querySelector(".footer-wrapper");
+                if (footer) {
+                    container.appendChild(footer);
+                }
+
+                // Them class section cho cac element con div (va footer), va xoa bo cac the p du thua
+                Array.from(container.children).forEach(function(child) {
+                    if (child.nodeType === 1) {
+                        var tag = child.tagName.toLowerCase();
+                        if (tag === "div" || tag === "footer") {
+                            child.classList.add("section");
+                            if (tag === "footer") {
+                                child.classList.add("fp-auto-height");
+                            }
+                        } else if (tag === "p") {
+                            child.remove();
+                        }
+                    }
+                });
+                new fullpage("#' . $fullpage_id . '", {
+                    licenseKey: "gplv3-license",
+                    navigation: ' . ($atts['navigation'] === 'true' ? 'true' : 'false') . ',
+                    navigationPosition: "' . esc_js($atts['navigation_position']) . '",
+                    scrollBar: ' . ($atts['scroll_bar'] === 'true' ? 'true' : 'false') . ',
+                    autoScrolling: true,
+                    fitToSection: true,
+                    responsiveWidth: 768
+                });
+            }
+        }
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", initFullPage);
+        } else {
+            initFullPage();
+        }
+    })();
+    </script>';
+
+    $class_str = esc_attr(trim('vbc-fullpage-container ' . $atts['custom_class']));
+
+    $html = '<div id="' . $fullpage_id . '" class="' . $class_str . '">';
+    $html .= do_shortcode($content);
+    $html .= '</div>';
+    $html .= $js_script;
+
+    return $html;
 }
 
 
@@ -939,15 +1797,28 @@ function vbc_register_rest_routes() {
     ));
 
     register_rest_route('vbc/v1', '/page', array(
-        'methods' => 'POST',
-        'callback' => 'vbc_api_page_handler',
-        'permission_callback' => function($request) {
-            $user = vbc_authenticate_request($request);
-            if (is_wp_error($user)) {
-                return $user;
+        array(
+            'methods' => 'POST',
+            'callback' => 'vbc_api_page_handler',
+            'permission_callback' => function($request) {
+                $user = vbc_authenticate_request($request);
+                if (is_wp_error($user)) {
+                    return $user;
+                }
+                return user_can($user, 'edit_pages') || user_can($user, 'edit_posts');
             }
-            return user_can($user, 'edit_pages') || user_can($user, 'edit_posts');
-        }
+        ),
+        array(
+            'methods' => 'GET',
+            'callback' => 'vbc_api_get_page_handler',
+            'permission_callback' => function($request) {
+                $user = vbc_authenticate_request($request);
+                if (is_wp_error($user)) {
+                    return $user;
+                }
+                return user_can($user, 'edit_pages') || user_can($user, 'edit_posts');
+            }
+        )
     ));
 }
 
@@ -1099,11 +1970,43 @@ function vbc_api_page_handler($request) {
     }
 }
 
+function vbc_api_get_page_handler($request) {
+    $post_id = intval($request->get_param('post_id'));
+    $slug = sanitize_title($request->get_param('slug'));
+    
+    if ($post_id > 0) {
+        $post = get_post($post_id);
+    } elseif (!empty($slug)) {
+        $posts = get_posts(array(
+            'name' => $slug,
+            'post_type' => 'any',
+            'posts_per_page' => 1
+        ));
+        $post = !empty($posts) ? $posts[0] : null;
+    } else {
+        return new WP_Error('vbc_missing_param', 'Post ID or Slug is required.', array('status' => 400));
+    }
+    
+    if (!$post) {
+        return new WP_Error('vbc_not_found', 'Page not found.', array('status' => 404));
+    }
+    
+    return array(
+        'success' => true,
+        'post_id' => $post->ID,
+        'title' => $post->post_title,
+        'content' => $post->post_content,
+        'slug' => $post->post_name,
+        'status' => $post->post_status,
+        'post_type' => $post->post_type,
+    );
+}
 
 /**
  * 5. QUẢN LÝ THƯ VIỆN ICON THÔNG MINH (CONDITIONAL ICON LOADING)
  */
 add_action('wp_enqueue_scripts', 'vbc_register_icon_libraries');
+add_action('admin_enqueue_scripts', 'vbc_register_icon_libraries');
 
 function vbc_register_icon_libraries() {
     // Đăng ký danh sách các CDN thư viện icon (Chỉ đăng ký, chưa nạp vào trang)
@@ -1112,6 +2015,32 @@ function vbc_register_icon_libraries() {
     wp_register_style('vbc-material-symbols', 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined', array(), '1.0');
     wp_register_script('vbc-lucide', 'https://unpkg.com/lucide@latest', array(), 'latest', true);
     wp_register_script('vbc-phosphor', 'https://unpkg.com/@phosphor-icons/web', array(), 'latest', true);
+
+    // Đăng ký Splide.js & fullpage.js
+    wp_register_style('vbc-splide', 'https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css', array(), '4.1.4');
+    wp_register_script('vbc-splide', 'https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/js/splide.min.js', array(), '4.1.4', true);
+    wp_register_style('vbc-fullpage', 'https://cdnjs.cloudflare.com/ajax/libs/fullPage.js/4.0.20/fullpage.min.css', array(), '4.0.20');
+    wp_register_script('vbc-fullpage', 'https://cdnjs.cloudflare.com/ajax/libs/fullPage.js/4.0.20/fullpage.min.js', array(), '4.0.20', true);
+
+    // Nếu đang trong trình chỉnh sửa UX Builder hoặc customizer preview, nạp sẵn tất cả thư viện để hiển thị xem trước
+    $is_ux_builder = false;
+    if (function_exists('ux_builder_is_active') && ux_builder_is_active()) {
+        $is_ux_builder = true;
+    }
+    if (isset($_GET['uxb_iframe']) || isset($_GET['ux-builder']) || (is_admin() && isset($_GET['page']) && $_GET['page'] === 'uxbuilder')) {
+        $is_ux_builder = true;
+    }
+
+    if ($is_ux_builder) {
+        wp_enqueue_style('vbc-fontawesome6');
+        wp_enqueue_style('vbc-remixicon');
+        wp_enqueue_style('vbc-material-symbols');
+        wp_enqueue_script('vbc-lucide');
+        wp_enqueue_script('vbc-phosphor');
+        
+        add_action('wp_footer', 'vbc_lucide_trigger_script', 99);
+        add_action('admin_footer', 'vbc_lucide_trigger_script', 99);
+    }
 }
 
 function vbc_enqueue_icon_pack($pack) {
@@ -1131,7 +2060,50 @@ function vbc_enqueue_icon_pack($pack) {
 }
 
 function vbc_lucide_trigger_script() {
-    echo '<script>document.addEventListener("DOMContentLoaded", function(){ if(typeof lucide !== "undefined"){ lucide.createIcons(); } });</script>';
+    ?>
+    <script>
+    (function() {
+        function triggerLucide() {
+            if (typeof lucide !== 'undefined' && document.querySelector('i[data-lucide]')) {
+                lucide.createIcons();
+            }
+        }
+        
+        // Chạy lần đầu khi DOM sẵn sàng hoặc ngay lập tức nếu đã tải xong
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', triggerLucide);
+        } else {
+            triggerLucide();
+        }
+
+        // Tạo MutationObserver để liên tục lắng nghe thay đổi trong DOM (dành cho UX Builder AJAX render)
+        if (typeof MutationObserver !== 'undefined') {
+            var observer = new MutationObserver(function(mutations) {
+                var hasNewLucide = false;
+                for (var i = 0; i < mutations.length; i++) {
+                    var addedNodes = mutations[i].addedNodes;
+                    for (var j = 0; j < addedNodes.length; j++) {
+                        var node = addedNodes[j];
+                        if (node.nodeType === 1) { // Element node
+                            if ((node.tagName.toLowerCase() === 'i' && node.hasAttribute('data-lucide')) || node.querySelector('i[data-lucide]')) {
+                                hasNewLucide = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (hasNewLucide) break;
+                }
+                if (hasNewLucide) {
+                    triggerLucide();
+                }
+            });
+            
+            // Theo dõi body
+            observer.observe(document.body, { childList: true, subtree: true });
+        }
+    })();
+    </script>
+    <?php
 }
 
 // Đăng ký UX Builder & Shortcode handler cho [vbc_icon]
@@ -1145,7 +2117,7 @@ function vbc_register_icon_ux_builder() {
                 'pack' => array(
                     'type' => 'select',
                     'heading' => 'Bộ Icon',
-                    'default' => 'fontawesome',
+                    'default' => 'lucide',
                     'options' => array(
                         'fontawesome' => 'Font Awesome 6',
                         'remix' => 'Remix Icon',
@@ -1154,11 +2126,180 @@ function vbc_register_icon_ux_builder() {
                         'material' => 'Google Material Symbols',
                     ),
                 ),
-                'name' => array(
-                    'type' => 'textfield',
-                    'heading' => 'Tên Icon / Class',
+                'name_fa' => array(
+                    'type' => 'select',
+                    'heading' => 'Chọn Icon Font Awesome',
                     'default' => 'fa-solid fa-shield-halved',
-                    'description' => 'Ví dụ FA: fa-solid fa-shield-halved | Remix: ri-shield-check-line | Lucide: shield-check | Material: security',
+                    'conditions' => 'pack === "fontawesome"',
+                    'options' => array(
+                        'custom' => '--- Tùy chỉnh (Nhập tay class) ---',
+                        'fa-solid fa-house' => 'House / Home',
+                        'fa-solid fa-user' => 'User',
+                        'fa-solid fa-envelope' => 'Envelope / Mail',
+                        'fa-solid fa-phone' => 'Phone',
+                        'fa-solid fa-magnifying-glass' => 'Search',
+                        'fa-solid fa-gear' => 'Gear / Settings',
+                        'fa-solid fa-check' => 'Check / Success',
+                        'fa-solid fa-xmark' => 'X / Close',
+                        'fa-solid fa-shield-halved' => 'Shield',
+                        'fa-solid fa-bolt' => 'Bolt / Zap',
+                        'fa-solid fa-star' => 'Star',
+                        'fa-solid fa-circle-info' => 'Info',
+                        'fa-solid fa-circle-exclamation' => 'Warning',
+                        'fa-solid fa-trash' => 'Trash',
+                        'fa-solid fa-lock' => 'Lock',
+                        'fa-solid fa-key' => 'Key',
+                        'fa-solid fa-chart-line' => 'Chart Line',
+                        'fa-brands fa-facebook' => 'Facebook Logo',
+                        'fa-brands fa-google' => 'Google Logo',
+                        'fa-brands fa-youtube' => 'YouTube Logo',
+                        'fa-brands fa-twitter' => 'Twitter Logo',
+                        'fa-brands fa-instagram' => 'Instagram Logo',
+                    ),
+                ),
+                'name_ri' => array(
+                    'type' => 'select',
+                    'heading' => 'Chọn Icon Remix',
+                    'default' => 'ri-shield-check-line',
+                    'conditions' => 'pack === "remix"',
+                    'options' => array(
+                        'custom' => '--- Tùy chỉnh (Nhập tay class) ---',
+                        'ri-home-line' => 'Home',
+                        'ri-user-line' => 'User',
+                        'ri-mail-line' => 'Mail',
+                        'ri-phone-line' => 'Phone',
+                        'ri-search-line' => 'Search',
+                        'ri-settings-line' => 'Settings',
+                        'ri-check-line' => 'Check',
+                        'ri-close-line' => 'Close',
+                        'ri-shield-check-line' => 'Shield Check',
+                        'ri-flashlight-line' => 'Flashlight / Zap',
+                        'ri-star-line' => 'Star',
+                        'ri-information-line' => 'Info',
+                        'ri-alert-line' => 'Alert',
+                        'ri-delete-bin-line' => 'Delete',
+                        'ri-lock-line' => 'Lock',
+                        'ri-key-line' => 'Key',
+                        'ri-line-chart-line' => 'Chart',
+                        'ri-facebook-fill' => 'Facebook Logo',
+                        'ri-google-fill' => 'Google Logo',
+                        'ri-youtube-fill' => 'YouTube Logo',
+                        'ri-twitter-fill' => 'Twitter Logo',
+                        'ri-instagram-fill' => 'Instagram Logo',
+                    ),
+                ),
+                'name_lucide' => array(
+                    'type' => 'select',
+                    'heading' => 'Chọn Icon Lucide',
+                    'default' => 'shield-check',
+                    'conditions' => 'pack === "lucide"',
+                    'options' => array(
+                        'custom' => '--- Tùy chỉnh (Nhập tay class) ---',
+                        'home' => 'Home',
+                        'user' => 'User',
+                        'mail' => 'Mail',
+                        'phone' => 'Phone',
+                        'search' => 'Search',
+                        'settings' => 'Settings',
+                        'check' => 'Check',
+                        'x' => 'X / Close',
+                        'shield' => 'Shield',
+                        'shield-check' => 'Shield Check',
+                        'shield-alert' => 'Shield Alert',
+                        'zap' => 'Zap / Bolt',
+                        'zap-off' => 'Zap Off',
+                        'star' => 'Star',
+                        'info' => 'Info',
+                        'alert-triangle' => 'Warning / Alert',
+                        'trash-2' => 'Trash',
+                        'lock' => 'Lock',
+                        'key' => 'Key',
+                        'activity' => 'Activity',
+                        'file-text' => 'File Text',
+                        'code' => 'Code',
+                        'smartphone' => 'Smartphone',
+                        'trending-up' => 'Trending Up',
+                        'file-chart-column' => 'Chart / Report',
+                        'credit-card' => 'Credit Card',
+                        'database-backup' => 'Database Backup',
+                        'refresh-cw' => 'Refresh / Loop',
+                        'git-commit' => 'Git Commit',
+                        'heart' => 'Heart / Love',
+                        'message-square' => 'Message / Chat',
+                        'sparkles' => 'Sparkles',
+                        'gauge' => 'Gauge / Speed',
+                        'cloud-lightning' => 'Cloud Lightning',
+                        'hammer' => 'Hammer / Repair',
+                        'facebook' => 'Facebook',
+                        'instagram' => 'Instagram',
+                        'youtube' => 'YouTube',
+                        'twitter' => 'Twitter',
+                    ),
+                ),
+                'name_phosphor' => array(
+                    'type' => 'select',
+                    'heading' => 'Chọn Icon Phosphor',
+                    'default' => 'ph-shield-check',
+                    'conditions' => 'pack === "phosphor"',
+                    'options' => array(
+                        'custom' => '--- Tùy chỉnh (Nhập tay class) ---',
+                        'ph-house' => 'House / Home',
+                        'ph-user' => 'User',
+                        'ph-envelope' => 'Envelope / Mail',
+                        'ph-phone' => 'Phone',
+                        'ph-magnifying-glass' => 'Search',
+                        'ph-gear' => 'Gear / Settings',
+                        'ph-check' => 'Check',
+                        'ph-x' => 'X / Close',
+                        'ph-shield' => 'Shield',
+                        'ph-shield-check' => 'Shield Check',
+                        'ph-lightning' => 'Lightning / Zap',
+                        'ph-star' => 'Star',
+                        'ph-info' => 'Info',
+                        'ph-warning' => 'Warning',
+                        'ph-trash' => 'Trash',
+                        'ph-lock' => 'Lock',
+                        'ph-key' => 'Key',
+                        'ph-chart-line' => 'Chart',
+                        'ph-facebook-logo' => 'Facebook',
+                        'ph-instagram-logo' => 'Instagram',
+                        'ph-youtube-logo' => 'YouTube',
+                        'ph-twitter-logo' => 'Twitter',
+                    ),
+                ),
+                'name_material' => array(
+                    'type' => 'select',
+                    'heading' => 'Chọn Icon Material Symbols',
+                    'default' => 'shield',
+                    'conditions' => 'pack === "material"',
+                    'options' => array(
+                        'custom' => '--- Tùy chỉnh (Nhập tay class) ---',
+                        'home' => 'Home',
+                        'person' => 'Person / User',
+                        'mail' => 'Mail',
+                        'call' => 'Call / Phone',
+                        'search' => 'Search',
+                        'settings' => 'Settings',
+                        'check' => 'Check',
+                        'close' => 'Close',
+                        'security' => 'Security',
+                        'shield' => 'Shield',
+                        'bolt' => 'Bolt / Zap',
+                        'star' => 'Star',
+                        'info' => 'Info',
+                        'warning' => 'Warning',
+                        'delete' => 'Delete',
+                        'lock' => 'Lock',
+                        'vpn_key' => 'Key',
+                        'trending_up' => 'Trending Up',
+                    ),
+                ),
+                'name_custom' => array(
+                    'type' => 'textfield',
+                    'heading' => 'Nhập class icon tự do',
+                    'default' => '',
+                    'conditions' => 'name_fa === "custom" || name_ri === "custom" || name_lucide === "custom" || name_phosphor === "custom" || name_material === "custom"',
+                    'description' => 'Nhập mã class của bất kỳ icon nào thuộc bộ icon đã chọn để dùng các icon nằm ngoài danh sách tuyển chọn.',
                 ),
                 'color' => array(
                     'type' => 'colorpicker',
@@ -1193,6 +2334,12 @@ function vbc_icon_shortcode_renderer($atts) {
     $atts = shortcode_atts(array(
         'pack' => 'fontawesome',
         'name' => '',
+        'name_fa' => '',
+        'name_ri' => '',
+        'name_lucide' => '',
+        'name_phosphor' => '',
+        'name_material' => '',
+        'name_custom' => '',
         'color' => '',
         'size' => '',
         'custom_class' => '',
@@ -1200,7 +2347,25 @@ function vbc_icon_shortcode_renderer($atts) {
     ), $atts);
 
     $pack = strtolower(trim($atts['pack']));
-    $name = trim($atts['name']);
+    
+    // Resolve icon name from presets or custom fields
+    $name = '';
+    if ($pack === 'fontawesome') {
+        $name = !empty($atts['name_fa']) && $atts['name_fa'] !== 'custom' ? $atts['name_fa'] : $atts['name_custom'];
+    } elseif ($pack === 'remix') {
+        $name = !empty($atts['name_ri']) && $atts['name_ri'] !== 'custom' ? $atts['name_ri'] : $atts['name_custom'];
+    } elseif ($pack === 'lucide') {
+        $name = !empty($atts['name_lucide']) && $atts['name_lucide'] !== 'custom' ? $atts['name_lucide'] : $atts['name_custom'];
+    } elseif ($pack === 'phosphor') {
+        $name = !empty($atts['name_phosphor']) && $atts['name_phosphor'] !== 'custom' ? $atts['name_phosphor'] : $atts['name_custom'];
+    } elseif ($pack === 'material') {
+        $name = !empty($atts['name_material']) && $atts['name_material'] !== 'custom' ? $atts['name_material'] : $atts['name_custom'];
+    }
+    
+    // Fallback to legacy default name attribute
+    if (empty($name)) {
+        $name = trim($atts['name']);
+    }
 
     if (empty($atts['pack']) || $atts['pack'] === 'fontawesome') {
         if (strpos($name, 'ri-') !== false) {

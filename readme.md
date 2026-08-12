@@ -107,3 +107,42 @@ Công cụ giúp đẩy file nội dung shortcode cục bộ trực tiếp lên 
 node skills/create-landing-page.js --title "Tiêu đề trang" --slug "duong-dan-tinh" --file "duong-dan-file-shortcode.txt" --image-upload "anh1.jpg,anh2.png"
 ```
 *(Tự động thay thế các placeholder dạng `{{image_1_url}}` và `{{image_1_id}}` trong file shortcode bằng thông tin ảnh sau khi upload)*
+
+---
+
+## 5. Quy Trình Tạo Landing Page Qua Skill (Interactive 2-Step Workflow)
+
+Khi người dùng yêu cầu tạo Landing Page mới qua Skill, Agent **BẮT BUỘC** tuân thủ quy trình 2 bước sau:
+
+### **Bước 1: Hiển thị Mẫu Gợi Ý Đầu Vào (Form Input Template)**
+Agent trình bày bảng thông số gợi ý cấu hình dưới đây để người dùng dễ dàng copy, chỉnh sửa hoặc phản hồi:
+
+```markdown
+📋 **BẢNG XÁC NHẬN THÔNG TIN TẠO LANDING PAGE**
+
+Vui lòng kiểm tra hoặc tùy chỉnh các thông số dưới đây trước khi tiến hành khởi tạo:
+
+1. 📌 **Tiêu đề bài viết (Title)**: [Tiêu đề đầy đủ chuẩn SEO]
+2. 🔗 **Đường dẫn tĩnh (Slug)**: [slug-baiviet-tieng-viet-khong-dau]
+3. 🎨 **Phong cách Thiết kế (Style)**: 
+   - [ ] Sleek Dark Minimalist (Đen huyền bí công nghệ)
+   - [ ] Stripe Clean Enterprise (Trắng sáng Doanh nghiệp)
+   - [ ] Claymorphism (Soft 3D Khối Đất Sét)
+   - [ ] Neo-Brutalism (Viền đen đậm cá tính)
+4. 💎 **Bộ Icon ưu tiên (Icon Pack)**: 
+   - [ ] Font Awesome 6 (`pack="fontawesome"`)
+   - [ ] Remix Icon (`pack="remix"`)
+   - [ ] Lucide Icons (`pack="lucide"`)
+5. 🧩 **Cấu trúc Nguồn Section**: [10 Section chuẩn conversion rate]
+6. 📝 **Thông tin đặc thù (nếu có)**: [Giá dịch vụ, các gói, thông tin liên hệ...]
+
+---
+👉 *Bạn có thể copy bảng trên để tùy chỉnh thông tin hoặc phản hồi **"Đồng ý" / "OK"** để bắt đầu khởi tạo trang ngay!*
+```
+
+### **Bước 2: Tiến hành Khởi tạo & Chạy CLI Skill**
+Chỉ khi người dùng nhấn Enter/Phản hồi đồng ý hoặc gửi bảng thông tin đã sửa:
+1. Agent mới tiến hành soạn thảo shortcode (Dùng 100% `[vbc_icon]`, KHÔNG DÙNG Unicode Emoji thô).
+2. Lưu shortcode vào tệp `.txt` tạm.
+3. Thực thi script CLI `skills/create-landing-page.js`.
+4. Dọn dẹp tệp tạm, kiểm tra `git status` và thông báo đường dẫn bài viết hoàn tất cho người dùng.

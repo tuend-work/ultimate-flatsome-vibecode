@@ -20,6 +20,9 @@ Các shortcode của VibeCode bắt đầu bằng tiền tố `vbc_`. Chúng h�
 * `[vbc_img]` (Thuộc tính: `img_source="default|manual|post_meta|acf" img_attachment="ID" alt="..."`)
 
 ### C. Thư Viện Icon Thông Minh (`[vbc_icon]`)
+> [!IMPORTANT]
+> **QUY TẮC BẮT BUỘC**: KHÔNG BAO GIỜ sử dụng các ký tự Emoji Unicode thô (ví dụ: 🔥, ⚡, 🚨, 🛑) vì sẽ bị WordPress tự động chuyển thành các ảnh SVG xấu (`s.w.org`). **BẮT BUỘC** luôn dùng `[vbc_icon]` với các vector icon từ FontAwesome 6, Remix Icon, Lucide...
+
 * Nạp **duy nhất** thư viện icon được gọi (Selective Lazy Loading), hoàn toàn không làm nặng website.
 * Hỗ trợ 5 bộ icon hàng đầu thế giới:
   1. `pack="fontawesome"` (Font Awesome 6): `name="fa-solid fa-shield-halved"`

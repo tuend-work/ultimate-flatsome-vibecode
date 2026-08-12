@@ -3,7 +3,7 @@
  * Plugin Name: Ultimate Flatsome VibeCode Elements
  * Plugin URI: https://github.com/tuend-work/ultimate-flatsome-vibecode
  * Description: Thêm các phần tử HTML cơ bản tích hợp sâu với Flatsome UX Builder, hỗ trợ responsive hoàn hảo, chèn dữ liệu động (Post Meta, ACF) và chỉnh sửa CSS nâng cao.
- * Version: 1.0.6
+ * Version: 1.0.7
  * Author: Antigravity AI
  * Author URI: https://github.com/tuend-work
  * License: GPL2
@@ -1247,4 +1247,37 @@ function vbc_icon_shortcode_renderer($atts) {
     } else {
         return $style_tag . '<i class="' . esc_attr($name) . ' ' . $class_str . '"></i>';
     }
+}
+
+
+/**
+ * 6. VÔ HIỆU HÓA TỰ ĐỘNG CHUYỂN EMOJI THÀNH ẢNH S.W.ORG CỦA WORDPRESS CORE
+ */
+add_action('init', 'vbc_disable_wp_emojis');
+
+function vbc_disable_wp_emojis() {
+    remove_action('wp_head', 'print_emoji_detection_script', 7);
+    remove_action('admin_print_scripts', 'print_emoji_detection_script');
+    remove_action('wp_print_styles', 'print_emoji_styles');
+    remove_action('admin_print_styles', 'print_emoji_styles');
+    remove_filter('the_content_feed', 'wp_staticize_emoji');
+    remove_filter('comment_text_rss', 'wp_staticize_emoji');
+    remove_filter('wp_mail', 'wp_staticize_emoji_for_email');
+    add_filter('tiny_mce_plugins', 'vbc_disable_emojis_tinymce');
+    add_filter('wp_resource_hints', 'vbc_disable_emojis_dns_prefetch', 10, 2);
+}
+
+function vbc_disable_emojis_tinymce($plugins) {
+    if (is_array($plugins)) {
+        return array_diff($plugins, array('wpemoji'));
+    }
+    return array();
+}
+
+function vbc_disable_emojis_dns_prefetch($urls, $relation_type) {
+    if ('dns-prefetch' === $relation_type) {
+        $emoji_svg_url = apply_filters('emoji_svg_url', 'https://s.w.org/images/core/emoji/');
+        $urls = array_diff($urls, array($emoji_svg_url));
+    }
+    return $urls;
 }

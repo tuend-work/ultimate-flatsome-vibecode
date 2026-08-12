@@ -3,7 +3,7 @@
  * Plugin Name: Ultimate Flatsome VibeCode Elements
  * Plugin URI: https://github.com/tuend-work/ultimate-flatsome-vibecode
  * Description: Thêm các phần tử HTML cơ bản tích hợp sâu với Flatsome UX Builder, hỗ trợ responsive hoàn hảo, chèn dữ liệu động (Post Meta, ACF) và chỉnh sửa CSS nâng cao.
- * Version: 1.0.3
+ * Version: 1.0.4
  * Author: Antigravity AI
  * Author URI: https://github.com/tuend-work
  * License: GPL2
@@ -690,6 +690,188 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
     }
 
     return $compiled_css . '<' . $html_tag . $class_attr_str . $tag_attrs . $custom_attrs . '>' . $final_content . '</' . $html_tag . '>';
+}
+
+
+/**
+ * 2.5 VIBECODE ADVANCED COMPONENT SHORTCODES
+ */
+add_action('init', 'vbc_register_component_shortcodes');
+
+function vbc_register_component_shortcodes() {
+    add_shortcode('vbc_card', 'vbc_card_shortcode');
+    add_shortcode('vbc_testimonial', 'vbc_testimonial_shortcode');
+    add_shortcode('vbc_accordion', 'vbc_accordion_shortcode');
+    add_shortcode('vbc_accordion_item', 'vbc_accordion_item_shortcode');
+    add_shortcode('vbc_button', 'vbc_button_shortcode');
+}
+
+function vbc_card_shortcode($atts, $content = null) {
+    $atts = shortcode_atts(array(
+        'variant' => 'glass',
+        'custom_class' => '',
+        'custom_css' => '',
+        'padding' => '35px 30px',
+        'border_radius' => '20px',
+        'border_color' => 'rgba(255,255,255,0.08)',
+        'glow_color' => 'rgba(239, 68, 68, 0.2)',
+    ), $atts);
+
+    $random_id = wp_generate_password(8, false);
+    $unique_class = 'vbc-card-' . $random_id;
+
+    $css = '.' . $unique_class . ' { ';
+    $css .= 'background: rgba(255, 255, 255, 0.03); ';
+    $css .= 'backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); ';
+    $css .= 'border: 1px solid ' . esc_attr($atts['border_color']) . '; ';
+    $css .= 'border-radius: ' . esc_attr($atts['border_radius']) . '; ';
+    $css .= 'padding: ' . esc_attr($atts['padding']) . '; ';
+    $css .= 'box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4); ';
+    $css .= 'transition: all 0.3s ease; ';
+    $css .= '} ';
+    $css .= '.' . $unique_class . ':hover { ';
+    $css .= 'transform: translateY(-8px); ';
+    $css .= 'border-color: ' . esc_attr($atts['glow_color']) . '; ';
+    $css .= 'box-shadow: 0 20px 40px ' . esc_attr($atts['glow_color']) . '; ';
+    $css .= '} ';
+
+    if (!empty($atts['custom_css'])) {
+        $raw_css = trim($atts['custom_css']);
+        if (strpos($raw_css, '{') === false) {
+            $css .= '.' . $unique_class . ' { ' . $raw_css . ' } ';
+        } else {
+            $css .= str_replace('selector', '.' . $unique_class, $raw_css);
+        }
+    }
+
+    $class_str = trim('vbc-component-card ' . $unique_class . ' ' . $atts['custom_class']);
+
+    return '<style>' . $css . '</style><div class="' . esc_attr($class_str) . '">' . do_shortcode($content) . '</div>';
+}
+
+function vbc_testimonial_shortcode($atts, $content = null) {
+    $atts = shortcode_atts(array(
+        'name' => 'Khách Hàng',
+        'company' => '',
+        'stars' => '5',
+        'avatar_url' => '',
+        'custom_class' => '',
+        'custom_css' => '',
+    ), $atts);
+
+    $stars_count = intval($atts['stars']);
+    $stars_html = str_repeat('★', $stars_count);
+
+    $random_id = wp_generate_password(8, false);
+    $unique_class = 'vbc-testi-' . $random_id;
+
+    $css = '.' . $unique_class . ' { background: rgba(255,255,255,0.03); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.08); padding: 35px 28px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); transition: all 0.3s; } ';
+    $css .= '.' . $unique_class . ':hover { transform: translateY(-5px); border-color: rgba(239,68,68,0.3); box-shadow: 0 20px 40px rgba(239,68,68,0.15); } ';
+    $css .= '.' . $unique_class . ' .vbc-stars { color: #fbbf24; font-size: 18px; margin-bottom: 15px; letter-spacing: 2px; } ';
+    $css .= '.' . $unique_class . ' .vbc-quote { color: #cbd5e1; font-size: 15px; line-height: 1.7; margin-bottom: 20px; font-style: italic; } ';
+    $css .= '.' . $unique_class . ' .vbc-author { color: #ffffff; font-weight: 700; font-size: 16px; margin-bottom: 3px; } ';
+    $css .= '.' . $unique_class . ' .vbc-company { color: #94a3b8; font-size: 13px; } ';
+
+    if (!empty($atts['custom_css'])) {
+        $raw_css = trim($atts['custom_css']);
+        if (strpos($raw_css, '{') === false) {
+            $css .= '.' . $unique_class . ' { ' . $raw_css . ' } ';
+        } else {
+            $css .= str_replace('selector', '.' . $unique_class, $raw_css);
+        }
+    }
+
+    $avatar_html = '';
+    if (!empty($atts['avatar_url'])) {
+        $avatar_html = '<img src="' . esc_url($atts['avatar_url']) . '" style="width: 50px; height: 50px; border-radius: 50%; margin-right: 15px; border: 2px solid rgba(239,68,68,0.4); object-fit: cover;">';
+    }
+
+    $meta_html = '<div style="display: flex; align-items: center;">' . $avatar_html . '<div><div class="vbc-author">' . esc_html($atts['name']) . '</div><div class="vbc-company">' . esc_html($atts['company']) . '</div></div></div>';
+
+    return '<style>' . $css . '</style><div class="' . esc_attr($unique_class . ' ' . $atts['custom_class']) . '"><div class="vbc-stars">' . $stars_html . '</div><div class="vbc-quote">"' . do_shortcode($content) . '"</div>' . $meta_html . '</div>';
+}
+
+function vbc_accordion_shortcode($atts, $content = null) {
+    $atts = shortcode_atts(array(
+        'faq_schema' => 'true',
+        'custom_class' => '',
+        'custom_css' => '',
+    ), $atts);
+
+    $schema_attr = ($atts['faq_schema'] === 'true') ? ' itemscope itemtype="https://schema.org/FAQPage"' : '';
+    
+    $random_id = wp_generate_password(8, false);
+    $unique_class = 'vbc-acc-' . $random_id;
+
+    $css = '.' . $unique_class . ' { background: rgba(255,255,255,0.02); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; padding: 35px 45px; box-shadow: 0 15px 40px rgba(0,0,0,0.3); } ';
+
+    if (!empty($atts['custom_css'])) {
+        $raw_css = trim($atts['custom_css']);
+        if (strpos($raw_css, '{') === false) {
+            $css .= '.' . $unique_class . ' { ' . $raw_css . ' } ';
+        } else {
+            $css .= str_replace('selector', '.' . $unique_class, $raw_css);
+        }
+    }
+
+    return '<style>' . $css . '</style><div class="' . esc_attr($unique_class . ' ' . $atts['custom_class']) . '"' . $schema_attr . '>' . do_shortcode($content) . '</div>';
+}
+
+function vbc_accordion_item_shortcode($atts, $content = null) {
+    $atts = shortcode_atts(array(
+        'title' => '',
+        'open' => 'false',
+    ), $atts);
+
+    $open_attr = ($atts['open'] === 'true') ? ' open' : '';
+
+    $html = '<details class="vbc-faq-item" style="border-bottom: 1px solid rgba(255,255,255,0.08); padding: 15px 0;" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question"' . $open_attr . '>';
+    $html .= '<summary style="color: #ffffff; font-size: 18px; font-weight: 700; cursor: pointer; outline: none; list-style: none; display: flex; justify-content: space-between; align-items: center;" itemprop="name">';
+    $html .= '<span>' . esc_html($atts['title']) . '</span><span style="font-size: 20px; color: #f87171;">+</span>';
+    $html .= '</summary>';
+    $html .= '<div style="color: #cbd5e1; font-size: 15px; line-height: 1.7; margin-top: 15px; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">';
+    $html .= '<div itemprop="text">' . do_shortcode($content) . '</div>';
+    $html .= '</div>';
+    $html .= '</details>';
+
+    return $html;
+}
+
+function vbc_button_shortcode($atts, $content = null) {
+    $atts = shortcode_atts(array(
+        'text' => 'Click Here',
+        'url' => '#',
+        'target' => '_self',
+        'variant' => 'danger',
+        'custom_class' => '',
+        'custom_css' => '',
+    ), $atts);
+
+    $random_id = wp_generate_password(8, false);
+    $unique_class = 'vbc-btn-' . $random_id;
+
+    $css = '.' . $unique_class . ' { display: inline-block; padding: 16px 38px; border-radius: 30px; font-weight: 800; font-size: 15px; text-decoration: none; text-align: center; transition: all 0.3s ease; letter-spacing: 0.5px; } ';
+    
+    if ($atts['variant'] === 'danger' || $atts['variant'] === 'primary') {
+        $css .= '.' . $unique_class . ' { background: linear-gradient(135deg, #ef4444, #dc2626); color: #ffffff; box-shadow: 0 4px 25px rgba(239, 68, 68, 0.5); } ';
+        $css .= '.' . $unique_class . ':hover { transform: translateY(-3px); box-shadow: 0 8px 35px rgba(239, 68, 68, 0.7); color: #ffffff; } ';
+    } elseif ($atts['variant'] === 'glass') {
+        $css .= '.' . $unique_class . ' { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2); color: #ffffff; backdrop-filter: blur(8px); } ';
+        $css .= '.' . $unique_class . ':hover { background: rgba(255, 255, 255, 0.15); border-color: #ffffff; transform: translateY(-3px); color: #ffffff; } ';
+    }
+
+    if (!empty($atts['custom_css'])) {
+        $raw_css = trim($atts['custom_css']);
+        if (strpos($raw_css, '{') === false) {
+            $css .= '.' . $unique_class . ' { ' . $raw_css . ' } ';
+        } else {
+            $css .= str_replace('selector', '.' . $unique_class, $raw_css);
+        }
+    }
+
+    $btn_text = !empty($atts['text']) ? esc_html($atts['text']) : do_shortcode($content);
+
+    return '<style>' . $css . '</style><a href="' . esc_url($atts['url']) . '" target="' . esc_attr($atts['target']) . '" class="' . esc_attr($unique_class . ' ' . $atts['custom_class']) . '">' . $btn_text . '</a>';
 }
 
 

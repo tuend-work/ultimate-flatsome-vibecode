@@ -3,7 +3,7 @@
  * Plugin Name: Ultimate Flatsome VibeCode Elements
  * Plugin URI: https://github.com/tuend-work/ultimate-flatsome-vibecode
  * Description: Thêm các phần tử HTML cơ bản tích hợp sâu với Flatsome UX Builder, hỗ trợ responsive hoàn hảo, chèn dữ liệu động (Post Meta, ACF) và chỉnh sửa CSS nâng cao.
- * Version: 1.0.2
+ * Version: 1.0.3
  * Author: Antigravity AI
  * Author URI: https://github.com/tuend-work
  * License: GPL2
@@ -172,6 +172,9 @@ function vbc_register_ux_builder_elements() {
 
     $tags = array(
         'div' => array('name' => 'VBC Div', 'type' => 'container'),
+        'box' => array('name' => 'VBC Box (Div)', 'type' => 'container'),
+        'block' => array('name' => 'VBC Block (Div)', 'type' => 'container'),
+        'container' => array('name' => 'VBC Container (Div)', 'type' => 'container'),
         'p' => array('name' => 'VBC Paragraph', 'type' => 'container'),
         'i' => array('name' => 'VBC Italic', 'type' => 'container'),
         'span' => array('name' => 'VBC Span', 'type' => 'container'),
@@ -361,7 +364,7 @@ function vbc_register_ux_builder_elements() {
  */
 function vbc_register_shortcodes() {
     $tags = array(
-        'div', 'p', 'i', 'span', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+        'div', 'box', 'block', 'container', 'p', 'i', 'span', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
         'li', 'ul', 'ol', 'table', 'tr', 'td', 'th', 'b', 'strong', 'em', 'u',
         'hr', 'br', 'img'
     );
@@ -374,6 +377,11 @@ add_action('init', 'vbc_register_shortcodes');
 
 function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
     $html_tag = str_replace('vbc_', '', $tag);
+
+    // Map các alias của div về thẻ div thực tế để tránh trùng tên khi lồng nhau
+    if (in_array($html_tag, array('box', 'block', 'container'))) {
+        $html_tag = 'div';
+    }
 
     $atts = shortcode_atts(array(
         // Common Styling Options
@@ -473,9 +481,8 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
     $class_attr = $atts['custom_class'];
 
     if (!empty($styles_desktop) || !empty($styles_tablet) || !empty($styles_mobile) || !empty($atts['custom_css'])) {
-        static $vbc_css_counter = 0;
-        $vbc_css_counter++;
-        $unique_class = 'vbc-css-' . $vbc_css_counter;
+        $random_id = wp_generate_password(8, false);
+        $unique_class = 'vbc-css-' . $random_id;
         
         $css_rules = '';
         

@@ -255,15 +255,29 @@
     background: #dc2626;
 }
 
-/* Media Library Tab Custom Integration */
-.media-modal .media-router .vbc-media-tab {
-    color: #72777c !important;
+/* Icon item active selection state */
+.vbc-icon-item.active {
+    background: rgba(239, 68, 68, 0.16);
+    border-color: #ef4444;
+    color: #ef4444;
 }
-.media-modal .media-router .vbc-media-tab:hover {
-    color: #ef4444 !important;
+.vbc-icon-item.active i,
+.vbc-icon-item.active span.material-symbols-outlined {
+    color: #ef4444;
 }
-.media-modal .media-router .vbc-media-tab.active {
-    color: #ef4444 !important;
-    font-weight: 700 !important;
-    border-bottom: 2px solid #ef4444 !important;
+.vbc-icon-item.active .vbc-icon-name {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+/* Media upload button hover effect */
+.vbc-open-wp-media-btn:hover {
+    background: #dc2626 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* Hide WordPress default active tab line under ours since we manually toggle active class */
+.media-modal .media-router .vbc-media-tab.active::after {
+    display: none !important;
 }

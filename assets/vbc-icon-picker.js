@@ -1,11 +1,9 @@
 (function($) {
     'use strict';
 
-    console.log('[VBC Icon Picker v1.3.1] Script loaded.');
+    console.log('[VBC Icon Picker v1.4.0] Loaded.');
 
-    // =========================================================================
-    // ICON LIBRARIES
-    // =========================================================================
+    // Curated icon libraries
     const ICON_LIBRARIES = {
         lucide: [
             'home', 'user', 'mail', 'phone', 'search', 'settings', 'check', 'x', 'shield', 'shield-check',
@@ -55,136 +53,250 @@
         ]
     };
 
-    let $activeInput = null;        // for sidebar popup
-    let $lastFocusedIconInput = null; // last icon input that was focused — used by Media Library tab
-    let currentPack = 'lucide';
-    let selectedIcon = '';
+    let $activeInput = null;
+    let currentTab = 'media';
+    let tempSelectedValue = ''; // Stores temporary selection (img:URL or icon:class)
+    let wpMediaFrame = null;
 
-    // =========================================================================
-    // CORE: Write value to input and force UX Builder to detect the change
-    // =========================================================================
-    function writeIconToInput($input, iconClass) {
-        if (!$input || $input.length === 0) {
-            console.warn('[VBC Icon Picker] No target input to write to.');
-            return false;
-        }
-        console.log('[VBC Icon Picker] Writing icon to input:', iconClass, $input[0]);
+    // Core: Write value to input and trigger Flatsome update
+    function writeValueToInput($input, value) {
+        if (!$input || $input.length === 0) return false;
+        console.log('[VBC Icon Picker] Saving value:', value);
 
-        // 1. Set value via jQuery
-        $input.val(iconClass);
+        // Update value
+        $input.val(value);
 
-        // 2. Native input event (React, Vue, Alpine)
+        // Dispatch React/HTML5 events
         var nativeInput = $input[0];
         var nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value');
         if (nativeInputValueSetter) {
-            nativeInputValueSetter.set.call(nativeInput, iconClass);
+            nativeInputValueSetter.set.call(nativeInput, value);
         }
 
-        // 3. Dispatch all relevant events
         ['input', 'change', 'keyup', 'blur'].forEach(function(evtName) {
             nativeInput.dispatchEvent(new Event(evtName, { bubbles: true, cancelable: true }));
         });
 
-        // 4. jQuery trigger (Knockout.js / legacy jQuery bindings)
         $input.trigger('input').trigger('change').trigger('keyup');
-
-        // 5. Focus then blur to force UX Builder dirty detection
         $input.focus();
         setTimeout(function() { $input.blur(); }, 50);
 
+        // Update inline preview in sidebar
+        updateSidebarPreview($input);
         return true;
     }
 
-    // =========================================================================
-    // 1. SIDEBAR POPUP ICON PICKER
-    // =========================================================================
+    // Update the visual preview box next to the input in UX Builder sidebar
+    function updateSidebarPreview($input) {
+        var val = $input.val().trim();
+        var $previewContainer = $input.parent().find('.vbc-preview-box');
+        if ($previewContainer.length === 0) {
+            $previewContainer = $('<div class="vbc-preview-box" style="margin-top:8px;padding:10px;background:#27272a;border-radius:6px;display:flex;align-items:center;gap:10px;border:1px solid #3f3f46;min-height:52px;"></div>');
+            $input.after($previewContainer);
+        }
+
+        $previewContainer.empty();
+        if (!val) {
+            $previewContainer.html('<span style="color:#71717a;font-size:12px;">Chưa chọn Ảnh / Icon</span>');
+            return;
+        }
+
+        if (val.indexOf('img:') === 0) {
+            var url = val.substring(4);
+            $previewContainer.html('<img src="' + url + '" style="width:32px;height:32px;object-fit:contain;background:#18181b;padding:2px;border-radius:4px;" />' +
+                                   '<span style="color:#e4e4e7;font-size:12px;word-break:break-all;flex-grow:1;">Ảnh SVG/PNG</span>');
+        } else if (val.indexOf('icon:') === 0) {
+            var cls = val.substring(5);
+            var iconHtml = '';
+            // Render icon preview based on class format
+            if (cls.indexOf('ri-') === 0) {
+                iconHtml = '<i class="' + cls + '" style="font-size:24px;color:#fff;"></i>';
+            } else if (cls.indexOf('fa-') >= 0) {
+                iconHtml = '<i class="' + cls + '" style="font-size:20px;color:#fff;"></i>';
+            } else if (cls.indexOf('ph-') >= 0 || cls.indexOf('ph ') === 0) {
+                iconHtml = '<i class="' + cls + '" style="font-size:24px;color:#fff;"></i>';
+            } else if (cls.indexOf('_') >= 0 && cls.indexOf('-') === -1) {
+                iconHtml = '<span class="material-symbols-outlined" style="font-size:24px;color:#fff;">' + cls + '</span>';
+            } else {
+                // Lucide
+                iconHtml = '<i data-lucide="' + cls + '" style="display:inline-block;width:24px;height:24px;color:#fff;"></i>';
+            }
+            $previewContainer.html('<div style="background:#18181b;padding:6px;border-radius:4px;display:flex;align-items:center;justify-content:center;">' + iconHtml + '</div>' +
+                                   '<span style="color:#e4e4e7;font-size:12px;font-family:monospace;word-break:break-all;">' + cls + '</span>');
+            
+            if (val.indexOf('icon:') === 0 && typeof lucide !== 'undefined') {
+                try { lucide.createIcons(); } catch(e) {}
+            }
+        } else {
+            $previewContainer.html('<span style="color:#ef4444;font-size:12px;">Định dạng không hợp lệ: ' + val + '</span>');
+        }
+    }
+
+    // Modal HTML & events setup
     function initModal() {
-        if ($('#vbc-icon-picker').length > 0) return;
-        var modalHtml = '<div id="vbc-icon-picker" class="vbc-modal-overlay">' +
+        if ($('#vbc-unified-picker').length > 0) return;
+
+        var modalHtml = 
+        '<div id="vbc-unified-picker" class="vbc-modal-overlay">' +
             '<div class="vbc-modal-box">' +
                 '<div class="vbc-modal-header">' +
-                    '<h3 class="vbc-modal-title">Visual Icon Browser</h3>' +
-                    '<div class="vbc-search-wrapper">' +
+                    '<h3 class="vbc-modal-title">🎨 Bộ Chọn Ảnh / Icon VBC</h3>' +
+                    '<div class="vbc-search-wrapper" style="display:none;">' +
                         '<span class="vbc-search-icon">🔍</span>' +
-                        '<input type="text" class="vbc-search-input" placeholder="Search icons...">' +
+                        '<input type="text" class="vbc-search-input" placeholder="Tìm kiếm icon...">' +
                     '</div>' +
                     '<button class="vbc-modal-close" type="button">✕</button>' +
                 '</div>' +
                 '<div class="vbc-modal-nav">' +
+                    '<button class="vbc-tab-btn active" data-tab="media" type="button">🖼️ Thư viện Ảnh (Upload SVG/PNG)</button>' +
                     '<button class="vbc-tab-btn" data-tab="lucide" type="button">Lucide</button>' +
                     '<button class="vbc-tab-btn" data-tab="fontawesome" type="button">Font Awesome 6</button>' +
                     '<button class="vbc-tab-btn" data-tab="remix" type="button">Remix Icon</button>' +
                     '<button class="vbc-tab-btn" data-tab="phosphor" type="button">Phosphor</button>' +
                     '<button class="vbc-tab-btn" data-tab="material" type="button">Material Symbols</button>' +
                 '</div>' +
-                '<div class="vbc-modal-body"><div class="vbc-icon-grid"></div></div>' +
+                '<div class="vbc-modal-body">' +
+                    '<div class="vbc-media-view" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:15px;padding:40px 20px;">' +
+                        '<div class="vbc-media-preview-box" style="width:96px;height:96px;border:2px dashed #3f3f46;border-radius:10px;display:flex;align-items:center;justify-content:center;background:#18181b;padding:8px;">' +
+                            '<span style="color:#71717a;font-size:32px;">🖼️</span>' +
+                        '</div>' +
+                        '<button type="button" class="vbc-open-wp-media-btn" style="background:#ef4444;color:#fff;border:none;padding:12px 24px;border-radius:8px;font-weight:700;cursor:pointer;font-size:14px;transition:all 0.2s;">Mở Thư Viện WordPress</button>' +
+                        '<p style="color:#a1a1aa;font-size:12px;margin:0;text-align:center;">Bạn có thể tải lên file .svg, .png, .jpg từ máy tính hoặc chọn ảnh có sẵn.</p>' +
+                    '</div>' +
+                    '<div class="vbc-icon-grid" style="display:none;"></div>' +
+                '</div>' +
                 '<div class="vbc-modal-footer">' +
-                    '<div class="vbc-selected-preview"><span>Selected:</span><strong class="vbc-selected-name">None</strong></div>' +
-                    '<button class="vbc-confirm-btn" type="button">✓ Select Icon</button>' +
+                    '<div class="vbc-selected-preview"><span>Đang chọn:</span><strong class="vbc-selected-name">None</strong></div>' +
+                    '<button class="vbc-confirm-btn" type="button">✓ Xác Nhận Sử Dụng</button>' +
                 '</div>' +
             '</div>' +
         '</div>';
+
         $('body').append(modalHtml);
 
-        var $modal = $('#vbc-icon-picker');
+        var $modal = $('#vbc-unified-picker');
         $modal.find('.vbc-modal-close').on('click', closeModal);
         $modal.on('click', function(e) { if ($(e.target).is($modal)) closeModal(); });
         $modal.find('.vbc-tab-btn').on('click', function() { switchTab($(this).data('tab')); });
-        $modal.find('.vbc-search-input').on('input', function() { filterIcons($(this).val(), '#vbc-icon-picker'); });
-        $modal.find('.vbc-confirm-btn').on('click', confirmSidebarSelection);
+        $modal.find('.vbc-search-input').on('input', function() { filterIcons($(this).val()); });
+        $modal.find('.vbc-confirm-btn').on('click', confirmSelection);
+        $modal.find('.vbc-open-wp-media-btn').on('click', openWPMediaFrame);
     }
 
     function openModal($input) {
         $activeInput = $input;
         initModal();
-        var $modal = $('#vbc-icon-picker');
+
+        var $modal = $('#vbc-unified-picker');
         $modal.addClass('active');
 
-        // Auto-detect pack from sibling select
-        var pack = 'lucide';
-        var $row = $input.closest('[class]');
-        var $packSelect = $row.find('select');
-        if ($packSelect.length > 0) {
-            var v = $packSelect.val();
-            if (v === 'google' || v === 'material') pack = 'material';
-            else if (v === 'fa') pack = 'fontawesome';
-            else if (v === 'ri') pack = 'remix';
-            else if (v === 'ph') pack = 'phosphor';
-            else if (v === 'lucide') pack = 'lucide';
-        }
+        // Parse existing value
+        var val = $input.val().trim();
+        tempSelectedValue = val;
 
-        switchTab(pack);
-        var currentVal = $input.val().trim();
-        selectedIcon = currentVal || '';
-        $modal.find('.vbc-selected-name').text(selectedIcon || 'None');
-        $modal.find('.vbc-search-input').val('');
+        if (val.indexOf('img:') === 0) {
+            switchTab('media');
+            showMediaPreview(val.substring(4));
+        } else if (val.indexOf('icon:') === 0) {
+            var iconClass = val.substring(5);
+            // Auto detect tab
+            var pack = 'lucide';
+            if (iconClass.indexOf('fa-') >= 0) pack = 'fontawesome';
+            else if (iconClass.indexOf('ri-') === 0) pack = 'remix';
+            else if (iconClass.indexOf('ph-') >= 0 || iconClass.indexOf('ph ') === 0) pack = 'phosphor';
+            else if (iconClass.indexOf('_') >= 0 && iconClass.indexOf('-') === -1) pack = 'material';
+            switchTab(pack);
+            selectIconItem(iconClass);
+        } else {
+            switchTab('media');
+            clearMediaPreview();
+        }
     }
 
     function closeModal() {
-        $('#vbc-icon-picker').removeClass('active');
+        $('#vbc-unified-picker').removeClass('active');
         $activeInput = null;
     }
 
     function switchTab(tab) {
-        currentPack = tab;
-        var $modal = $('#vbc-icon-picker');
+        currentTab = tab;
+        var $modal = $('#vbc-unified-picker');
         $modal.find('.vbc-tab-btn').removeClass('active');
         $modal.find('.vbc-tab-btn[data-tab="' + tab + '"]').addClass('active');
-        renderIcons(ICON_LIBRARIES[tab], $modal.find('.vbc-icon-grid'), selectIcon);
-        $modal.find('.vbc-search-input').val('');
+
+        if (tab === 'media') {
+            $modal.find('.vbc-media-view').show();
+            $modal.find('.vbc-icon-grid').hide();
+            $modal.find('.vbc-search-wrapper').hide();
+            $modal.find('.vbc-selected-name').text(tempSelectedValue.indexOf('img:') === 0 ? 'Ảnh: ' + tempSelectedValue.substring(4).split('/').pop() : 'None');
+        } else {
+            $modal.find('.vbc-media-view').hide();
+            $modal.find('.vbc-icon-grid').show();
+            $modal.find('.vbc-search-wrapper').show();
+            $modal.find('.vbc-search-input').val('');
+            renderIcons(ICON_LIBRARIES[tab]);
+            
+            var cleanIconClass = (tempSelectedValue.indexOf('icon:') === 0) ? tempSelectedValue.substring(5) : '';
+            if (cleanIconClass) {
+                selectIconItem(cleanIconClass);
+            } else {
+                $modal.find('.vbc-selected-name').text('None');
+            }
+        }
     }
 
-    function renderIcons(icons, $grid, onSelect) {
+    function openWPMediaFrame(e) {
+        e.preventDefault();
+
+        if (wpMediaFrame) {
+            wpMediaFrame.open();
+            return;
+        }
+
+        wpMediaFrame = wp.media({
+            title: 'Chọn Ảnh SVG hoặc PNG / JPG làm Icon',
+            button: { text: 'Use this image' },
+            multiple: false,
+            library: { type: ['image', 'image/svg+xml'] }
+        });
+
+        wpMediaFrame.on('select', function() {
+            var attachment = wpMediaFrame.state().get('selection').first().toJSON();
+            var url = attachment.url;
+            console.log('[VBC Icon Picker] Selected WP image URL:', url);
+            
+            tempSelectedValue = 'img:' + url;
+            showMediaPreview(url);
+            $('#vbc-unified-picker .vbc-selected-name').text('Ảnh: ' + url.split('/').pop());
+        });
+
+        wpMediaFrame.open();
+    }
+
+    function showMediaPreview(url) {
+        var $box = $('#vbc-unified-picker .vbc-media-preview-box');
+        $box.css('border-style', 'solid').html('<img src="' + url + '" style="max-width:100%;max-height:100%;object-fit:contain;" />');
+    }
+
+    function clearMediaPreview() {
+        var $box = $('#vbc-unified-picker .vbc-media-preview-box');
+        $box.css('border-style', 'dashed').html('<span style="color:#71717a;font-size:32px;">🖼️</span>');
+        $('#vbc-unified-picker .vbc-selected-name').text('None');
+    }
+
+    function renderIcons(icons) {
+        var $grid = $('#vbc-unified-picker .vbc-icon-grid');
         $grid.empty();
+
         icons.forEach(function(icon) {
             var iconHtml = '';
-            if (currentPack === 'fontawesome') {
+            if (currentTab === 'fontawesome') {
                 iconHtml = '<i class="' + icon + '"></i>';
-            } else if (currentPack === 'remix') {
+            } else if (currentTab === 'remix') {
                 iconHtml = '<i class="' + icon + '"></i>';
-            } else if (currentPack === 'phosphor') {
+            } else if (currentTab === 'phosphor') {
                 iconHtml = '<i class="' + icon + '"></i>';
-            } else if (currentPack === 'material') {
+            } else if (currentTab === 'material') {
                 iconHtml = '<span class="material-symbols-outlined">' + icon + '</span>';
             } else {
                 iconHtml = '<i data-lucide="' + icon + '" style="display:inline-block;width:22px;height:22px;"></i>';
@@ -193,245 +305,82 @@
             var cleanName = icon.replace('fa-solid ', '').replace('fa-brands ', '').replace('ri-', '').replace('ph ph-', '').replace('ph-', '');
             var $item = $('<div class="vbc-icon-item" data-icon="' + icon + '">' + iconHtml + '<div class="vbc-icon-name">' + cleanName + '</div></div>');
 
-            $item.on('click', function() { onSelect(icon); });
-            $item.on('dblclick', function() { onSelect(icon); confirmSidebarSelection(); });
+            $item.on('click', function() {
+                tempSelectedValue = 'icon:' + icon;
+                selectIconItem(icon);
+            });
+
+            $item.on('dblclick', function() {
+                tempSelectedValue = 'icon:' + icon;
+                selectIconItem(icon);
+                confirmSelection();
+            });
+
             $grid.append($item);
         });
 
-        if (currentPack === 'lucide' && typeof lucide !== 'undefined') {
+        if (currentTab === 'lucide' && typeof lucide !== 'undefined') {
             try { lucide.createIcons(); } catch(e) {}
         }
     }
 
-    function filterIcons(query, modalSelector) {
+    function selectIconItem(iconClass) {
+        var $modal = $('#vbc-unified-picker');
+        $modal.find('.vbc-icon-item').removeClass('active');
+        $modal.find('.vbc-icon-item[data-icon="' + iconClass + '"]').addClass('active');
+        $modal.find('.vbc-selected-name').text(iconClass);
+    }
+
+    function filterIcons(query) {
         var term = query.toLowerCase().trim();
-        $(modalSelector).find('.vbc-icon-item').each(function() {
+        $('#vbc-unified-picker .vbc-icon-item').each(function() {
             $(this).toggle($(this).data('icon').toLowerCase().includes(term));
         });
     }
 
-    function selectIcon(icon) {
-        selectedIcon = icon;
-        var $modal = $('#vbc-icon-picker');
-        $modal.find('.vbc-icon-item').removeClass('active');
-        $modal.find('.vbc-icon-item[data-icon="' + icon + '"]').addClass('active');
-        $modal.find('.vbc-selected-name').text(icon);
-    }
-
-    function confirmSidebarSelection() {
-        if ($activeInput && selectedIcon) {
-            writeIconToInput($activeInput, selectedIcon);
+    function confirmSelection() {
+        if ($activeInput && tempSelectedValue) {
+            writeValueToInput($activeInput, tempSelectedValue);
         }
         closeModal();
     }
 
-    // =========================================================================
-    // 2. MEDIA LIBRARY "ICON LIBRARY" TAB
-    // =========================================================================
-
-    // Track the last icon input that received focus — this is our write target
-    $(document).on('focusin', 'input[type="text"]', function() {
-        var $input = $(this);
-        var labelText = ($input.closest('[class]').find('label').text() || '').toLowerCase();
-        var placeholder = ($input.attr('placeholder') || '').toLowerCase();
-        var dataSetting = ($input.data('setting') || '').toLowerCase();
-
-        var isIconField = labelText.includes('icon') || labelText.includes('legacy') ||
-                          labelText.includes('tự do') || placeholder.includes('fa-') ||
-                          dataSetting.includes('icon');
-        if (isIconField) {
-            $lastFocusedIconInput = $input;
-            console.log('[VBC Icon Picker] Tracked icon input:', labelText || dataSetting);
-        }
-    });
-
-    // Inject "Icon Library" tab into media modal when it appears
-    var mediaModalObserver = new MutationObserver(function() {
-        var $modal = $('.media-modal');
-        if ($modal.length === 0) return;
-        var $router = $modal.find('.media-router');
-        if ($router.length > 0 && $router.find('.vbc-media-tab').length === 0) {
-            console.log('[VBC Icon Picker] Injecting Icon Library tab into Media Library.');
-            var $tab = $('<button type="button" class="media-menu-item vbc-media-tab">🎨 Icon Library</button>');
-            $router.append($tab);
-            $tab.on('click', function(e) {
-                e.preventDefault();
-                openMediaIconTab();
-            });
-        }
-    });
-    mediaModalObserver.observe(document.body, { childList: true, subtree: true });
-
-    // When other tabs are clicked, hide our panel
-    $(document).on('click', '.media-modal .media-router .media-menu-item:not(.vbc-media-tab)', function() {
-        closeMediaIconTab();
-    });
-
-    var mediaPack = 'lucide';
-    var mediaSelectedIcon = '';
-
-    function openMediaIconTab() {
-        var $modal = $('.media-modal');
-        $modal.find('.media-router .media-menu-item').removeClass('active');
-        $modal.find('.vbc-media-tab').addClass('active');
-        $modal.find('.media-frame-content').children(':not(.vbc-media-picker-container)').hide();
-
-        var $picker = $modal.find('.vbc-media-picker-container');
-        if ($picker.length === 0) {
-            $picker = buildMediaPicker();
-            $modal.find('.media-frame-content').append($picker);
-        } else {
-            $picker.show();
-        }
-
-        switchMediaTab(mediaPack);
-        $picker.find('.vbc-media-search-input').val('');
-        $picker.find('.vbc-media-selected-name').text('None');
-        mediaSelectedIcon = '';
-    }
-
-    function buildMediaPicker() {
-        var $picker = $('<div class="vbc-media-picker-container"></div>').css({
-            display: 'flex', flexDirection: 'column', height: '100%',
-            background: '#18181b', color: '#f4f4f5', padding: '20px', boxSizing: 'border-box'
-        });
-
-        var tabBtns = ['lucide','fontawesome','remix','phosphor','material'].map(function(t, i) {
-            var label = ['Lucide','Font Awesome','Remix','Phosphor','Material'][i];
-            return '<button class="vbc-media-tab-btn' + (i===0?' active':'') + '" data-tab="' + t + '" type="button" style="background:transparent;border:none;color:' + (i===0?'#ef4444':'#a1a1aa') + ';font-weight:600;cursor:pointer;padding:8px 12px;font-size:13px;">' + label + '</button>';
-        }).join('');
-
-        $picker.html(
-            '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:15px;gap:20px;">' +
-                '<h3 style="margin:0;font-size:16px;font-weight:800;color:#fff;">🎨 Icon Library</h3>' +
-                '<input type="text" class="vbc-media-search-input" placeholder="Search icons..." style="flex-grow:1;max-width:280px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:7px 12px;color:#fff;font-size:13px;outline:none;">' +
-            '</div>' +
-            '<div style="display:flex;gap:5px;margin-bottom:15px;border-bottom:1px solid rgba(255,255,255,0.06);padding-bottom:5px;">' + tabBtns + '</div>' +
-            '<div style="flex-grow:1;overflow-y:auto;">' +
-                '<div class="vbc-media-grid vbc-icon-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:10px;"></div>' +
-            '</div>' +
-            '<div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(255,255,255,0.06);padding-top:15px;margin-top:15px;">' +
-                '<div style="font-size:13px;color:#a1a1aa;">Selected: <strong class="vbc-media-selected-name" style="color:#fff;margin-left:6px;">None</strong></div>' +
-                '<button class="vbc-media-confirm-btn" type="button" style="background:#ef4444;color:#fff;border:none;border-radius:6px;padding:9px 20px;font-weight:700;cursor:pointer;font-size:13px;">✓ Confirm Icon</button>' +
-            '</div>'
-        );
-
-        $picker.find('.vbc-media-search-input').on('input', function() {
-            filterIcons($(this).val(), '.vbc-media-picker-container');
-        });
-
-        $picker.find('.vbc-media-tab-btn').on('click', function() {
-            $picker.find('.vbc-media-tab-btn').css('color', '#a1a1aa').removeClass('active');
-            $(this).css('color', '#ef4444').addClass('active');
-            switchMediaTab($(this).data('tab'));
-        });
-
-        $picker.find('.vbc-media-confirm-btn').on('click', confirmMediaSelection);
-
-        return $picker;
-    }
-
-    function switchMediaTab(tab) {
-        mediaPack = tab;
-        currentPack = tab; // shared for renderIcons
-        var $grid = $('.vbc-media-picker-container .vbc-media-grid');
-        renderIcons(ICON_LIBRARIES[tab], $grid, selectMediaIcon);
-    }
-
-    function selectMediaIcon(icon) {
-        mediaSelectedIcon = icon;
-        $('.vbc-media-picker-container .vbc-icon-item').removeClass('active');
-        $('.vbc-media-picker-container .vbc-icon-item[data-icon="' + icon + '"]').addClass('active');
-        $('.vbc-media-selected-name').text(icon);
-    }
-
-    function confirmMediaSelection() {
-        if (!mediaSelectedIcon) {
-            alert('Vui lòng chọn một icon trước.');
-            return;
-        }
-
-        // Strategy 1: write to last focused icon input
-        var written = false;
-        if ($lastFocusedIconInput && $lastFocusedIconInput.length > 0 && $.contains(document, $lastFocusedIconInput[0])) {
-            written = writeIconToInput($lastFocusedIconInput, mediaSelectedIcon);
-        }
-
-        // Strategy 2: fallback — find any visible icon input in sidebar
-        if (!written) {
-            $('input[type="text"]').each(function() {
-                var $inp = $(this);
-                var label = ($inp.closest('[class]').find('label').text() || '').toLowerCase();
-                var setting = ($inp.data('setting') || '').toLowerCase();
-                if (label.includes('icon') || label.includes('legacy') || label.includes('tự do') || setting.includes('icon')) {
-                    if ($inp.is(':visible')) {
-                        writeIconToInput($inp, mediaSelectedIcon);
-                        written = true;
-                        return false; // break
-                    }
-                }
-            });
-        }
-
-        if (!written) {
-            // Strategy 3: copy to clipboard as last resort
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(mediaSelectedIcon);
-                alert('Đã copy "' + mediaSelectedIcon + '" vào clipboard. Vui lòng paste vào trường icon.');
-            } else {
-                alert('Icon: ' + mediaSelectedIcon + '\nVui lòng copy và paste vào trường icon.');
-            }
-        }
-
-        // Close the media modal
-        $('.media-modal .media-modal-close, .media-modal button.button-link').first().trigger('click');
-    }
-
-    function closeMediaIconTab() {
-        var $modal = $('.media-modal');
-        $modal.find('.vbc-media-picker-container').hide();
-        $modal.find('.media-frame-content').children(':not(.vbc-media-picker-container)').show();
-    }
-
-    // =========================================================================
-    // 3. INJECT "BROWSE ICONS" BUTTON NEXT TO ICON TEXT INPUTS IN SIDEBAR
-    // =========================================================================
+    // Attach unified selection button to input
     function attachPickerButtons() {
         $('input[type="text"]').each(function() {
             var $input = $(this);
-            // Skip if already has button, or is inside our own modal
-            if ($input.closest('#vbc-icon-picker, .vbc-media-picker-container, .media-modal').length > 0) return;
-            if ($input.parent().find('.vbc-picker-btn').length > 0) return;
+            var settingName = $input.data('setting') || '';
+            if (settingName !== 'icon_value') return; // Target only our unified field
 
-            var $row = $input.closest('[class]');
-            var labelText = ($row.find('label').first().text() || '').toLowerCase();
-            var placeholder = ($input.attr('placeholder') || '').toLowerCase();
-            var dataSetting = ($input.data('setting') || '').toLowerCase();
-            var nameAttr = ($input.attr('name') || '').toLowerCase();
+            // Avoid double insertion
+            if ($input.parent().find('.vbc-unified-picker-btn').length > 0) return;
 
-            var isIconField = labelText.includes('icon') ||
-                              labelText.includes('legacy') ||
-                              labelText.includes('tự do') ||
-                              placeholder.includes('fa-') ||
-                              dataSetting.includes('icon') ||
-                              nameAttr.includes('icon');
+            // Hide the actual input to make UI super clean, showing only preview & button
+            $input.css({
+                'opacity': '0.7',
+                'border-color': '#3f3f46',
+                'background': '#18181b',
+                'color': '#a1a1aa'
+            });
 
-            if (isIconField) {
-                console.log('[VBC Icon Picker] Attaching Browse Icons button to:', labelText || dataSetting || nameAttr);
-                var $btn = $('<button type="button" class="vbc-picker-btn"><i class="fa-solid fa-icons"></i> Browse Icons</button>');
-                $btn.on('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    openModal($input);
-                });
-                $input.after($btn);
-            }
+            var $btn = $('<button type="button" class="vbc-unified-picker-btn" style="display:block;width:100%;margin-top:8px;background:#ef4444;color:#fff;border:none;border-radius:6px;padding:9px 15px;font-weight:700;cursor:pointer;font-size:13px;text-align:center;"><i class="fa-solid fa-icons" style="margin-right:6px;"></i> 🎨 Chọn Ảnh / Icon</button>');
+            
+            $btn.on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                openModal($input);
+            });
+
+            $input.after($btn);
+            
+            // Render initial preview
+            updateSidebarPreview($input);
         });
     }
 
-    // Run periodically to catch dynamically rendered sidebar panels
+    // Poller to hook into Flatsome dynamic React rendering
     $(document).ready(function() {
-        setInterval(attachPickerButtons, 1200);
+        setInterval(attachPickerButtons, 1000);
     });
 
 })(jQuery);

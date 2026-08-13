@@ -349,11 +349,28 @@
     function attachPickerButtons() {
         $('input[type="text"]').each(function() {
             var $input = $(this);
-            var settingName = $input.data('setting') || '';
-            if (settingName !== 'icon_value') return; // Target only our unified field
-
-            // Avoid double insertion
+            
+            // Check if already processed
             if ($input.parent().find('.vbc-unified-picker-btn').length > 0) return;
+
+            // Robust check for option name
+            var settingName = $input.data('setting') || $input.attr('data-setting') || $input.closest('[data-setting]').attr('data-setting') || '';
+            var isTarget = false;
+
+            if (settingName === 'icon_value') {
+                isTarget = true;
+            } else {
+                // Fallback: Check if label contains our signature text
+                var $row = $input.closest('[class*="option"], [class*="field"], .option-wrapper');
+                if ($row.length > 0) {
+                    var labelText = ($row.find('label').first().text() || '').toLowerCase().trim();
+                    if (labelText.indexOf('ảnh / icon') >= 0 || labelText.indexOf('anh / icon') >= 0) {
+                        isTarget = true;
+                    }
+                }
+            }
+
+            if (!isTarget) return;
 
             // Hide the actual input to make UI super clean, showing only preview & button
             $input.css({

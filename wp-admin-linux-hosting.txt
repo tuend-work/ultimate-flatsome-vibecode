@@ -1,11 +1,11 @@
-[vbc_div custom_class="section-hero" custom_css="selector { background: linear-gradient(135deg, #090d16 0%, #0f172a 100%); position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; width: 100%; }" padding="80px 0 100px 0" background_color="#090d16" font_family="Be Vietnam Pro"]
+﻿[vbc_div custom_class="section-hero" custom_css="selector { background: linear-gradient(135deg, #090d16 0%, #0f172a 100%); position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; width: 100%; }" padding="80px 0 100px 0" background_color="#090d16" font_family="Be Vietnam Pro"]
     [vbc_slider per_page="1" autoplay="true" gap="0px"]
         [vbc_slide]
             [row style="dashed" v_align="middle"]
                 [col span="6" span__sm="12"]
                     [vbc_box padding="20px 0"]
                         [vbc_span custom_class="hero-badge" custom_css="selector { border-radius: 20px; font-size: 14px; font-weight: 700; color: #38bdf8; display: inline-block; margin-bottom: 20px; border: 1px solid rgba(56, 189, 248, 0.2); }" padding="6px 16px" background_color="rgba(255, 255, 255, 0.05)"]
-                            [vbc_icon pack="lucide" name="zap" color="#38bdf8" size="14px"] 24/7 Support and Active Control
+                            [vbc_icon pack="lucide" name_lucide="zap" color="#38bdf8" size="14px"] 24/7 Support and Active Control
                         [/vbc_span]
                         [vbc_h1 custom_css="selector { color: #ffffff; font-weight: 800; line-height: 1.25; margin-bottom: 20px; }" font_size="42px" font_size__sm="32px"]
                             Cost Effective Web Hosting
@@ -52,7 +52,7 @@
                     [vbc_block padding="30px 24px" background_color="#007bff" custom_css="selector { color: #ffffff; position: relative; }"]
                         [vbc_container custom_css="selector { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }"]
                             [vbc_h3 custom_css="selector { color: #ffffff; font-weight: 800; margin: 0; }" font_size="22px"]Linux Hosting[/vbc_h3]
-                            [vbc_icon pack="lucide" name="monitor" color="#ffffff" size="24px"]
+                            [vbc_icon pack="lucide" name_lucide="monitor" color="#ffffff" size="24px"]
                         [/vbc_container]
                         [vbc_container custom_css="selector { align-items: baseline; }" display="flex"]
                             [vbc_span font_size="36px" font_weight="800"]$29[/vbc_span]
@@ -65,16 +65,16 @@
                     [vbc_block padding="30px 24px"]
                         [vbc_ul custom_css="selector { list-style: none; padding: 0; margin: 0 0 30px 0; }"]
                             [vbc_li custom_css="selector { font-size: 14px; color: #475569; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }"]
-                                [vbc_icon pack="lucide" name="check" color="#007bff" size="16px"] 10GB SSD Storage
+                                [vbc_icon pack="lucide" name_lucide="check" color="#007bff" size="16px"] 10GB SSD Storage
                             [/vbc_li]
                             [vbc_li custom_css="selector { font-size: 14px; color: #475569; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }"]
-                                [vbc_icon pack="lucide" name="check" color="#007bff" size="16px"] Free SSL Certificate
+                                [vbc_icon pack="lucide" name_lucide="check" color="#007bff" size="16px"] Free SSL Certificate
                             [/vbc_li]
                             [vbc_li custom_css="selector { font-size: 14px; color: #475569; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }"]
-                                [vbc_icon pack="lucide" name="check" color="#007bff" size="16px"] Unlimited Bandwidth
+                                [vbc_icon pack="lucide" name_lucide="check" color="#007bff" size="16px"] Unlimited Bandwidth
                             [/vbc_li]
                             [vbc_li custom_css="selector { font-size: 14px; color: #475569; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }"]
-                                [vbc_icon pack="lucide" name="check" color="#007bff" size="16px"] 10 Email Accounts
+                                [vbc_icon pack="lucide" name_lucide="check" color="#007bff" size="16px"] 10 Email Accounts
                             [/vbc_li]
                         [/vbc_ul]
                     [/vbc_block]
@@ -91,7 +91,7 @@
                     [vbc_block padding="30px 24px" background_color="#007bff" custom_css="selector { color: #ffffff; position: relative; }"]
                         [vbc_container custom_css="selector { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }"]
                             [vbc_h3 custom_css="selector { color: #ffffff; font-weight: 800; margin: 0; }" font_size="22px"]VPS Hosting[/vbc_h3]
-                            [vbc_icon pack="lucide" name="laptop" color="#ffffff" size="24px"]
+                            [vbc_icon pack="lucide" name_lucide="laptop" color="#ffffff" size="24px"]
                         [/vbc_container]
                         [vbc_container custom_css="selector { align-items: baseline; }" display="flex"]
                             [vbc_span font_size="36px" font_weight="800"]$39[/vbc_span]
@@ -104,16 +104,16 @@
                     [vbc_block padding="30px 24px"]
                         [vbc_ul custom_css="selector { list-style: none; padding: 0; margin: 0 0 30px 0; }"]
                             [vbc_li custom_css="selector { font-size: 14px; color: #475569; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }"]
-                                [vbc_icon pack="lucide" name="check" color="#007bff" size="16px"] 50GB SSD Storage
+                                [vbc_icon pack="lucide" name_lucide="check" color="#007bff" size="16px"] 50GB SSD Storage
                             [/vbc_li]
                             [vbc_li custom_css="selector { font-size: 14px; color: #475569; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }"]
-                                [vbc_icon pack="lucide" name="check" color="#007bff" size="16px"] Free SSL & Domain
+                                [vbc_icon pack="lucide" name_lucide="check" color="#007bff" size="16px"] Free SSL & Domain
                             [/vbc_li]
                             [vbc_li custom_css="selector { font-size: 14px; color: #475569; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }"]
-                                [vbc_icon pack="lucide" name="check" color="#007bff" size="16px"] Unlimited Bandwidth
+                                [vbc_icon pack="lucide" name_lucide="check" color="#007bff" size="16px"] Unlimited Bandwidth
                             [/vbc_li]
                             [vbc_li custom_css="selector { font-size: 14px; color: #475569; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }"]
-                                [vbc_icon pack="lucide" name="check" color="#007bff" size="16px"] 20 Email Accounts
+                                [vbc_icon pack="lucide" name_lucide="check" color="#007bff" size="16px"] 20 Email Accounts
                             [/vbc_li]
                         [/vbc_ul]
                     [/vbc_block]
@@ -130,7 +130,7 @@
                     [vbc_block padding="30px 24px" background_color="#007bff" custom_css="selector { color: #ffffff; position: relative; }"]
                         [vbc_container custom_css="selector { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }"]
                             [vbc_h3 custom_css="selector { color: #ffffff; font-weight: 800; margin: 0; }" font_size="22px"]Business Focus[/vbc_h3]
-                            [vbc_icon pack="lucide" name="server" color="#ffffff" size="24px"]
+                            [vbc_icon pack="lucide" name_lucide="server" color="#ffffff" size="24px"]
                         [/vbc_container]
                         [vbc_container custom_css="selector { align-items: baseline; }" display="flex"]
                             [vbc_span font_size="36px" font_weight="800"]$49[/vbc_span]
@@ -143,16 +143,16 @@
                     [vbc_block padding="30px 24px"]
                         [vbc_ul custom_css="selector { list-style: none; padding: 0; margin: 0 0 30px 0; }"]
                             [vbc_li custom_css="selector { font-size: 14px; color: #475569; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }"]
-                                [vbc_icon pack="lucide" name="check" color="#007bff" size="16px"] 100GB SSD Storage
+                                [vbc_icon pack="lucide" name_lucide="check" color="#007bff" size="16px"] 100GB SSD Storage
                             [/vbc_li]
                             [vbc_li custom_css="selector { font-size: 14px; color: #475569; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }"]
-                                [vbc_icon pack="lucide" name="check" color="#007bff" size="16px"] Free SSL & Domain
+                                [vbc_icon pack="lucide" name_lucide="check" color="#007bff" size="16px"] Free SSL & Domain
                             [/vbc_li]
                             [vbc_li custom_css="selector { font-size: 14px; color: #475569; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }"]
-                                [vbc_icon pack="lucide" name="check" color="#007bff" size="16px"] Unlimited Bandwidth
+                                [vbc_icon pack="lucide" name_lucide="check" color="#007bff" size="16px"] Unlimited Bandwidth
                             [/vbc_li]
                             [vbc_li custom_css="selector { font-size: 14px; color: #475569; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }"]
-                                [vbc_icon pack="lucide" name="check" color="#007bff" size="16px"] 50 Email Accounts
+                                [vbc_icon pack="lucide" name_lucide="check" color="#007bff" size="16px"] 50 Email Accounts
                             [/vbc_li]
                         [/vbc_ul]
                     [/vbc_block]
@@ -242,7 +242,7 @@
             [vbc_card padding="25px" background_color="#ffffff" border_color="rgba(0,0,0,0.06)" glow_color="#007bff" custom_css="selector { box-shadow: 0 4px 20px rgba(0,0,0,0.02); }"]
                 [vbc_block custom_css="selector { gap: 15px; }" display="flex"]
                     [vbc_container custom_css="selector { border-radius: 12px; align-items: center; justify-content: center; flex-shrink: 0; }" width="50px" height="50px" display="flex" background_color="rgba(0, 123, 255, 0.08)"]
-                        [vbc_icon pack="lucide" name="activity" color="#007bff" size="24px"]
+                        [vbc_icon pack="lucide" name_lucide="activity" color="#007bff" size="24px"]
                     [/vbc_container]
                     [vbc_container]
                         [vbc_h4 custom_css="selector { color: #090d16; font-weight: 700; margin-bottom: 8px; }" font_size="18px"]
@@ -257,7 +257,7 @@
             [vbc_card padding="25px" background_color="#ffffff" border_color="rgba(0,0,0,0.06)" glow_color="#007bff" custom_css="selector { box-shadow: 0 4px 20px rgba(0,0,0,0.02); }"]
                 [vbc_block custom_css="selector { gap: 15px; }" display="flex"]
                     [vbc_container custom_css="selector { border-radius: 12px; align-items: center; justify-content: center; flex-shrink: 0; }" width="50px" height="50px" display="flex" background_color="rgba(0, 123, 255, 0.08)"]
-                        [vbc_icon pack="lucide" name="refresh-cw" color="#007bff" size="24px"]
+                        [vbc_icon pack="lucide" name_lucide="refresh-cw" color="#007bff" size="24px"]
                     [/vbc_container]
                     [vbc_container]
                         [vbc_h4 custom_css="selector { color: #090d16; font-weight: 700; margin-bottom: 8px; }" font_size="18px"]
@@ -272,7 +272,7 @@
             [vbc_card padding="25px" background_color="#ffffff" border_color="rgba(0,0,0,0.06)" glow_color="#007bff" custom_css="selector { box-shadow: 0 4px 20px rgba(0,0,0,0.02); }"]
                 [vbc_block custom_css="selector { gap: 15px; }" display="flex"]
                     [vbc_container custom_css="selector { border-radius: 12px; align-items: center; justify-content: center; flex-shrink: 0; }" width="50px" height="50px" display="flex" background_color="rgba(0, 123, 255, 0.08)"]
-                        [vbc_icon pack="lucide" name="globe" color="#007bff" size="24px"]
+                        [vbc_icon pack="lucide" name_lucide="globe" color="#007bff" size="24px"]
                     [/vbc_container]
                     [vbc_container]
                         [vbc_h4 custom_css="selector { color: #090d16; font-weight: 700; margin-bottom: 8px; }" font_size="18px"]
@@ -287,7 +287,7 @@
             [vbc_card padding="25px" background_color="#ffffff" border_color="rgba(0,0,0,0.06)" glow_color="#007bff" custom_css="selector { box-shadow: 0 4px 20px rgba(0,0,0,0.02); }"]
                 [vbc_block custom_css="selector { gap: 15px; }" display="flex"]
                     [vbc_container custom_css="selector { border-radius: 12px; align-items: center; justify-content: center; flex-shrink: 0; }" width="50px" height="50px" display="flex" background_color="rgba(0, 123, 255, 0.08)"]
-                        [vbc_icon pack="lucide" name="shield-check" color="#007bff" size="24px"]
+                        [vbc_icon pack="lucide" name_lucide="shield-check" color="#007bff" size="24px"]
                     [/vbc_container]
                     [vbc_container]
                         [vbc_h4 custom_css="selector { color: #090d16; font-weight: 700; margin-bottom: 8px; }" font_size="18px"]
@@ -487,28 +487,28 @@
         [col span="3" span__sm="6"]
             [vbc_box custom_css="selector { text-align: center; opacity: 0.6; transition: 0.3s; } selector:hover { opacity: 1; }"]
                 [vbc_span font_size="20px" font_weight="800" custom_css="selector { color: #f89c1e; display: inline-flex; align-items: center; gap: 8px; }"]
-                    [vbc_icon pack="lucide" name="cloud" color="#f89c1e" size="20px"] Google Cloud
+                    [vbc_icon pack="lucide" name_lucide="cloud" color="#f89c1e" size="20px"] Google Cloud
                 [/vbc_span]
             [/vbc_box]
         [/col]
         [col span="3" span__sm="6"]
             [vbc_box custom_css="selector { text-align: center; opacity: 0.6; transition: 0.3s; } selector:hover { opacity: 1; }"]
                 [vbc_span font_size="20px" font_weight="800" custom_css="selector { color: #0080ff; display: inline-flex; align-items: center; gap: 8px; }"]
-                    [vbc_icon pack="lucide" name="droplet" color="#0080ff" size="20px"] DigitalOcean
+                    [vbc_icon pack="lucide" name_lucide="droplet" color="#0080ff" size="20px"] DigitalOcean
                 [/vbc_span]
             [/vbc_box]
         [/col]
         [col span="3" span__sm="6"]
             [vbc_box custom_css="selector { text-align: center; opacity: 0.6; transition: 0.3s; } selector:hover { opacity: 1; }"]
                 [vbc_span font_size="20px" font_weight="800" custom_css="selector { color: #ff9900; display: inline-flex; align-items: center; gap: 8px; }"]
-                    [vbc_icon pack="lucide" name="server" color="#ff9900" size="20px"] AWS
+                    [vbc_icon pack="lucide" name_lucide="server" color="#ff9900" size="20px"] AWS
                 [/vbc_span]
             [/vbc_box]
         [/col]
         [col span="3" span__sm="6"]
             [vbc_box custom_css="selector { text-align: center; opacity: 0.6; transition: 0.3s; } selector:hover { opacity: 1; }"]
                 [vbc_span font_size="20px" font_weight="800" custom_css="selector { color: #430098; display: inline-flex; align-items: center; gap: 8px; }"]
-                    [vbc_icon pack="lucide" name="cpu" color="#430098" size="20px"] Heroku
+                    [vbc_icon pack="lucide" name_lucide="cpu" color="#430098" size="20px"] Heroku
                 [/vbc_span]
             [/vbc_box]
         [/col]
@@ -518,28 +518,28 @@
         [col span="3" span__sm="6"]
             [vbc_box custom_css="selector { text-align: center; opacity: 0.6; transition: 0.3s; } selector:hover { opacity: 1; }"]
                 [vbc_span font_size="20px" font_weight="800" custom_css="selector { color: #00bfff; display: inline-flex; align-items: center; gap: 8px; }"]
-                    [vbc_icon pack="lucide" name="activity" color="#00bfff" size="20px"] Vultr
+                    [vbc_icon pack="lucide" name_lucide="activity" color="#00bfff" size="20px"] Vultr
                 [/vbc_span]
             [/vbc_box]
         [/col]
         [col span="3" span__sm="6"]
             [vbc_box custom_css="selector { text-align: center; opacity: 0.6; transition: 0.3s; } selector:hover { opacity: 1; }"]
                 [vbc_span font_size="20px" font_weight="800" custom_css="selector { color: #02a8f4; display: inline-flex; align-items: center; gap: 8px; }"]
-                    [vbc_icon pack="lucide" name="database" color="#02a8f4" size="20px"] Linode
+                    [vbc_icon pack="lucide" name_lucide="database" color="#02a8f4" size="20px"] Linode
                 [/vbc_span]
             [/vbc_box]
         [/col]
         [col span="3" span__sm="6"]
             [vbc_box custom_css="selector { text-align: center; opacity: 0.6; transition: 0.3s; } selector:hover { opacity: 1; }"]
                 [vbc_span font_size="20px" font_weight="800" custom_css="selector { color: #f38020; display: inline-flex; align-items: center; gap: 8px; }"]
-                    [vbc_icon pack="lucide" name="shield" color="#f38020" size="20px"] Cloudflare
+                    [vbc_icon pack="lucide" name_lucide="shield" color="#f38020" size="20px"] Cloudflare
                 [/vbc_span]
             [/vbc_box]
         [/col]
         [col span="3" span__sm="6"]
             [vbc_box custom_css="selector { text-align: center; opacity: 0.6; transition: 0.3s; } selector:hover { opacity: 1; }"]
                 [vbc_span font_size="20px" font_weight="800" custom_css="selector { color: #cc0000; display: inline-flex; align-items: center; gap: 8px; }"]
-                    [vbc_icon pack="lucide" name="terminal" color="#cc0000" size="20px"] RedHat
+                    [vbc_icon pack="lucide" name_lucide="terminal" color="#cc0000" size="20px"] RedHat
                 [/vbc_span]
             [/vbc_box]
         [/col]
@@ -559,7 +559,7 @@
                 [vbc_block custom_css="selector { display: flex; flex-direction: column; gap: 15px; }"]
                     [vbc_container custom_css="selector { display: flex; align-items: center; gap: 15px; }"]
                         [vbc_span custom_css="selector { display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px solid rgba(255,255,255,0.08); }" width="40px" height="40px" background_color="rgba(255,255,255,0.05)"]
-                            [vbc_icon pack="lucide" name="phone" color="#38bdf8" size="18px"]
+                            [vbc_icon pack="lucide" name_lucide="phone" color="#38bdf8" size="18px"]
                         [/vbc_span]
                         <div style="display: inline-block;">
                             [vbc_span custom_css="selector { color: #94a3b8; display: block; }" font_size="13px"]Support Hotline[/vbc_span]
@@ -568,7 +568,7 @@
                     [/vbc_container]
                     [vbc_container custom_css="selector { display: flex; align-items: center; gap: 15px; }"]
                         [vbc_span custom_css="selector { display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px solid rgba(255,255,255,0.08); }" width="40px" height="40px" background_color="rgba(255,255,255,0.05)"]
-                            [vbc_icon pack="lucide" name="message-square" color="#38bdf8" size="18px"]
+                            [vbc_icon pack="lucide" name_lucide="message-square" color="#38bdf8" size="18px"]
                         [/vbc_span]
                         <div style="display: inline-block;">
                             [vbc_span custom_css="selector { color: #94a3b8; display: block; }" font_size="13px"]Zalo Support Chat[/vbc_span]

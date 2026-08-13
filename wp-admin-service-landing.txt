@@ -1,9 +1,9 @@
-[vbc_div custom_class="section-hero" padding="80px 0 100px 0" background_color="#090d16" font_family="Outfit" custom_css="selector { background: linear-gradient(135deg, #090d16 0%, #0f172a 100%); position: relative; overflow: hidden; }"]
+﻿[vbc_div custom_class="section-hero" padding="80px 0 100px 0" background_color="#090d16" font_family="Outfit" custom_css="selector { background: linear-gradient(135deg, #090d16 0%, #0f172a 100%); position: relative; overflow: hidden; }"]
     [row style="dashed" col_bg_radius="" v_align="equal"]
         [col span="6" span__sm="12"]
             [vbc_box padding="20px 0"]
                 [vbc_span custom_class="hero-badge" padding="6px 16px" background_color="rgba(37, 99, 235, 0.15)" custom_css="selector { border-radius: 20px; font-size: 14px; font-weight: 700; color: #38bdf8; display: inline-block; margin-bottom: 20px; border: 1px solid rgba(56, 189, 248, 0.2); }"]
-                    [vbc_icon pack="lucide" name="shield-check" color="#38bdf8" size="14px" custom_class="mr-2"] Giải Pháp Quản Trị Website Toàn Diện
+                    [vbc_icon pack="lucide" name_lucide="shield-check" color="#38bdf8" size="14px" custom_class="mr-2"] Giải Pháp Quản Trị Website Toàn Diện
                 [/vbc_span]
                 [vbc_h1 font_size="42px" font_size__sm="32px" custom_css="selector { color: #ffffff; font-weight: 800; line-height: 1.2; margin-bottom: 20px; }"]
                     Dịch Vụ Quản Trị Website WordPress Chuyên Nghiệp
@@ -17,15 +17,15 @@
                 [/vbc_block]
                 [vbc_block display="flex" custom_css="selector { gap: 25px; flex-wrap: wrap; }"]
                     [vbc_container display="flex" custom_css="selector { align-items: center; gap: 8px; }"]
-                        [vbc_icon pack="lucide" name="zap" color="#eab308" size="18px"]
+                        [vbc_icon pack="lucide" name_lucide="zap" color="#eab308" size="18px"]
                         [vbc_span font_size="15px" custom_css="selector { color: #cbd5e1; font-weight: 600; }"]Tải Trang &lt; 1.5s[/vbc_span]
                     [/vbc_container]
                     [vbc_container display="flex" custom_css="selector { align-items: center; gap: 8px; }"]
-                        [vbc_icon pack="lucide" name="shield" color="#22c55e" size="18px"]
+                        [vbc_icon pack="lucide" name_lucide="shield" color="#22c55e" size="18px"]
                         [vbc_span font_size="15px" custom_css="selector { color: #cbd5e1; font-weight: 600; }"]Bảo Mật Kép[/vbc_span]
                     [/vbc_container]
                     [vbc_container display="flex" custom_css="selector { align-items: center; gap: 8px; }"]
-                        [vbc_icon pack="lucide" name="refresh-cw" color="#38bdf8" size="18px"]
+                        [vbc_icon pack="lucide" name_lucide="refresh-cw" color="#38bdf8" size="18px"]
                         [vbc_span font_size="15px" custom_css="selector { color: #cbd5e1; font-weight: 600; }"]Backup Hàng Ngày[/vbc_span]
                     [/vbc_container]
                 [/vbc_block]
@@ -55,7 +55,7 @@
         [col span="3" span__sm="12"]
             [vbc_card variant="glass" padding="30px 24px" border_radius="16px" border_color="rgba(255,255,255,0.08)" glow_color="rgba(239, 68, 68, 0.15)"]
                 [vbc_box background_color="rgba(239, 68, 68, 0.1)" width="50px" height="50px" display="flex" custom_css="selector { border-radius: 12px; align-items: center; justify-content: center; margin-bottom: 20px; }"]
-                    [vbc_icon pack="lucide" name="zap-off" color="#ef4444" size="24px"]
+                    [vbc_icon pack="lucide" name_lucide="zap-off" color="#ef4444" size="24px"]
                 [/vbc_box]
                 [vbc_h4 font_size="18px" custom_css="selector { color: #ffffff; font-weight: 700; margin-bottom: 12px; }"]Tải Trang Quá Chậm[/vbc_h4]
                 [vbc_p font_size="14px" custom_css="selector { color: #94a3b8; line-height: 1.6; }"]Website tải quá 3 giây làm mất 50% khách hàng tiềm năng và bị Google đánh tụt thứ hạng SEO.[/vbc_p]
@@ -64,7 +64,7 @@
         [col span="3" span__sm="12"]
             [vbc_card variant="glass" padding="30px 24px" border_radius="16px" border_color="rgba(255,255,255,0.08)" glow_color="rgba(239, 68, 68, 0.15)"]
                 [vbc_box background_color="rgba(239, 68, 68, 0.1)" width="50px" height="50px" display="flex" custom_css="selector { border-radius: 12px; align-items: center; justify-content: center; margin-bottom: 20px; }"]
-                    [vbc_icon pack="lucide" name="shield-alert" color="#ef4444" size="24px"]
+                    [vbc_icon pack="lucide" name_lucide="shield-alert" color="#ef4444" size="24px"]
                 [/vbc_box]
                 [vbc_h4 font_size="18px" custom_css="selector { color: #ffffff; font-weight: 700; margin-bottom: 12px; }"]Nguy Cơ Mã Độc & Hack[/vbc_h4]
                 [vbc_p font_size="14px" custom_css="selector { color: #94a3b8; line-height: 1.6; }"]Không được bảo mật, quét virus thường xuyên dẫn đến website bị chèn link ẩn, cảnh báo đỏ nguy hại.[/vbc_p]
@@ -73,7 +73,7 @@
         [col span="3" span__sm="12"]
             [vbc_card variant="glass" padding="30px 24px" border_radius="16px" border_color="rgba(255,255,255,0.08)" glow_color="rgba(239, 68, 68, 0.15)"]
                 [vbc_box background_color="rgba(239, 68, 68, 0.1)" width="50px" height="50px" display="flex" custom_css="selector { border-radius: 12px; align-items: center; justify-content: center; margin-bottom: 20px; }"]
-                    [vbc_icon pack="lucide" name="database-backup" color="#ef4444" size="24px"]
+                    [vbc_icon pack="lucide" name_lucide="database-backup" color="#ef4444" size="24px"]
                 [/vbc_box]
                 [vbc_h4 font_size="18px" custom_css="selector { color: #ffffff; font-weight: 700; margin-bottom: 12px; }"]Không Sao Lưu Định Kỳ[/vbc_h4]
                 [vbc_p font_size="14px" custom_css="selector { color: #94a3b8; line-height: 1.6; }"]Khi server gặp sự cố hoặc thao tác nhầm lẫn, website bị trắng trang hoặc mất sạch dữ liệu mà không thể phục hồi.[/vbc_p]
@@ -82,7 +82,7 @@
         [col span="3" span__sm="12"]
             [vbc_card variant="glass" padding="30px 24px" border_radius="16px" border_color="rgba(255,255,255,0.08)" glow_color="rgba(239, 68, 68, 0.15)"]
                 [vbc_box background_color="rgba(239, 68, 68, 0.1)" width="50px" height="50px" display="flex" custom_css="selector { border-radius: 12px; align-items: center; justify-content: center; margin-bottom: 20px; }"]
-                    [vbc_icon pack="lucide" name="refresh-cw" color="#ef4444" size="24px"]
+                    [vbc_icon pack="lucide" name_lucide="refresh-cw" color="#ef4444" size="24px"]
                 [/vbc_box]
                 [vbc_h4 font_size="18px" custom_css="selector { color: #ffffff; font-weight: 700; margin-bottom: 12px; }"]Xung Đột Theme & Plugin[/vbc_h4]
                 [vbc_p font_size="14px" custom_css="selector { color: #94a3b8; line-height: 1.6; }"]Tự động update plugin mà không có kinh nghiệm xử lý gây xung đột, vỡ layout giao diện và treo hệ thống.[/vbc_p]
@@ -94,7 +94,7 @@
 [vbc_div custom_class="section-solutions" padding="80px 0 80px 0" background_color="#090d16" font_family="Outfit" custom_css="selector { border-top: 1px solid rgba(255,255,255,0.05); }"]
     [vbc_box text_align="center" padding="0 0 50px 0" width="800px" margin="0 auto"]
         [vbc_span custom_class="section-badge" padding="6px 16px" background_color="rgba(16, 185, 129, 0.15)" custom_css="selector { border-radius: 20px; font-size: 14px; font-weight: 700; color: #34d399; display: inline-block; margin-bottom: 15px; border: 1px solid rgba(52, 211, 153, 0.2); }"]
-            [vbc_icon pack="lucide" name="sparkles" color="#34d399" size="14px"] Giải Pháp Của Chúng Tôi
+            [vbc_icon pack="lucide" name_lucide="sparkles" color="#34d399" size="14px"] Giải Pháp Của Chúng Tôi
         [/vbc_span]
         [vbc_h2 font_size="32px" font_size__sm="26px" custom_css="selector { color: #ffffff; font-weight: 800; margin-bottom: 15px; }"]
             Vận Hành Website Vững Chắc, An Tâm Đột Phá Doanh Số
@@ -109,7 +109,7 @@
             [vbc_card variant="glass" padding="35px" border_radius="20px" border_color="rgba(255,255,255,0.08)" glow_color="rgba(56,189,248,0.1)"]
                 [vbc_box display="flex" custom_css="selector { gap: 20px; }"]
                     [vbc_block background_color="rgba(56, 189, 248, 0.15)" width="60px" height="60px" display="flex" custom_css="selector { border-radius: 16px; align-items: center; justify-content: center; flex-shrink: 0; }"]
-                        [vbc_icon pack="lucide" name="gauge" color="#38bdf8" size="28px"]
+                        [vbc_icon pack="lucide" name_lucide="gauge" color="#38bdf8" size="28px"]
                     [/vbc_block]
                     [vbc_block]
                         [vbc_h3 font_size="20px" custom_css="selector { color: #ffffff; font-weight: 700; margin-bottom: 10px; }"]Tối Ưu Tốc Độ Tải Trang Siêu Tốc[/vbc_h3]
@@ -122,7 +122,7 @@
             [vbc_card variant="glass" padding="35px" border_radius="20px" border_color="rgba(255,255,255,0.08)" glow_color="rgba(16,185,129,0.1)"]
                 [vbc_box display="flex" custom_css="selector { gap: 20px; }"]
                     [vbc_block background_color="rgba(16, 185, 129, 0.15)" width="60px" height="60px" display="flex" custom_css="selector { border-radius: 16px; align-items: center; justify-content: center; flex-shrink: 0; }"]
-                        [vbc_icon pack="lucide" name="shield-check" color="#34d399" size="28px"]
+                        [vbc_icon pack="lucide" name_lucide="shield-check" color="#34d399" size="28px"]
                     [/vbc_block]
                     [vbc_block]
                         [vbc_h3 font_size="20px" custom_css="selector { color: #ffffff; font-weight: 700; margin-bottom: 10px; }"]Bảo Mật Chuyên Sâu & Diệt Mã Độc[/vbc_h3]
@@ -138,7 +138,7 @@
             [vbc_card variant="glass" padding="35px" border_radius="20px" border_color="rgba(255,255,255,0.08)" glow_color="rgba(139,92,246,0.1)"]
                 [vbc_box display="flex" custom_css="selector { gap: 20px; }"]
                     [vbc_block background_color="rgba(139, 92, 246, 0.15)" width="60px" height="60px" display="flex" custom_css="selector { border-radius: 16px; align-items: center; justify-content: center; flex-shrink: 0; }"]
-                        [vbc_icon pack="lucide" name="cloud-lightning" color="#a78bfa" size="28px"]
+                        [vbc_icon pack="lucide" name_lucide="cloud-lightning" color="#a78bfa" size="28px"]
                     [/vbc_block]
                     [vbc_block]
                         [vbc_h3 font_size="20px" custom_css="selector { color: #ffffff; font-weight: 700; margin-bottom: 10px; }"]Sao Lưu Đa Tầng (Multi-backups)[/vbc_h3]
@@ -151,7 +151,7 @@
             [vbc_card variant="glass" padding="35px" border_radius="20px" border_color="rgba(255,255,255,0.08)" glow_color="rgba(236,72,153,0.1)"]
                 [vbc_box display="flex" custom_css="selector { gap: 20px; }"]
                     [vbc_block background_color="rgba(236, 72, 153, 0.15)" width="60px" height="60px" display="flex" custom_css="selector { border-radius: 16px; align-items: center; justify-content: center; flex-shrink: 0; }"]
-                        [vbc_icon pack="lucide" name="hammer" color="#f472b6" size="28px"]
+                        [vbc_icon pack="lucide" name_lucide="hammer" color="#f472b6" size="28px"]
                     [/vbc_block]
                     [vbc_block]
                         [vbc_h3 font_size="20px" custom_css="selector { color: #ffffff; font-weight: 700; margin-bottom: 10px; }"]Cập Nhật & Sửa Lỗi Tức Thì[/vbc_h3]
@@ -177,7 +177,7 @@
         [col span="4" span__sm="12"]
             [vbc_box padding="25px" custom_css="selector { border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; background: rgba(255,255,255,0.02); transition: all 0.2s; } selector:hover { background: rgba(255,255,255,0.05); border-color: #38bdf8; }"]
                 [vbc_block display="flex" custom_css="selector { align-items: center; gap: 12px; margin-bottom: 15px; }"]
-                    [vbc_icon pack="lucide" name="activity" color="#38bdf8" size="20px"]
+                    [vbc_icon pack="lucide" name_lucide="activity" color="#38bdf8" size="20px"]
                     [vbc_h4 font_size="16px" custom_css="selector { color: #ffffff; font-weight: 700; margin: 0; }"]Giám Sát Uptime 24/7[/vbc_h4]
                 [/vbc_block]
                 [vbc_p font_size="14px" custom_css="selector { color: #94a3b8; line-height: 1.5; }"]Kiểm tra trạng thái hoạt động của website mỗi phút. Thông báo và xử lý ngay nếu hosting có sự cố ngắt kết nối.[/vbc_p]
@@ -186,7 +186,7 @@
         [col span="4" span__sm="12"]
             [vbc_box padding="25px" custom_css="selector { border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; background: rgba(255,255,255,0.02); transition: all 0.2s; } selector:hover { background: rgba(255,255,255,0.05); border-color: #38bdf8; }"]
                 [vbc_block display="flex" custom_css="selector { align-items: center; gap: 12px; margin-bottom: 15px; }"]
-                    [vbc_icon pack="lucide" name="file-text" color="#38bdf8" size="20px"]
+                    [vbc_icon pack="lucide" name_lucide="file-text" color="#38bdf8" size="20px"]
                     [vbc_h4 font_size="16px" custom_css="selector { color: #ffffff; font-weight: 700; margin: 0; }"]Đăng Tải & Biên Tập SEO[/vbc_h4]
                 [/vbc_block]
                 [vbc_p font_size="14px" custom_css="selector { color: #94a3b8; line-height: 1.5; }"]Hỗ trợ thiết kế hình ảnh đại diện, đăng tải bài viết và sản phẩm chuẩn SEO theo nội dung doanh nghiệp cung cấp.[/vbc_p]
@@ -195,7 +195,7 @@
         [col span="4" span__sm="12"]
             [vbc_box padding="25px" custom_css="selector { border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; background: rgba(255,255,255,0.02); transition: all 0.2s; } selector:hover { background: rgba(255,255,255,0.05); border-color: #38bdf8; }"]
                 [vbc_block display="flex" custom_css="selector { align-items: center; gap: 12px; margin-bottom: 15px; }"]
-                    [vbc_icon pack="lucide" name="code" color="#38bdf8" size="20px"]
+                    [vbc_icon pack="lucide" name_lucide="code" color="#38bdf8" size="20px"]
                     [vbc_h4 font_size="16px" custom_css="selector { color: #ffffff; font-weight: 700; margin: 0; }"]Hỗ Trợ Code & CSS[/vbc_h4]
                 [/vbc_block]
                 [vbc_p font_size="14px" custom_css="selector { color: #94a3b8; line-height: 1.5; }"]Hỗ trợ tùy chỉnh giao diện cơ bản bằng CSS/HTML, chỉnh sửa menu, font chữ, bố cục theo yêu cầu kỹ thuật.[/vbc_p]
@@ -207,7 +207,7 @@
         [col span="4" span__sm="12"]
             [vbc_box padding="25px" custom_css="selector { border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; background: rgba(255,255,255,0.02); transition: all 0.2s; } selector:hover { background: rgba(255,255,255,0.05); border-color: #38bdf8; }"]
                 [vbc_block display="flex" custom_css="selector { align-items: center; gap: 12px; margin-bottom: 15px; }"]
-                    [vbc_icon pack="lucide" name="smartphone" color="#38bdf8" size="20px"]
+                    [vbc_icon pack="lucide" name_lucide="smartphone" color="#38bdf8" size="20px"]
                     [vbc_h4 font_size="16px" custom_css="selector { color: #ffffff; font-weight: 700; margin: 0; }"]Kiểm Tra Responsive[/vbc_h4]
                 [/vbc_block]
                 [vbc_p font_size="14px" custom_css="selector { color: #94a3b8; line-height: 1.5; }"]Kiểm tra khả năng tương thích của website trên các thiết bị di động, máy tính bảng để tối ưu tỷ lệ chuyển đổi.[/vbc_p]
@@ -216,7 +216,7 @@
         [col span="4" span__sm="12"]
             [vbc_box padding="25px" custom_css="selector { border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; background: rgba(255,255,255,0.02); transition: all 0.2s; } selector:hover { background: rgba(255,255,255,0.05); border-color: #38bdf8; }"]
                 [vbc_block display="flex" custom_css="selector { align-items: center; gap: 12px; margin-bottom: 15px; }"]
-                    [vbc_icon pack="lucide" name="trending-up" color="#38bdf8" size="20px"]
+                    [vbc_icon pack="lucide" name_lucide="trending-up" color="#38bdf8" size="20px"]
                     [vbc_h4 font_size="16px" custom_css="selector { color: #ffffff; font-weight: 700; margin: 0; }"]Tích Hợp Analytics & Pixel[/vbc_h4]
                 [/vbc_block]
                 [vbc_p font_size="14px" custom_css="selector { color: #94a3b8; line-height: 1.5; }"]Thiết lập Google Analytics 4, Search Console, Facebook Pixel, Google Tag Manager và cài đặt form liên hệ.[/vbc_p]
@@ -225,7 +225,7 @@
         [col span="4" span__sm="12"]
             [vbc_box padding="25px" custom_css="selector { border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; background: rgba(255,255,255,0.02); transition: all 0.2s; } selector:hover { background: rgba(255,255,255,0.05); border-color: #38bdf8; }"]
                 [vbc_block display="flex" custom_css="selector { align-items: center; gap: 12px; margin-bottom: 15px; }"]
-                    [vbc_icon pack="lucide" name="file-chart-column" color="#38bdf8" size="20px"]
+                    [vbc_icon pack="lucide" name_lucide="file-chart-column" color="#38bdf8" size="20px"]
                     [vbc_h4 font_size="16px" custom_css="selector { color: #ffffff; font-weight: 700; margin: 0; }"]Báo Cáo Định Kỳ[/vbc_h4]
                 [/vbc_block]
                 [vbc_p font_size="14px" custom_css="selector { color: #94a3b8; line-height: 1.5; }"]Gửi báo cáo hiệu suất website hàng tháng: tốc độ tải trang, thứ hạng từ khóa chính và thống kê lỗi kỹ thuật đã xử lý.[/vbc_p]
@@ -237,7 +237,7 @@
 [vbc_div custom_class="section-pricing" id="pricing" padding="80px 0 80px 0" background_color="#090d16" font_family="Outfit" custom_css="selector { border-top: 1px solid rgba(255,255,255,0.05); }"]
     [vbc_box text_align="center" padding="0 0 50px 0" width="800px" margin="0 auto"]
         [vbc_span custom_class="section-badge" padding="6px 16px" background_color="rgba(37, 99, 235, 0.15)" custom_css="selector { border-radius: 20px; font-size: 14px; font-weight: 700; color: #38bdf8; display: inline-block; margin-bottom: 15px; border: 1px solid rgba(56, 189, 248, 0.2); }"]
-            [vbc_icon pack="lucide" name="credit-card" color="#38bdf8" size="14px"] Bảng Giá Dịch Vụ
+            [vbc_icon pack="lucide" name_lucide="credit-card" color="#38bdf8" size="14px"] Bảng Giá Dịch Vụ
         [/vbc_span]
         [vbc_h2 font_size="32px" font_size__sm="26px" custom_css="selector { color: #ffffff; font-weight: 800; margin-bottom: 15px; }"]
             Lựa Chọn Gói Dịch Vụ Phù Hợp Với Bạn
@@ -260,19 +260,19 @@
                     [vbc_hr custom_css="selector { border: 0; border-top: 1px solid rgba(255,255,255,0.08); margin-bottom: 25px; }"]
                     [vbc_ul custom_css="selector { list-style: none; padding: 0; margin: 0 0 35px 0; }"]
                         [vbc_li custom_css="selector { font-size: 14px; color: #cbd5e1; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }"]
-                            [vbc_icon pack="lucide" name="check" color="#34d399" size="16px"] Sao lưu hàng tuần
+                            [vbc_icon pack="lucide" name_lucide="check" color="#34d399" size="16px"] Sao lưu hàng tuần
                         [/vbc_li]
                         [vbc_li custom_css="selector { font-size: 14px; color: #cbd5e1; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }"]
-                            [vbc_icon pack="lucide" name="check" color="#34d399" size="16px"] Cập nhật Theme & Plugin hàng tháng
+                            [vbc_icon pack="lucide" name_lucide="check" color="#34d399" size="16px"] Cập nhật Theme & Plugin hàng tháng
                         [/vbc_li]
                         [vbc_li custom_css="selector { font-size: 14px; color: #cbd5e1; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }"]
-                            [vbc_icon pack="lucide" name="check" color="#34d399" size="16px"] Quét mã độc hàng tuần
+                            [vbc_icon pack="lucide" name_lucide="check" color="#34d399" size="16px"] Quét mã độc hàng tuần
                         [/vbc_li]
                         [vbc_li custom_css="selector { font-size: 14px; color: #cbd5e1; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }"]
-                            [vbc_icon pack="lucide" name="check" color="#34d399" size="16px"] Tối ưu tốc độ cơ bản
+                            [vbc_icon pack="lucide" name_lucide="check" color="#34d399" size="16px"] Tối ưu tốc độ cơ bản
                         [/vbc_li]
                         [vbc_li custom_css="selector { font-size: 14px; color: #64748b; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; text-decoration: line-through; }"]
-                            [vbc_icon pack="lucide" name="x" color="#ef4444" size="16px"] Hỗ trợ sửa lỗi giao diện
+                            [vbc_icon pack="lucide" name_lucide="x" color="#ef4444" size="16px"] Hỗ trợ sửa lỗi giao diện
                         [/vbc_li]
                     [/vbc_ul]
                 [/vbc_box]
@@ -293,19 +293,19 @@
                     [vbc_hr custom_css="selector { border: 0; border-top: 1px solid rgba(255,255,255,0.08); margin-bottom: 25px; }"]
                     [vbc_ul custom_css="selector { list-style: none; padding: 0; margin: 0 0 35px 0; }"]
                         [vbc_li custom_css="selector { font-size: 14px; color: #cbd5e1; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }"]
-                            [vbc_icon pack="lucide" name="check" color="#34d399" size="16px"] Sao lưu hàng ngày (lưu trữ 30 ngày)
+                            [vbc_icon pack="lucide" name_lucide="check" color="#34d399" size="16px"] Sao lưu hàng ngày (lưu trữ 30 ngày)
                         [/vbc_li]
                         [vbc_li custom_css="selector { font-size: 14px; color: #cbd5e1; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }"]
-                            [vbc_icon pack="lucide" name="check" color="#34d399" size="16px"] Tường lửa bảo mật & quét malware hàng ngày
+                            [vbc_icon pack="lucide" name_lucide="check" color="#34d399" size="16px"] Tường lửa bảo mật & quét malware hàng ngày
                         [/vbc_li]
                         [vbc_li custom_css="selector { font-size: 14px; color: #cbd5e1; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }"]
-                            [vbc_icon pack="lucide" name="check" color="#34d399" size="16px"] Tối ưu tốc độ tải trang chuyên sâu (Load &lt; 2s)
+                            [vbc_icon pack="lucide" name_lucide="check" color="#34d399" size="16px"] Tối ưu tốc độ tải trang chuyên sâu (Load &lt; 2s)
                         [/vbc_li]
                         [vbc_li custom_css="selector { font-size: 14px; color: #cbd5e1; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }"]
-                            [vbc_icon pack="lucide" name="check" color="#34d399" size="16px"] Hỗ trợ fix lỗi phát sinh (2h/tháng)
+                            [vbc_icon pack="lucide" name_lucide="check" color="#34d399" size="16px"] Hỗ trợ fix lỗi phát sinh (2h/tháng)
                         [/vbc_li]
                         [vbc_li custom_css="selector { font-size: 14px; color: #cbd5e1; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }"]
-                            [vbc_icon pack="lucide" name="check" color="#34d399" size="16px"] Thiết lập Google Analytics 4 & Search Console
+                            [vbc_icon pack="lucide" name_lucide="check" color="#34d399" size="16px"] Thiết lập Google Analytics 4 & Search Console
                         [/vbc_li]
                     [/vbc_ul]
                 [/vbc_box]
@@ -325,19 +325,19 @@
                     [vbc_hr custom_css="selector { border: 0; border-top: 1px solid rgba(255,255,255,0.08); margin-bottom: 25px; }"]
                     [vbc_ul custom_css="selector { list-style: none; padding: 0; margin: 0 0 35px 0; }"]
                         [vbc_li custom_css="selector { font-size: 14px; color: #cbd5e1; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }"]
-                            [vbc_icon pack="lucide" name="check" color="#34d399" size="16px"] Sao lưu Real-time / Daily (2 điểm lưu trữ)
+                            [vbc_icon pack="lucide" name_lucide="check" color="#34d399" size="16px"] Sao lưu Real-time / Daily (2 điểm lưu trữ)
                         [/vbc_li]
                         [vbc_li custom_css="selector { font-size: 14px; color: #cbd5e1; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }"]
-                            [vbc_icon pack="lucide" name="check" color="#34d399" size="16px"] Bảo mật VIP, chống DDoS, tối ưu Cloudflare
+                            [vbc_icon pack="lucide" name_lucide="check" color="#34d399" size="16px"] Bảo mật VIP, chống DDoS, tối ưu Cloudflare
                         [/vbc_li]
                         [vbc_li custom_css="selector { font-size: 14px; color: #cbd5e1; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }"]
-                            [vbc_icon pack="lucide" name="check" color="#34d399" size="16px"] Tối ưu tốc độ cao cấp + Tích hợp Redis Cache
+                            [vbc_icon pack="lucide" name_lucide="check" color="#34d399" size="16px"] Tối ưu tốc độ cao cấp + Tích hợp Redis Cache
                         [/vbc_li]
                         [vbc_li custom_css="selector { font-size: 14px; color: #cbd5e1; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }"]
-                            [vbc_icon pack="lucide" name="check" color="#34d399" size="16px"] Hỗ trợ kỹ thuật khẩn cấp 24/7 (phản hồi &lt; 15p)
+                            [vbc_icon pack="lucide" name_lucide="check" color="#34d399" size="16px"] Hỗ trợ kỹ thuật khẩn cấp 24/7 (phản hồi &lt; 15p)
                         [/vbc_li]
                         [vbc_li custom_css="selector { font-size: 14px; color: #cbd5e1; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }"]
-                            [vbc_icon pack="lucide" name="check" color="#34d399" size="16px"] Viết & Đăng 4 bài viết chuẩn SEO / tháng
+                            [vbc_icon pack="lucide" name_lucide="check" color="#34d399" size="16px"] Viết & Đăng 4 bài viết chuẩn SEO / tháng
                         [/vbc_li]
                     [/vbc_ul]
                 [/vbc_box]
@@ -350,7 +350,7 @@
 [vbc_div custom_class="section-process" padding="80px 0 80px 0" background_color="#0f172a" font_family="Outfit" custom_css="selector { border-top: 1px solid rgba(255,255,255,0.05); }"]
     [vbc_box text_align="center" padding="0 0 50px 0" width="800px" margin="0 auto"]
         [vbc_span custom_class="section-badge" padding="6px 16px" background_color="rgba(139, 92, 246, 0.15)" custom_css="selector { border-radius: 20px; font-size: 14px; font-weight: 700; color: #c084fc; display: inline-block; margin-bottom: 15px; border: 1px solid rgba(192, 132, 252, 0.2); }"]
-            [vbc_icon pack="lucide" name="git-commit" color="#c084fc" size="14px"] Quy Trình Chuyên Nghiệp
+            [vbc_icon pack="lucide" name_lucide="git-commit" color="#c084fc" size="14px"] Quy Trình Chuyên Nghiệp
         [/vbc_span]
         [vbc_h2 font_size="32px" font_size__sm="26px" custom_css="selector { color: #ffffff; font-weight: 800; margin-bottom: 15px; }"]
             Quy Trình Hợp Tác Gọn Gàng & Minh Bạch
@@ -435,7 +435,7 @@
 [vbc_div custom_class="section-testimonials" padding="80px 0 80px 0" background_color="#0f172a" font_family="Outfit" custom_css="selector { border-top: 1px solid rgba(255,255,255,0.05); }"]
     [vbc_box text_align="center" padding="0 0 50px 0" width="800px" margin="0 auto"]
         [vbc_span custom_class="section-badge" padding="6px 16px" background_color="rgba(16, 185, 129, 0.15)" custom_css="selector { border-radius: 20px; font-size: 14px; font-weight: 700; color: #34d399; display: inline-block; margin-bottom: 15px; border: 1px solid rgba(52, 211, 153, 0.2); }"]
-            [vbc_icon pack="lucide" name="heart" color="#34d399" size="14px"] Khách Hàng Đánh Giá
+            [vbc_icon pack="lucide" name_lucide="heart" color="#34d399" size="14px"] Khách Hàng Đánh Giá
         [/vbc_span]
         [vbc_h2 font_size="32px" font_size__sm="26px" custom_css="selector { color: #ffffff; font-weight: 800; margin-bottom: 15px; }"]
             Hơn 150+ Doanh Nghiệp Đã Tin Tưởng Lựa Chọn
@@ -508,7 +508,7 @@
                 [vbc_block display="flex" custom_css="selector { flex-direction: column; gap: 15px; }"]
                     [vbc_container display="flex" custom_css="selector { align-items: center; gap: 15px; }"]
                         [vbc_span background_color="rgba(56,189,248,0.15)" width="40px" height="40px" display="inline-flex" custom_css="selector { border-radius: 50%; align-items: center; justify-content: center; }"]
-                            [vbc_icon pack="lucide" name="phone" color="#38bdf8" size="18px"]
+                            [vbc_icon pack="lucide" name_lucide="phone" color="#38bdf8" size="18px"]
                         [/vbc_span]
                         [vbc_span display="inline-block"]
                             [vbc_span font_size="13px" custom_css="selector { color: #94a3b8; display: block; }"]Hotline tư vấn nhanh[/vbc_span]
@@ -517,7 +517,7 @@
                     [/vbc_container]
                     [vbc_container display="flex" custom_css="selector { align-items: center; gap: 15px; }"]
                         [vbc_span background_color="rgba(52,211,153,0.15)" width="40px" height="40px" display="inline-flex" custom_css="selector { border-radius: 50%; align-items: center; justify-content: center; }"]
-                            [vbc_icon pack="lucide" name="message-square" color="#34d399" size="18px"]
+                            [vbc_icon pack="lucide" name_lucide="message-square" color="#34d399" size="18px"]
                         [/vbc_span]
                         [vbc_span display="inline-block"]
                             [vbc_span font_size="13px" custom_css="selector { color: #94a3b8; display: block; }"]Zalo Chat hỗ trợ 24/7[/vbc_span]

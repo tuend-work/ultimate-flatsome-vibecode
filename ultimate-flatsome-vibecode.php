@@ -124,8 +124,7 @@ function vbc_get_common_options($tag_type) {
                     'description' => 'Ví dụ: Outfit, Inter, Montserrat. Sẽ tự động nạp từ Google Fonts.',
                 ),
             ),
-        ),
-    );
+        );
 
     if ($tag_type === 'container') {
         // Content Options Group

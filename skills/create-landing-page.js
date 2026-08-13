@@ -31,6 +31,15 @@ const VBC_NESTABLE_TAGS = [
  */
 function fixNestedShortcodes(content) {
     let fixed = content;
+
+    // Normalization Step: Strip any pre-existing suffixes (_inner, _inner_1...) from VBC nestable tags first
+    for (const tag of VBC_NESTABLE_TAGS) {
+        const normalizeRegex = new RegExp(`\\[(/?)${tag}_inner(?:_\\d+)?(\\s[^\\]]*)?\\]`, 'g');
+        fixed = fixed.replace(normalizeRegex, (match, closeSlash, attrs) => {
+            return `[${closeSlash || ''}${tag}${attrs || ''}]`;
+        });
+    }
+
     let totalFixes = 0;
 
     for (const tag of VBC_NESTABLE_TAGS) {

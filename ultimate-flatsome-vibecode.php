@@ -3,7 +3,7 @@
  * Plugin Name: Ultimate Flatsome VibeCode Elements
  * Plugin URI: https://github.com/tuend-work/ultimate-flatsome-vibecode
  * Description: Thêm các phần tử HTML cơ bản tích hợp sâu với Flatsome UX Builder, hỗ trợ responsive hoàn hảo, chèn dữ liệu động (Post Meta, ACF) và chỉnh sửa CSS nâng cao.
- * Version: 1.1.6
+ * Version: 1.1.7
  * Author: Antigravity AI
  * Author URI: https://github.com/tuend-work
  * License: GPL2
@@ -19,10 +19,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 add_action('ux_builder_setup', 'vbc_register_ux_builder_elements');
 
 function vbc_get_common_options($tag_type) {
-    $options = array(
-        // Layout & Styling Options Group
-        'styling_group' => array(
-            'type' => 'group',
+    $options = array();
+
+    if ($tag_type === 'container') {
+        $options['content'] = array(
+            'type' => 'textarea',
+            'heading' => 'Nội dung (Text/HTML/Shortcode)',
+            'default' => '',
+            'description' => 'Nhập chữ, HTML hoặc shortcode (như [vbc_icon]). Nhập ở đây sẽ hiển thị trực tiếp và không bị Flatsome tự ý bọc thẻ p/text.',
+        );
+    }
+
+    $options['styling_group'] = array(
+        'type' => 'group',
             'heading' => 'Định dạng & CSS',
             'options' => array(
                 'custom_class' => array(
@@ -369,6 +378,12 @@ function vbc_register_ux_builder_elements() {
         'category' => 'VibeCode Components',
         'type' => 'container',
         'options' => array(
+            'content' => array(
+                'type' => 'textarea',
+                'heading' => 'Nội dung (Text/HTML/Shortcode)',
+                'default' => '',
+                'description' => 'Nhập chữ, HTML hoặc shortcode. Nhập ở đây sẽ hiển thị trực tiếp và không bị Flatsome tự ý bọc thẻ p/text.',
+            ),
             'variant' => array(
                 'type' => 'select',
                 'heading' => 'Biến thể (Variant)',
@@ -446,6 +461,12 @@ function vbc_register_ux_builder_elements() {
         'category' => 'VibeCode Components',
         'type' => 'container',
         'options' => array(
+            'content' => array(
+                'type' => 'textarea',
+                'heading' => 'Nội dung (Text/HTML/Shortcode)',
+                'default' => '',
+                'description' => 'Nhập chữ, HTML hoặc shortcode. Nhập ở đây sẽ hiển thị trực tiếp và không bị Flatsome tự ý bọc thẻ p/text.',
+            ),
             'name' => array(
                 'type' => 'textfield',
                 'heading' => 'Tên khách hàng',
@@ -546,6 +567,12 @@ function vbc_register_ux_builder_elements() {
         'category' => 'VibeCode Components',
         'type' => 'container',
         'options' => array(
+            'content' => array(
+                'type' => 'textarea',
+                'heading' => 'Nội dung (Text/HTML/Shortcode)',
+                'default' => '',
+                'description' => 'Nhập chữ, HTML hoặc shortcode. Nhập ở đây sẽ hiển thị trực tiếp và không bị Flatsome tự ý bọc thẻ p/text.',
+            ),
             'faq_schema' => array(
                 'type' => 'select',
                 'heading' => 'FAQ Schema (SEO)',
@@ -812,6 +839,12 @@ function vbc_register_ux_builder_elements() {
         'category' => 'VibeCode Components',
         'type' => 'container',
         'options' => array(
+            'content' => array(
+                'type' => 'textarea',
+                'heading' => 'Nội dung (Text/HTML/Shortcode)',
+                'default' => '',
+                'description' => 'Nhập chữ, HTML hoặc shortcode. Nhập ở đây sẽ hiển thị trực tiếp và không bị Flatsome tự ý bọc thẻ p/text.',
+            ),
             'background_color' => array(
                 'type' => 'colorpicker',
                 'heading' => 'Màu nền Slide',
@@ -950,6 +983,7 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
     }
 
     $atts = shortcode_atts(array(
+        'content' => '',
         // Common Styling Options
         'custom_class' => '',
         'custom_css' => '',
@@ -1206,7 +1240,8 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
         $dynamic_content = strval($dynamic_content);
     }
 
-    $children = do_shortcode($content);
+    $inner_content_to_render = !empty($atts['content']) ? $atts['content'] : $content;
+    $children = do_shortcode($inner_content_to_render);
 
     if ($atts['content_source'] === 'default') {
         $final_content = $children;
@@ -1430,6 +1465,7 @@ function vbc_compile_element_css(&$atts, $base_class = 'vbc-comp') {
 
 function vbc_card_shortcode($atts, $content = null) {
     $atts = shortcode_atts(array(
+        'content' => '',
         'variant' => 'glass',
         'custom_class' => '',
         'custom_css' => '',
@@ -1485,11 +1521,13 @@ function vbc_card_shortcode($atts, $content = null) {
 
     $class_str = trim('vbc-component-card ' . $unique_class . ' ' . $atts['custom_class']);
 
-    return '<div class="' . esc_attr($class_str) . '">' . $default_css . $compiled_css . do_shortcode($content) . '</div>';
+    $inner_content = !empty($atts['content']) ? $atts['content'] : $content;
+    return '<div class="' . esc_attr($class_str) . '">' . $default_css . $compiled_css . do_shortcode($inner_content) . '</div>';
 }
 
 function vbc_testimonial_shortcode($atts, $content = null) {
     $atts = shortcode_atts(array(
+        'content' => '',
         'name' => 'Khách Hàng',
         'company' => '',
         'stars' => '5',
@@ -1562,11 +1600,13 @@ function vbc_testimonial_shortcode($atts, $content = null) {
 
     $meta_html = '<div style="display: flex; align-items: center;">' . $avatar_html . '<div><div class="vbc-author">' . esc_html($atts['name']) . '</div><div class="vbc-company">' . esc_html($atts['company']) . '</div></div></div>';
 
-    return '<div class="' . esc_attr($unique_class . ' ' . $atts['custom_class']) . '">' . $default_css . $compiled_css . '<div class="vbc-stars">' . $stars_html . '</div><div class="vbc-quote">"' . do_shortcode($content) . '"</div>' . $meta_html . '</div>';
+    $inner_content = !empty($atts['content']) ? $atts['content'] : $content;
+    return '<div class="' . esc_attr($unique_class . ' ' . $atts['custom_class']) . '">' . $default_css . $compiled_css . '<div class="vbc-stars">' . $stars_html . '</div><div class="vbc-quote">"' . do_shortcode($inner_content) . '"</div>' . $meta_html . '</div>';
 }
 
 function vbc_accordion_shortcode($atts, $content = null) {
     $atts = shortcode_atts(array(
+        'content' => '',
         'faq_schema' => 'true',
         'custom_class' => '',
         'custom_css' => '',
@@ -1614,7 +1654,8 @@ function vbc_accordion_shortcode($atts, $content = null) {
         $default_css = '';
     }
 
-    return '<div class="' . esc_attr($unique_class . ' ' . $atts['custom_class']) . '"' . $schema_attr . '>' . $default_css . $compiled_css . do_shortcode($content) . '</div>';
+    $inner_content = !empty($atts['content']) ? $atts['content'] : $content;
+    return '<div class="' . esc_attr($unique_class . ' ' . $atts['custom_class']) . '"' . $schema_attr . '>' . $default_css . $compiled_css . do_shortcode($inner_content) . '</div>';
 }
 
 function vbc_accordion_item_shortcode($atts, $content = null) {
@@ -1784,6 +1825,7 @@ function vbc_slider_shortcode($atts, $content = null) {
 
 function vbc_slide_shortcode($atts, $content = null) {
     $atts = shortcode_atts(array(
+        'content' => '',
         'background_color' => '',
         'padding' => '',
         'custom_class' => '',
@@ -1798,7 +1840,8 @@ function vbc_slide_shortcode($atts, $content = null) {
 
     $html = '<li class="' . $class_str . '">';
     $html .= $compiled_css;
-    $html .= do_shortcode($content);
+    $inner_content = !empty($atts['content']) ? $atts['content'] : $content;
+    $html .= do_shortcode($inner_content);
     $html .= '</li>';
 
     return $html;

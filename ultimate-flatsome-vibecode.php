@@ -3,7 +3,7 @@
  * Plugin Name: Ultimate Flatsome VibeCode Elements
  * Plugin URI: https://github.com/tuend-work/ultimate-flatsome-vibecode
  * Description: Thêm các phần tử HTML cơ bản tích hợp sâu với Flatsome UX Builder, hỗ trợ responsive hoàn hảo, chèn dữ liệu động (Post Meta, ACF) và chỉnh sửa CSS nâng cao.
- * Version: 1.2.0
+ * Version: 1.3.1
  * Author: Antigravity AI
  * Author URI: https://github.com/tuend-work
  * License: GPL2
@@ -2316,6 +2316,38 @@ function vbc_lucide_trigger_script() {
     })();
     </script>
     <?php
+}
+
+add_action('ux_builder_enqueue_scripts', 'vbc_editor_scripts');
+add_action('admin_enqueue_scripts', 'vbc_editor_scripts');
+function vbc_editor_scripts() {
+    $is_ux = false;
+    if (isset($_GET['app']) && $_GET['app'] === 'uxbuilder') {
+        $is_ux = true;
+    }
+    if (did_action('ux_builder_enqueue_scripts')) {
+        $is_ux = true;
+    }
+    
+    if (!$is_ux) {
+        return;
+    }
+
+    // Make sure libraries are registered
+    wp_register_style('vbc-fontawesome6', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css', array(), '6.5.1');
+    wp_register_style('vbc-remixicon', 'https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css', array(), '4.2.0');
+    wp_register_style('vbc-material-symbols', 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined', array(), '1.0');
+    wp_register_script('vbc-lucide', 'https://unpkg.com/lucide@latest', array(), 'latest', false);
+    wp_register_script('vbc-phosphor', 'https://unpkg.com/@phosphor-icons/web', array(), 'latest', false);
+
+    wp_enqueue_style('vbc-fontawesome6');
+    wp_enqueue_style('vbc-remixicon');
+    wp_enqueue_style('vbc-material-symbols');
+    wp_enqueue_script('vbc-lucide');
+    wp_enqueue_script('vbc-phosphor');
+
+    wp_enqueue_script('vbc-icon-picker', plugins_url('assets/vbc-icon-picker.js', __FILE__), array('jquery'), '1.3.1', true);
+    wp_enqueue_style('vbc-icon-picker', plugins_url('assets/vbc-icon-picker.css', __FILE__), array(), '1.3.1');
 }
 
 // Đăng ký UX Builder & Shortcode handler cho [vbc_icon]

@@ -3,7 +3,7 @@
  * Plugin Name: Ultimate Flatsome VibeCode Elements
  * Plugin URI: https://github.com/tuend-work/ultimate-flatsome-vibecode
  * Description: Thêm các phần tử HTML cơ bản tích hợp sâu với Flatsome UX Builder, hỗ trợ responsive hoàn hảo, chèn dữ liệu động (Post Meta, ACF) và chỉnh sửa CSS nâng cao.
- * Version: 1.1.2
+ * Version: 1.1.3
  * Author: Antigravity AI
  * Author URI: https://github.com/tuend-work
  * License: GPL2
@@ -2034,8 +2034,8 @@ function vbc_register_icon_libraries() {
     wp_register_style('vbc-fontawesome6', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css', array(), '6.5.1');
     wp_register_style('vbc-remixicon', 'https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css', array(), '4.2.0');
     wp_register_style('vbc-material-symbols', 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined', array(), '1.0');
-    wp_register_script('vbc-lucide', 'https://unpkg.com/lucide@latest', array(), 'latest', true);
-    wp_register_script('vbc-phosphor', 'https://unpkg.com/@phosphor-icons/web', array(), 'latest', true);
+    wp_register_script('vbc-lucide', 'https://unpkg.com/lucide@latest', array(), 'latest', false);
+    wp_register_script('vbc-phosphor', 'https://unpkg.com/@phosphor-icons/web', array(), 'latest', false);
 
     // Đăng ký Splide.js & fullpage.js
     wp_register_style('vbc-splide', 'https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css', array(), '4.1.4');
@@ -2085,42 +2085,31 @@ function vbc_lucide_trigger_script() {
     <script>
     (function() {
         function triggerLucide() {
-            if (typeof lucide !== 'undefined' && document.querySelector('i[data-lucide]')) {
-                lucide.createIcons();
+            if (typeof lucide !== 'undefined') {
+                var icons = document.querySelectorAll('i[data-lucide]');
+                if (icons.length > 0) {
+                    lucide.createIcons();
+                }
             }
         }
         
-        // Chạy lần đầu khi DOM sẵn sàng hoặc ngay lập tức nếu đã tải xong
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', triggerLucide);
         } else {
             triggerLucide();
         }
 
-        // Tạo MutationObserver để liên tục lắng nghe thay đổi trong DOM (dành cho UX Builder AJAX render)
         if (typeof MutationObserver !== 'undefined') {
             var observer = new MutationObserver(function(mutations) {
-                var hasNewLucide = false;
-                for (var i = 0; i < mutations.length; i++) {
-                    var addedNodes = mutations[i].addedNodes;
-                    for (var j = 0; j < addedNodes.length; j++) {
-                        var node = addedNodes[j];
-                        if (node.nodeType === 1) { // Element node
-                            if ((node.tagName.toLowerCase() === 'i' && node.hasAttribute('data-lucide')) || node.querySelector('i[data-lucide]')) {
-                                hasNewLucide = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (hasNewLucide) break;
-                }
-                if (hasNewLucide) {
-                    triggerLucide();
-                }
+                // Trigger Lucide directly on any DOM change to handle all dynamic AJAX renders in UX Builder
+                triggerLucide();
             });
-            
-            // Theo dõi body
-            observer.observe(document.body, { childList: true, subtree: true });
+            observer.observe(document.body, { 
+                childList: true, 
+                subtree: true,
+                attributes: true,
+                attributeFilter: ['data-lucide']
+            });
         }
     })();
     </script>

@@ -148,13 +148,13 @@
     [/vbc_box]
     [vbc_box width="700px" margin="0 auto 40px auto"]
         [vbc_card padding="20px" background_color="rgba(255,255,255,0.02)" border_radius="12px" custom_css="selector { box-shadow: 0 10px 30px rgba(0,0,0,0.2); }"]
-            [vbc_box custom_css="selector { display: flex; gap: 10px; align-items: center; }" display="flex"]
+            <div style="display: flex; gap: 10px; align-items: center;">
                 [vbc_container custom_css="selector { flex-grow: 1; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 12px 16px; background: rgba(255,255,255,0.02); }" custom_attributes="id='vbc-domain-input'"]
                     [vbc_span custom_class="placeholder-text" custom_css="selector { color: #64748b; font-size: 15px; }"]Nhập tên miền bạn muốn tìm... (ví dụ: mywebsite.com)[/vbc_span]
                 [/vbc_container]
                 [vbc_button text="Tìm Kiếm" variant="custom" padding="14px 28px" border_radius="8px" background_color="var(--primary-color)" text_color="#ffffff" custom_css="selector { font-weight: 700; }"]
                 [/vbc_button]
-            [/vbc_box]
+            </div>
         [/vbc_card]
     [/vbc_box]
     [row v_align="middle"]

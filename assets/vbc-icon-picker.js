@@ -347,7 +347,7 @@
 
     // Attach unified selection button to input
     function attachPickerButtons() {
-        $('input[type="text"]').each(function() {
+        $('input').each(function() {
             var $input = $(this);
             
             // Check if already processed

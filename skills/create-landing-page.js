@@ -25,22 +25,22 @@ const VBC_NESTABLE_TAGS = [
 ];
 
 /**
+ * Bản đồ ánh xạ thay thế tag để tránh nesting cùng tên tag.
+ * Tất cả các tag container này đều tương thích 100% về thuộc tính css/styling.
+ */
+const ALTERNATIVE_TAGS = {
+    'vbc_box': 'vbc_container',
+    'vbc_container': 'vbc_block',
+    'vbc_block': 'vbc_div',
+    'vbc_div': 'vbc_box',
+    'vbc_span': 'vbc_container',
+    'vbc_card': 'vbc_box'
+};
+
+/**
  * Phát hiện và sửa nested same-tag shortcodes.
- * Khi phát hiện tag lồng nhau, inner tag sẽ được thay bằng raw HTML <div>.
- * 
- * Ví dụ lỗi:
- *   [vbc_box width="700px"]
- *     [vbc_box display="flex"]  ← NESTED! Parser sẽ break
- *       ...
- *     [/vbc_box]
- *   [/vbc_box]
- * 
- * Sau khi sửa:
- *   [vbc_box width="700px"]
- *     <div style="display: flex;">  ← Replaced with raw HTML
- *       ...
- *     </div>
- *   [/vbc_box]
+ * Khi phát hiện tag lồng nhau, inner tag sẽ được thay bằng tag VBC tương đương khác tên.
+ * Điều này tránh việc dùng thẻ <div> HTML thô vốn bị WAF chặn.
  */
 function fixNestedShortcodes(content) {
     let fixed = content;
@@ -68,11 +68,13 @@ function fixNestedShortcodes(content) {
                 for (const openMatch of opens) {
                     depth++;
                     if (depth > 1) {
-                        // Đây là nested tag → cần thay thế
+                        // Đây là nested tag → cần thay thế bằng tag tương đương khác tên
                         const fullMatch = openMatch[0]; // e.g. [vbc_box display="flex" custom_css="..."]
                         const attrs = openMatch[1] || '';
-                        const htmlDiv = convertShortcodeToDiv(tag, attrs.trim());
-                        lines[i] = lines[i].replace(fullMatch, htmlDiv);
+                        const targetTag = ALTERNATIVE_TAGS[tag] || 'vbc_container';
+                        const replacementOpen = `[${targetTag} ${attrs.trim()}]`.replace(/\s+\]$/, ']');
+                        
+                        lines[i] = lines[i].replace(fullMatch, replacementOpen);
                         totalFixes++;
                         changesMade = true;
 
@@ -80,7 +82,7 @@ function fixNestedShortcodes(content) {
                         let innerDepth = 1;
                         for (let j = i; j < lines.length; j++) {
                             const searchLine = (j === i) 
-                                ? lines[j].substring(lines[j].indexOf(htmlDiv) + htmlDiv.length)
+                                ? lines[j].substring(lines[j].indexOf(replacementOpen) + replacementOpen.length)
                                 : lines[j];
                             
                             const innerOpens = [...searchLine.matchAll(new RegExp(`\\[${tag}(\\s[^\\]]*)?\\]`, 'g'))].length;
@@ -90,13 +92,13 @@ function fixNestedShortcodes(content) {
                             innerDepth -= innerCloses;
 
                             if (innerDepth <= 0) {
-                                // Thay closing tag đầu tiên trong dòng j
-                                lines[j] = lines[j].replace(closeTag, '</div>');
+                                // Thay closing tag đầu tiên trong dòng j bằng thẻ đóng mới
+                                lines[j] = lines[j].replace(closeTag, `[/${targetTag}]`);
                                 break;
                             }
                         }
                         break; // Restart scan do content đã thay đổi
-                    }
+                     }
                 }
 
                 if (changesMade) break;
@@ -111,62 +113,6 @@ function fixNestedShortcodes(content) {
     return { content: fixed, fixes: totalFixes };
 }
 
-/**
- * Chuyển đổi shortcode attributes thành inline style cho <div>.
- * Hỗ trợ các attribute phổ biến: display, custom_css, padding,
- * margin, width, height, background_color, etc.
- */
-function convertShortcodeToDiv(tag, attrsStr) {
-    const styles = [];
-    const classes = [];
-
-    // Parse attributes dạng key="value"
-    const attrRegex = /(\w+)="([^"]*)"/g;
-    let match;
-    while ((match = attrRegex.exec(attrsStr)) !== null) {
-        const [, key, value] = match;
-        switch (key) {
-            case 'display':
-                styles.push(`display: ${value}`);
-                break;
-            case 'padding':
-                styles.push(`padding: ${value}`);
-                break;
-            case 'margin':
-                styles.push(`margin: ${value}`);
-                break;
-            case 'width':
-                styles.push(`width: ${value}`);
-                break;
-            case 'height':
-                styles.push(`height: ${value}`);
-                break;
-            case 'background_color':
-                styles.push(`background-color: ${value}`);
-                break;
-            case 'text_align':
-                styles.push(`text-align: ${value}`);
-                break;
-            case 'custom_css': {
-                // Extract CSS rules from custom_css="selector { ... }"
-                const cssMatch = value.match(/selector\s*\{([^}]+)\}/);
-                if (cssMatch) {
-                    styles.push(cssMatch[1].trim());
-                }
-                break;
-            }
-            case 'custom_class':
-                classes.push(value);
-                break;
-            // Các attribute khác bỏ qua — không ảnh hưởng visual
-        }
-    }
-
-    const classAttr = classes.length > 0 ? ` class="${classes.join(' ')}"` : '';
-    const styleAttr = styles.length > 0 ? ` style="${styles.join('; ')}"` : '';
-
-    return `<div${classAttr}${styleAttr}>`;
-}
 
 /**
  * Escape ký tự < trong nội dung text (không phải trong shortcode tags).

@@ -9,6 +9,226 @@
 const fs = require('fs');
 const path = require('path');
 
+// ============================================================
+// SHORTCODE SANITIZER
+// Tự động phát hiện & sửa các vấn đề shortcode trước khi publish
+// ============================================================
+
+/**
+ * Danh sách các VBC shortcode tags có thể gây lỗi nesting.
+ * WordPress regex parser KHÔNG thể xử lý cùng tag lồng nhau,
+ * ví dụ: [vbc_box] bên trong [vbc_box] → parser bị break.
+ */
+const VBC_NESTABLE_TAGS = [
+    'vbc_box', 'vbc_block', 'vbc_container', 'vbc_span',
+    'vbc_card', 'vbc_div'
+];
+
+/**
+ * Phát hiện và sửa nested same-tag shortcodes.
+ * Khi phát hiện tag lồng nhau, inner tag sẽ được thay bằng raw HTML <div>.
+ * 
+ * Ví dụ lỗi:
+ *   [vbc_box width="700px"]
+ *     [vbc_box display="flex"]  ← NESTED! Parser sẽ break
+ *       ...
+ *     [/vbc_box]
+ *   [/vbc_box]
+ * 
+ * Sau khi sửa:
+ *   [vbc_box width="700px"]
+ *     <div style="display: flex;">  ← Replaced with raw HTML
+ *       ...
+ *     </div>
+ *   [/vbc_box]
+ */
+function fixNestedShortcodes(content) {
+    let fixed = content;
+    let totalFixes = 0;
+
+    for (const tag of VBC_NESTABLE_TAGS) {
+        // Regex tìm opening tag: [tag_name ...attributes...]
+        const openRegex = new RegExp(`\\[${tag}(\\s[^\\]]*)?\\]`, 'g');
+        const closeTag = `[/${tag}]`;
+        let changesMade = true;
+
+        // Lặp cho tới khi không còn nesting nào
+        while (changesMade) {
+            changesMade = false;
+            const lines = fixed.split('\n');
+            let depth = 0;
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+
+                // Đếm số lần open tag xuất hiện trên dòng này
+                const opens = [...line.matchAll(openRegex)];
+                const closes = (line.match(new RegExp(`\\[/${tag}\\]`, 'g')) || []).length;
+
+                for (const openMatch of opens) {
+                    depth++;
+                    if (depth > 1) {
+                        // Đây là nested tag → cần thay thế
+                        const fullMatch = openMatch[0]; // e.g. [vbc_box display="flex" custom_css="..."]
+                        const attrs = openMatch[1] || '';
+                        const htmlDiv = convertShortcodeToDiv(tag, attrs.trim());
+                        lines[i] = lines[i].replace(fullMatch, htmlDiv);
+                        totalFixes++;
+                        changesMade = true;
+
+                        // Tìm closing tag tương ứng gần nhất để thay thế
+                        let innerDepth = 1;
+                        for (let j = i; j < lines.length; j++) {
+                            const searchLine = (j === i) 
+                                ? lines[j].substring(lines[j].indexOf(htmlDiv) + htmlDiv.length)
+                                : lines[j];
+                            
+                            const innerOpens = [...searchLine.matchAll(new RegExp(`\\[${tag}(\\s[^\\]]*)?\\]`, 'g'))].length;
+                            const innerCloses = (searchLine.match(new RegExp(`\\[/${tag}\\]`, 'g')) || []).length;
+                            
+                            innerDepth += innerOpens;
+                            innerDepth -= innerCloses;
+
+                            if (innerDepth <= 0) {
+                                // Thay closing tag đầu tiên trong dòng j
+                                lines[j] = lines[j].replace(closeTag, '</div>');
+                                break;
+                            }
+                        }
+                        break; // Restart scan do content đã thay đổi
+                    }
+                }
+
+                if (changesMade) break;
+                depth -= closes;
+                if (depth < 0) depth = 0;
+            }
+
+            fixed = lines.join('\n');
+        }
+    }
+
+    return { content: fixed, fixes: totalFixes };
+}
+
+/**
+ * Chuyển đổi shortcode attributes thành inline style cho <div>.
+ * Hỗ trợ các attribute phổ biến: display, custom_css, padding,
+ * margin, width, height, background_color, etc.
+ */
+function convertShortcodeToDiv(tag, attrsStr) {
+    const styles = [];
+    const classes = [];
+
+    // Parse attributes dạng key="value"
+    const attrRegex = /(\w+)="([^"]*)"/g;
+    let match;
+    while ((match = attrRegex.exec(attrsStr)) !== null) {
+        const [, key, value] = match;
+        switch (key) {
+            case 'display':
+                styles.push(`display: ${value}`);
+                break;
+            case 'padding':
+                styles.push(`padding: ${value}`);
+                break;
+            case 'margin':
+                styles.push(`margin: ${value}`);
+                break;
+            case 'width':
+                styles.push(`width: ${value}`);
+                break;
+            case 'height':
+                styles.push(`height: ${value}`);
+                break;
+            case 'background_color':
+                styles.push(`background-color: ${value}`);
+                break;
+            case 'text_align':
+                styles.push(`text-align: ${value}`);
+                break;
+            case 'custom_css': {
+                // Extract CSS rules from custom_css="selector { ... }"
+                const cssMatch = value.match(/selector\s*\{([^}]+)\}/);
+                if (cssMatch) {
+                    styles.push(cssMatch[1].trim());
+                }
+                break;
+            }
+            case 'custom_class':
+                classes.push(value);
+                break;
+            // Các attribute khác bỏ qua — không ảnh hưởng visual
+        }
+    }
+
+    const classAttr = classes.length > 0 ? ` class="${classes.join(' ')}"` : '';
+    const styleAttr = styles.length > 0 ? ` style="${styles.join('; ')}"` : '';
+
+    return `<div${classAttr}${styleAttr}>`;
+}
+
+/**
+ * Escape ký tự < trong nội dung text (không phải trong shortcode tags).
+ * Ví dụ: "Tải Trang < 1.5s" → "Tải Trang &lt; 1.5s"
+ * 
+ * Quy tắc: Chỉ escape < khi nó KHÔNG phải là:
+ * - Phần mở đầu của HTML tag (e.g. <div, </div, <img)
+ * - Phần mở đầu của HTML entity (e.g. &lt;)
+ */
+function escapeRawLessThan(content) {
+    let fixes = 0;
+    // Match < that is NOT followed by a valid HTML tag name, / (closing tag), or ! (comment/doctype)
+    const result = content.replace(/<(?!\/|[a-zA-Z!]|\s*$)/g, (match, offset) => {
+        // Kiểm tra xem < có nằm trong shortcode attribute hay không
+        // Tìm ngược lại xem có đang nằm trong [...] không
+        const before = content.substring(Math.max(0, offset - 200), offset);
+        const lastOpen = before.lastIndexOf('[');
+        const lastClose = before.lastIndexOf(']');
+        
+        // Nếu đang nằm bên trong shortcode attribute [...], bỏ qua
+        if (lastOpen > lastClose) {
+            return match;
+        }
+        
+        fixes++;
+        return '&lt;';
+    });
+    return { content: result, fixes };
+}
+
+/**
+ * Hàm sanitize tổng hợp — chạy tất cả các bước kiểm tra & sửa lỗi.
+ */
+function sanitizeShortcodeContent(content) {
+    console.log('\n\x1b[35m[SANITIZER] Đang kiểm tra nội dung shortcode...\x1b[0m');
+    
+    // Bước 1: Sửa nested same-tag shortcodes
+    const nestResult = fixNestedShortcodes(content);
+    if (nestResult.fixes > 0) {
+        console.log(`  \x1b[33m⚠ Phát hiện ${nestResult.fixes} trường hợp nested same-tag shortcode → Đã tự động thay bằng <div> HTML\x1b[0m`);
+    } else {
+        console.log('  \x1b[32m✓ Không có nested same-tag shortcode nào\x1b[0m');
+    }
+
+    // Bước 2: Escape ký tự < trong text content
+    const escResult = escapeRawLessThan(nestResult.content);
+    if (escResult.fixes > 0) {
+        console.log(`  \x1b[33m⚠ Phát hiện ${escResult.fixes} ký tự < chưa được escape → Đã thay bằng &lt;\x1b[0m`);
+    } else {
+        console.log('  \x1b[32m✓ Không có ký tự < nào cần escape\x1b[0m');
+    }
+
+    const totalFixes = nestResult.fixes + escResult.fixes;
+    if (totalFixes > 0) {
+        console.log(`  \x1b[35m→ Tổng cộng đã tự động sửa ${totalFixes} vấn đề\x1b[0m`);
+    } else {
+        console.log('  \x1b[32m✓ Nội dung sạch, không cần sửa gì!\x1b[0m');
+    }
+
+    return escResult.content;
+}
+
 // 1. Phân tích tham số dòng lệnh (CLI Arguments)
 function parseArgs() {
     const args = {};
@@ -154,8 +374,11 @@ async function main() {
         console.log('\n\x1b[33m[2/3] Không cần xử lý thay thế ảnh placeholder.\x1b[0m');
     }
 
-    // 4. Đẩy nội dung lên API của WordPress để tạo/cập nhật trang
-    console.log('\n\x1b[33m[3/3] Đang gửi yêu cầu đăng bài lên WordPress REST API...\x1b[0m');
+    // 4. Sanitize nội dung shortcode (phát hiện & sửa lỗi tự động)
+    pageContent = sanitizeShortcodeContent(pageContent);
+
+    // 5. Đẩy nội dung lên API của WordPress để tạo/cập nhật trang
+    console.log('\n\x1b[33m[4/4] Đang gửi yêu cầu đăng bài lên WordPress REST API...\x1b[0m');
     
     try {
         const postData = {

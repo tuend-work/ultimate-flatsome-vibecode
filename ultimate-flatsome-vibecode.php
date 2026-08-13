@@ -3,7 +3,7 @@
  * Plugin Name: Ultimate Flatsome VibeCode Elements
  * Plugin URI: https://github.com/tuend-work/ultimate-flatsome-vibecode
  * Description: Thêm các phần tử HTML cơ bản tích hợp sâu với Flatsome UX Builder, hỗ trợ responsive hoàn hảo, chèn dữ liệu động (Post Meta, ACF) và chỉnh sửa CSS nâng cao.
- * Version: 1.1.5
+ * Version: 1.1.6
  * Author: Antigravity AI
  * Author URI: https://github.com/tuend-work
  * License: GPL2
@@ -877,9 +877,21 @@ function vbc_register_ux_builder_elements() {
 }
 
 function vbc_should_inline_css() {
+    // If inside UX Builder editor page or iframe, always inline CSS
+    if (isset($_GET['uxb_iframe']) || isset($_GET['ux-builder'])) {
+        return true;
+    }
+    if (is_admin() && isset($_GET['page']) && $_GET['page'] === 'uxbuilder') {
+        return true;
+    }
+    if (function_exists('ux_builder_is_active') && ux_builder_is_active()) {
+        return true;
+    }
+    // If doing AJAX or REST API (dynamic preview rendering)
     if (wp_doing_ajax() || (defined('REST_REQUEST') && REST_REQUEST)) {
         return true;
     }
+    // Fallback if footer has already run
     if (did_action('wp_footer') || did_action('admin_footer')) {
         return true;
     }
@@ -1286,6 +1298,7 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
     );
     if (in_array($html_tag, $text_like_tags)) {
         $final_content = preg_replace('/<\/?p[^>]*>/i', '', $final_content);
+        $final_content = preg_replace('/<\/?div[^>]*>/i', '', $final_content);
         $final_content = preg_replace('/^(<br\s*\/?>\s*)+|(<br\s*\/?>\s*)+$/i', '', $final_content);
         $final_content = str_replace(array('<br>', '<br />'), '', $final_content);
     }
@@ -1699,6 +1712,7 @@ function vbc_button_shortcode($atts, $content = null) {
 
     $btn_text = !empty($atts['text']) ? esc_html($atts['text']) : do_shortcode($content);
     $btn_text = preg_replace('/<\/?p[^>]*>/i', '', $btn_text);
+    $btn_text = preg_replace('/<\/?div[^>]*>/i', '', $btn_text);
     $btn_text = str_replace(array('<br>', '<br />'), '', $btn_text);
 
     return '<a href="' . esc_url($atts['url']) . '" target="' . esc_attr($atts['target']) . '" class="' . esc_attr($unique_class . ' ' . $atts['custom_class']) . '">' . $default_css . $compiled_css . $btn_text . '</a>';

@@ -132,6 +132,44 @@ function escapeRawLessThan(content) {
 }
 
 /**
+ * Tự động chuyển đổi các thẻ text VBC (span, p, h1-h6, a) có nội dung trần 
+ * sang dạng thuộc tính content="..." để tránh wpautop tự bọc thẻ <p>.
+ */
+function migrateTagsToContentAttribute(content) {
+    let fixes = 0;
+    // Hỗ trợ cả tag cơ bản và tag có suffix lồng nhau như _inner, _inner_1...
+    const pattern = /\[vbc_(span|p|h1|h2|h3|h4|h5|h6|a)(_inner(?:_\d+)?)?([^\]]*)\]([^\[]*?)\[\/vbc_\1\2\]/gs;
+
+    const result = content.replace(pattern, (match, tag, suffix, attrs, text) => {
+        const trimmedText = text.trim();
+        const trimmedAttrs = attrs.trim();
+
+        // Nếu nội dung trống, không cần convert
+        if (!trimmedText) {
+            return match;
+        }
+
+        // Nếu đã có thuộc tính content, bỏ qua không convert đè
+        if (trimmedAttrs.includes('content=')) {
+            return match;
+        }
+
+        // Escape các dấu nháy kép bên trong text nội dung
+        const escapedText = trimmedText.replace(/"/g, '\\"');
+        fixes++;
+
+        const fullTag = `vbc_${tag}${suffix || ''}`;
+        if (trimmedAttrs) {
+            return `[${fullTag} ${trimmedAttrs} content="${escapedText}"][/${fullTag}]`;
+        } else {
+            return `[${fullTag} content="${escapedText}"][/${fullTag}]`;
+        }
+    });
+
+    return { content: result, fixes };
+}
+
+/**
  * Hàm sanitize tổng hợp — chạy tất cả các bước kiểm tra & sửa lỗi.
  */
 function sanitizeShortcodeContent(content) {
@@ -140,7 +178,7 @@ function sanitizeShortcodeContent(content) {
     // Bước 1: Sửa nested same-tag shortcodes
     const nestResult = fixNestedShortcodes(content);
     if (nestResult.fixes > 0) {
-        console.log(`  \x1b[33m⚠ Phát hiện ${nestResult.fixes} trường hợp nested same-tag shortcode → Đã tự động thay bằng <div> HTML\x1b[0m`);
+        console.log(`  \x1b[33m⚠ Phát hiện ${nestResult.fixes} trường hợp nested same-tag shortcode → Đã tự động chuyển đổi sang cấu trúc nested suffix (_inner)\x1b[0m`);
     } else {
         console.log('  \x1b[32m✓ Không có nested same-tag shortcode nào\x1b[0m');
     }
@@ -153,14 +191,22 @@ function sanitizeShortcodeContent(content) {
         console.log('  \x1b[32m✓ Không có ký tự < nào cần escape\x1b[0m');
     }
 
-    const totalFixes = nestResult.fixes + escResult.fixes;
+    // Bước 3: Tự động chuyển đổi text-only tags sang dạng content attribute
+    const contentAttrResult = migrateTagsToContentAttribute(escResult.content);
+    if (contentAttrResult.fixes > 0) {
+        console.log(`  \x1b[33m⚠ Phát hiện ${contentAttrResult.fixes} thẻ text trần → Đã tự động chuyển thành thuộc tính content="..."\x1b[0m`);
+    } else {
+        console.log('  \x1b[32m✓ Tất cả các thẻ text đều đã chuẩn hóa content\x1b[0m');
+    }
+
+    const totalFixes = nestResult.fixes + escResult.fixes + contentAttrResult.fixes;
     if (totalFixes > 0) {
         console.log(`  \x1b[35m→ Tổng cộng đã tự động sửa ${totalFixes} vấn đề\x1b[0m`);
     } else {
         console.log('  \x1b[32m✓ Nội dung sạch, không cần sửa gì!\x1b[0m');
     }
 
-    return escResult.content;
+    return contentAttrResult.content;
 }
 
 // 1. Phân tích tham số dòng lệnh (CLI Arguments)

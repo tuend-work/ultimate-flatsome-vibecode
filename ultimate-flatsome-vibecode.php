@@ -3,7 +3,7 @@
  * Plugin Name: Ultimate Flatsome VibeCode Elements
  * Plugin URI: https://github.com/tuend-work/ultimate-flatsome-vibecode
  * Description: Thêm các phần tử HTML cơ bản tích hợp sâu với Flatsome UX Builder, hỗ trợ responsive hoàn hảo, chèn dữ liệu động (Post Meta, ACF) và chỉnh sửa CSS nâng cao.
- * Version: 1.3.2
+ * Version: 1.3.3
  * Author: Antigravity AI
  * Author URI: https://github.com/tuend-work
  * License: GPL2
@@ -2358,6 +2358,22 @@ function vbc_register_icon_ux_builder() {
             'name' => 'VBC Icon Pack',
             'category' => 'VibeCode HTML',
             'options' => array(
+                'mode' => array(
+                    'type'    => 'select',
+                    'heading' => 'Loại Icon',
+                    'default' => 'icon',
+                    'options' => array(
+                        'icon' => '🎨 Icon từ thư viện (Font/SVG class)',
+                        'svg'  => '🖼️ Ảnh SVG tùy chỉnh (Upload)',
+                    ),
+                ),
+                'svg_url' => array(
+                    'type'       => 'image_src',
+                    'heading'    => 'Chọn ảnh SVG / PNG',
+                    'conditions' => 'mode === "svg"',
+                    'default'    => '',
+                    'description'=> 'Upload hoặc chọn ảnh SVG/PNG từ thư viện ảnh.',
+                ),
                 'name' => array(
                     'type' => 'textfield',
                     'heading' => 'Icon Name (Legacy)',
@@ -2555,11 +2571,11 @@ function vbc_register_icon_ux_builder() {
                     ),
                 ),
                 'name_custom' => array(
-                    'type' => 'textfield',
-                    'heading' => 'Nhập class icon tự do',
-                    'default' => '',
-                    'conditions' => 'name_fa === "custom" || name_ri === "custom" || name_lucide === "custom" || name_phosphor === "custom" || name_material === "custom"',
-                    'description' => 'Nhập mã class của bất kỳ icon nào thuộc bộ icon đã chọn để dùng các icon nằm ngoài danh sách tuyển chọn.',
+                    'type'        => 'textfield',
+                    'heading'     => 'Nhập class icon tự do',
+                    'default'     => '',
+                    'conditions'  => '(mode === "icon" || !mode) && (name_fa === "custom" || name_ri === "custom" || name_lucide === "custom" || name_phosphor === "custom" || name_material === "custom")',
+                    'description' => 'Nhập class icon. Nhấn nút "Browse Icons" bên cạnh ô nhập để chọn icon trực quan.',
                 ),
                 'color' => array(
                     'type' => 'colorpicker',
@@ -2592,18 +2608,20 @@ add_action('init', function() {
 
 function vbc_icon_shortcode_renderer($atts) {
     $atts = shortcode_atts(array(
-        'pack' => 'lucide',
-        'name' => '',
-        'name_fa' => '',
-        'name_ri' => '',
-        'name_lucide' => '',
+        'mode'          => 'icon',
+        'svg_url'       => '',
+        'pack'          => 'lucide',
+        'name'          => '',
+        'name_fa'       => '',
+        'name_ri'       => '',
+        'name_lucide'   => '',
         'name_phosphor' => '',
         'name_material' => '',
-        'name_custom' => '',
-        'color' => '',
-        'size' => '',
-        'custom_class' => '',
-        'custom_css' => '',
+        'name_custom'   => '',
+        'color'         => '',
+        'size'          => '',
+        'custom_class'  => '',
+        'custom_css'    => '',
     ), $atts);
 
     $pack = strtolower(trim($atts['pack']));
@@ -2695,6 +2713,18 @@ function vbc_icon_shortcode_renderer($atts) {
     }
     $class_str = esc_attr(trim($unique_class . ' ' . $atts['custom_class']));
 
+    // SVG/Image mode — render <img> tag instead of icon font
+    if ($atts['mode'] === 'svg' && !empty($atts['svg_url'])) {
+        $sz = !empty($atts['size']) ? $atts['size'] : '48px';
+        $img_style = 'width:' . esc_attr($sz) . ';height:' . esc_attr($sz) . ';object-fit:contain;';
+        if (!empty($atts['color'])) {
+            // For SVG images we cannot tint easily; skip color or use filter
+            $img_style .= '';
+        }
+        return $style_tag . '<img src="' . esc_url($atts['svg_url']) . '" class="' . $class_str . '" style="' . $img_style . '" alt="icon" loading="lazy">';
+    }
+
+    // Icon font / library mode
     if ($pack === 'lucide') {
         return $style_tag . '<i data-lucide="' . esc_attr($name) . '" class="' . $class_str . '"></i>';
     } elseif ($pack === 'material') {

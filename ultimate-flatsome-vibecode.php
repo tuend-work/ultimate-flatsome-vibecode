@@ -3,7 +3,7 @@
  * Plugin Name: Ultimate Flatsome VibeCode Elements
  * Plugin URI: https://github.com/tuend-work/ultimate-flatsome-vibecode
  * Description: Thêm các phần tử HTML cơ bản tích hợp sâu với Flatsome UX Builder, hỗ trợ responsive hoàn hảo, chèn dữ liệu động (Post Meta, ACF) và chỉnh sửa CSS nâng cao.
- * Version: 1.3.3
+ * Version: 1.3.4
  * Author: Antigravity AI
  * Author URI: https://github.com/tuend-work
  * License: GPL2
@@ -2346,8 +2346,8 @@ function vbc_editor_scripts() {
     wp_enqueue_script('vbc-lucide');
     wp_enqueue_script('vbc-phosphor');
 
-    wp_enqueue_script('vbc-icon-picker', plugins_url('assets/vbc-icon-picker.js', __FILE__), array('jquery'), '1.3.2', true);
-    wp_enqueue_style('vbc-icon-picker', plugins_url('assets/vbc-icon-picker.css', __FILE__), array(), '1.3.2');
+    wp_enqueue_script('vbc-icon-picker', plugins_url('assets/vbc-icon-picker.js', __FILE__), array('jquery'), '1.3.3', true);
+    wp_enqueue_style('vbc-icon-picker', plugins_url('assets/vbc-icon-picker.css', __FILE__), array(), '1.3.3');
 }
 
 // Đăng ký UX Builder & Shortcode handler cho [vbc_icon]
@@ -2368,7 +2368,7 @@ function vbc_register_icon_ux_builder() {
                     ),
                 ),
                 'svg_url' => array(
-                    'type'       => 'image_src',
+                    'type'       => 'image',
                     'heading'    => 'Chọn ảnh SVG / PNG',
                     'conditions' => 'mode === "svg"',
                     'default'    => '',
@@ -2715,13 +2715,18 @@ function vbc_icon_shortcode_renderer($atts) {
 
     // SVG/Image mode — render <img> tag instead of icon font
     if ($atts['mode'] === 'svg' && !empty($atts['svg_url'])) {
-        $sz = !empty($atts['size']) ? $atts['size'] : '48px';
-        $img_style = 'width:' . esc_attr($sz) . ';height:' . esc_attr($sz) . ';object-fit:contain;';
-        if (!empty($atts['color'])) {
-            // For SVG images we cannot tint easily; skip color or use filter
-            $img_style .= '';
+        // Flatsome 'image' type stores attachment ID; convert to URL
+        $svg_val = trim($atts['svg_url']);
+        if (is_numeric($svg_val)) {
+            $img_url = wp_get_attachment_url(intval($svg_val));
+        } else {
+            $img_url = $svg_val; // fallback: treat as direct URL
         }
-        return $style_tag . '<img src="' . esc_url($atts['svg_url']) . '" class="' . $class_str . '" style="' . $img_style . '" alt="icon" loading="lazy">';
+        if (!empty($img_url)) {
+            $sz = !empty($atts['size']) ? $atts['size'] : '48px';
+            $img_style = 'width:' . esc_attr($sz) . ';height:' . esc_attr($sz) . ';object-fit:contain;display:inline-block;';
+            return $style_tag . '<img src="' . esc_url($img_url) . '" class="' . $class_str . '" style="' . $img_style . '" alt="icon" loading="lazy">';
+        }
     }
 
     // Icon font / library mode

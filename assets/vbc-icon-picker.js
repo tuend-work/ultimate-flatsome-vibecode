@@ -345,43 +345,63 @@
         closeModal();
     }
 
-    // Attach unified selection button to input
+    // Attach unified selection button to input — runs every second
     function attachPickerButtons() {
         $('input').each(function() {
             var $input = $(this);
-            
-            // Check if already processed
-            if ($input.parent().find('.vbc-unified-picker-btn').length > 0) return;
 
-            // Robust check for option name
-            var settingName = $input.data('setting') || $input.attr('data-setting') || $input.closest('[data-setting]').attr('data-setting') || '';
+            // Skip inputs inside our own modal or already processed
+            if ($input.closest('#vbc-unified-picker').length > 0) return;
+            if ($input.parent().find('.vbc-unified-picker-btn').length > 0) return;
+            if ($input.hasClass('vbc-processed')) return;
+
             var isTarget = false;
 
-            if (settingName === 'icon_value') {
-                isTarget = true;
-            } else {
-                // Fallback: Check if label contains our signature text
-                var $row = $input.closest('[class*="option"], [class*="field"], .option-wrapper');
-                if ($row.length > 0) {
-                    var labelText = ($row.find('label').first().text() || '').toLowerCase().trim();
-                    if (labelText.indexOf('ảnh / icon') >= 0 || labelText.indexOf('anh / icon') >= 0) {
-                        isTarget = true;
+            // Strategy 1: data-setting attribute directly on input
+            var ds = $input.attr('data-setting') || '';
+            if (ds === 'icon_value') isTarget = true;
+
+            // Strategy 2: name attribute
+            if (!isTarget) {
+                var nm = $input.attr('name') || '';
+                if (nm === 'icon_value' || nm.indexOf('[icon_value]') >= 0) isTarget = true;
+            }
+
+            // Strategy 3: walk parents for data-setting
+            if (!isTarget) {
+                $input.parents().each(function() {
+                    var pds = $(this).attr('data-setting') || '';
+                    if (pds === 'icon_value') { isTarget = true; return false; }
+                });
+            }
+
+            // Strategy 4: check nearby label text (case-insensitive, strip diacritics-tolerant)
+            if (!isTarget) {
+                var $wrap = $input.parent();
+                for (var i = 0; i < 5; i++) {
+                    var lbl = $wrap.find('label').first().text() || '';
+                    if (!lbl) lbl = $wrap.prev().text() || '';
+                    lbl = lbl.toLowerCase();
+                    if (lbl.indexOf('nh / icon') >= 0 || lbl.indexOf('icon') >= 0 && lbl.indexOf('nh') >= 0) {
+                        isTarget = true; break;
                     }
+                    $wrap = $wrap.parent();
+                    if ($wrap.length === 0) break;
                 }
             }
 
             if (!isTarget) return;
 
-            // Hide the actual input to make UI super clean, showing only preview & button
-            $input.css({
-                'opacity': '0.7',
-                'border-color': '#3f3f46',
-                'background': '#18181b',
-                'color': '#a1a1aa'
-            });
+            // Mark processed
+            $input.addClass('vbc-processed');
 
-            var $btn = $('<button type="button" class="vbc-unified-picker-btn" style="display:block;width:100%;margin-top:8px;background:#ef4444;color:#fff;border:none;border-radius:6px;padding:9px 15px;font-weight:700;cursor:pointer;font-size:13px;text-align:center;"><i class="fa-solid fa-icons" style="margin-right:6px;"></i> 🎨 Chọn Ảnh / Icon</button>');
-            
+            // Style the raw input
+            $input.css({ 'border-color': '#3f3f46', 'background': '#27272a', 'color': '#a1a1aa', 'font-size': '11px' });
+
+            var $btn = $('<button type="button" class="vbc-unified-picker-btn" style="display:block;width:100%;margin-top:8px;background:#ef4444;color:#fff;border:none;border-radius:6px;padding:9px 15px;font-weight:700;cursor:pointer;font-size:14px;text-align:center;transition:all 0.2s;">🎨 Chọn Ảnh / Icon</button>');
+
+            $btn.on('mouseenter', function() { $(this).css('background', '#dc2626'); });
+            $btn.on('mouseleave', function() { $(this).css('background', '#ef4444'); });
             $btn.on('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -389,15 +409,29 @@
             });
 
             $input.after($btn);
-            
-            // Render initial preview
             updateSidebarPreview($input);
+
+            console.log('[VBC Icon Picker] Button attached to input:', $input[0]);
         });
     }
 
+    // Global debug helper — run vbcDebug() in browser console to diagnose
+    window.vbcDebug = function() {
+        console.log('[VBC Debug] All inputs found:', $('input').length);
+        $('input').each(function(i) {
+            var $el = $(this);
+            console.log('  [' + i + ']',
+                'name=' + ($el.attr('name') || '–'),
+                'data-setting=' + ($el.attr('data-setting') || '–'),
+                'label=' + ($el.parents().find('label').first().text().trim().substring(0, 30))
+            );
+        });
+    };
+
     // Poller to hook into Flatsome dynamic React rendering
     $(document).ready(function() {
-        setInterval(attachPickerButtons, 1000);
+        console.log('[VBC Icon Picker v1.4.3] DOM ready, starting poller.');
+        setInterval(attachPickerButtons, 800);
     });
 
 })(jQuery);

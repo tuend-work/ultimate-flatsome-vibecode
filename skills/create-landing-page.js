@@ -170,20 +170,65 @@ function migrateTagsToContentAttribute(content) {
 }
 
 /**
+ * Tự động chuyển đổi:
+ * [vbc_span ...][vbc_icon ... attrs] Text [/vbc_span]
+ * thành:
+ * [vbc_div ... display="flex" ...][vbc_icon ... attrs][vbc_span_inner content="Text"][/vbc_span_inner][/vbc_div]
+ */
+function convertSpanWithIconToDiv(content) {
+    let fixes = 0;
+    // Regex tìm vbc_span chứa vbc_icon và text
+    const pattern = /\[vbc_span([^\]]*)\]\s*(\[vbc_icon[^\]]*\])\s*([^\[]+?)\s*\[\/vbc_span\]/gs;
+
+    const result = content.replace(pattern, (match, spanAttrs, iconShortcode, text) => {
+        const trimmedText = text.trim();
+        const trimmedSpanAttrs = spanAttrs.trim();
+
+        // Escape dấu nháy kép cho text
+        const escapedText = trimmedText.replace(/"/g, '\\"');
+        fixes++;
+
+        // Tạo thuộc tính cho div bao ngoài
+        let divAttrs = trimmedSpanAttrs;
+        if (!divAttrs.includes('display=')) {
+            divAttrs += ' display="inline-flex"';
+        }
+        if (!divAttrs.includes('align_items=')) {
+            divAttrs += ' align_items="center"';
+        }
+        if (!divAttrs.includes('gap=')) {
+            divAttrs += ' gap="8px"';
+        }
+
+        return `[vbc_div ${divAttrs.trim()}]${iconShortcode}[vbc_span_inner content="${escapedText}"][/vbc_span_inner][/vbc_div]`;
+    });
+
+    return { content: result, fixes };
+}
+
+/**
  * Hàm sanitize tổng hợp — chạy tất cả các bước kiểm tra & sửa lỗi.
  */
 function sanitizeShortcodeContent(content) {
     console.log('\n\x1b[35m[SANITIZER] Đang kiểm tra nội dung shortcode...\x1b[0m');
     
-    // Bước 1: Sửa nested same-tag shortcodes
-    const nestResult = fixNestedShortcodes(content);
+    // Bước 1: Chuyển đổi vbc_span chứa icon và text thành vbc_div và vbc_span_inner
+    const badgeResult = convertSpanWithIconToDiv(content);
+    if (badgeResult.fixes > 0) {
+        console.log(`  \x1b[33m⚠ Phát hiện ${badgeResult.fixes} badge span chứa icon → Đã chuyển thành vbc_div lồng vbc_span_inner\x1b[0m`);
+    } else {
+        console.log('  \x1b[32m✓ Không có badge span chứa icon nào cần chuyển đổi\x1b[0m');
+    }
+
+    // Bước 2: Sửa nested same-tag shortcodes
+    const nestResult = fixNestedShortcodes(badgeResult.content);
     if (nestResult.fixes > 0) {
         console.log(`  \x1b[33m⚠ Phát hiện ${nestResult.fixes} trường hợp nested same-tag shortcode → Đã tự động chuyển đổi sang cấu trúc nested suffix (_inner)\x1b[0m`);
     } else {
         console.log('  \x1b[32m✓ Không có nested same-tag shortcode nào\x1b[0m');
     }
 
-    // Bước 2: Escape ký tự < trong text content
+    // Bước 3: Escape ký tự < trong text content
     const escResult = escapeRawLessThan(nestResult.content);
     if (escResult.fixes > 0) {
         console.log(`  \x1b[33m⚠ Phát hiện ${escResult.fixes} ký tự < chưa được escape → Đã thay bằng &lt;\x1b[0m`);
@@ -191,7 +236,7 @@ function sanitizeShortcodeContent(content) {
         console.log('  \x1b[32m✓ Không có ký tự < nào cần escape\x1b[0m');
     }
 
-    // Bước 3: Tự động chuyển đổi text-only tags sang dạng content attribute
+    // Bước 4: Tự động chuyển đổi text-only tags sang dạng content attribute
     const contentAttrResult = migrateTagsToContentAttribute(escResult.content);
     if (contentAttrResult.fixes > 0) {
         console.log(`  \x1b[33m⚠ Phát hiện ${contentAttrResult.fixes} thẻ text trần → Đã tự động chuyển thành thuộc tính content="..."\x1b[0m`);
@@ -199,7 +244,7 @@ function sanitizeShortcodeContent(content) {
         console.log('  \x1b[32m✓ Tất cả các thẻ text đều đã chuẩn hóa content\x1b[0m');
     }
 
-    const totalFixes = nestResult.fixes + escResult.fixes + contentAttrResult.fixes;
+    const totalFixes = badgeResult.fixes + nestResult.fixes + escResult.fixes + contentAttrResult.fixes;
     if (totalFixes > 0) {
         console.log(`  \x1b[35m→ Tổng cộng đã tự động sửa ${totalFixes} vấn đề\x1b[0m`);
     } else {

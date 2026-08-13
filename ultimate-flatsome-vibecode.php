@@ -3,7 +3,7 @@
  * Plugin Name: Ultimate Flatsome VibeCode Elements
  * Plugin URI: https://github.com/tuend-work/ultimate-flatsome-vibecode
  * Description: Thêm các phần tử HTML cơ bản tích hợp sâu với Flatsome UX Builder, hỗ trợ responsive hoàn hảo, chèn dữ liệu động (Post Meta, ACF) và chỉnh sửa CSS nâng cao.
- * Version: 1.1.3
+ * Version: 1.1.4
  * Author: Antigravity AI
  * Author URI: https://github.com/tuend-work
  * License: GPL2
@@ -914,6 +914,7 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
         'margin' => '', 'margin__md' => '', 'margin__sm' => '',
         'padding' => '', 'padding__md' => '', 'padding__sm' => '',
         'font_size' => '', 'font_size__md' => '', 'font_size__sm' => '',
+        'font_weight' => '',
         'text_align' => '', 'text_align__md' => '', 'text_align__sm' => '',
         'display' => '', 'display__md' => '', 'display__sm' => '',
         'background_color' => '', 'background_color__md' => '', 'background_color__sm' => '',
@@ -961,6 +962,7 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
         'margin' => 'margin',
         'padding' => 'padding',
         'font_size' => 'font-size',
+        'font_weight' => 'font-weight',
         'text_align' => 'text-align',
         'display' => 'display',
         'background_color' => 'background-color',
@@ -2250,6 +2252,16 @@ function vbc_register_icon_ux_builder() {
                         'instagram' => 'Instagram',
                         'youtube' => 'YouTube',
                         'twitter' => 'Twitter',
+                        'monitor' => 'Monitor',
+                        'laptop' => 'Laptop',
+                        'server' => 'Server',
+                        'globe' => 'Globe',
+                        'cloud' => 'Cloud',
+                        'droplet' => 'Droplet',
+                        'cpu' => 'CPU / Chip',
+                        'database' => 'Database',
+                        'terminal' => 'Terminal',
+                        'phone' => 'Phone',
                     ),
                 ),
                 'name_phosphor' => array(
@@ -2348,7 +2360,7 @@ add_action('init', function() {
 
 function vbc_icon_shortcode_renderer($atts) {
     $atts = shortcode_atts(array(
-        'pack' => 'fontawesome',
+        'pack' => 'lucide',
         'name' => '',
         'name_fa' => '',
         'name_ri' => '',
@@ -2363,6 +2375,21 @@ function vbc_icon_shortcode_renderer($atts) {
     ), $atts);
 
     $pack = strtolower(trim($atts['pack']));
+    
+    // Smart pack detection: nếu không có pack nhưng có name_lucide/name_ri/name_phosphor/name_material thì tự detect
+    if (empty($pack) || $pack === 'fontawesome') {
+        if (!empty($atts['name_lucide']) && $atts['name_lucide'] !== 'custom') {
+            $pack = 'lucide';
+        } elseif (!empty($atts['name_ri']) && $atts['name_ri'] !== 'custom') {
+            $pack = 'remix';
+        } elseif (!empty($atts['name_phosphor']) && $atts['name_phosphor'] !== 'custom') {
+            $pack = 'phosphor';
+        } elseif (!empty($atts['name_material']) && $atts['name_material'] !== 'custom') {
+            $pack = 'material';
+        } elseif (!empty($atts['name_fa']) && $atts['name_fa'] !== 'custom') {
+            $pack = 'fontawesome';
+        }
+    }
     
     // Resolve icon name from presets or custom fields
     $name = '';

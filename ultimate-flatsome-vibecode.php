@@ -3,7 +3,7 @@
  * Plugin Name: Ultimate Flatsome VibeCode Elements
  * Plugin URI: https://github.com/tuend-work/ultimate-flatsome-vibecode
  * Description: Thêm các phần tử HTML cơ bản tích hợp sâu với Flatsome UX Builder, hỗ trợ responsive hoàn hảo, chèn dữ liệu động (Post Meta, ACF) và chỉnh sửa CSS nâng cao.
- * Version: 1.1.8
+ * Version: 1.1.9
  * Author: Antigravity AI
  * Author URI: https://github.com/tuend-work
  * License: GPL2
@@ -969,6 +969,10 @@ function vbc_register_shortcodes() {
 
     foreach ($tags as $tag) {
         add_shortcode('vbc_' . $tag, 'vbc_shortcode_renderer');
+        add_shortcode('vbc_' . $tag . '_inner', 'vbc_shortcode_renderer');
+        for ($i = 1; $i <= 5; $i++) {
+            add_shortcode('vbc_' . $tag . '_inner_' . $i, 'vbc_shortcode_renderer');
+        }
     }
 }
 add_action('init', 'vbc_register_shortcodes');
@@ -976,7 +980,10 @@ add_action('init', 'vbc_register_shortcodes');
 function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
     $html_tag = str_replace('vbc_', '', $tag);
 
-    // Map các alias của div về thẻ div thực tế để tránh trùng tên khi lồng nhau
+    // Loại bỏ suffix lồng nhau như _inner, _inner_1, v.v. để lấy tag HTML gốc
+    $html_tag = preg_replace('/_inner(_\d+)?$/', '', $html_tag);
+
+    // Map các alias của div về thẻ div thực tế
     if (in_array($html_tag, array('box', 'block', 'container'))) {
         $html_tag = 'div';
     }

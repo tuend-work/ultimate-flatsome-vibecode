@@ -25,22 +25,9 @@ const VBC_NESTABLE_TAGS = [
 ];
 
 /**
- * Bản đồ ánh xạ thay thế tag để tránh nesting cùng tên tag.
- * Tất cả các tag container này đều tương thích 100% về thuộc tính css/styling.
- */
-const ALTERNATIVE_TAGS = {
-    'vbc_box': 'vbc_container',
-    'vbc_container': 'vbc_block',
-    'vbc_block': 'vbc_div',
-    'vbc_div': 'vbc_box',
-    'vbc_span': 'vbc_container',
-    'vbc_card': 'vbc_box'
-};
-
-/**
  * Phát hiện và sửa nested same-tag shortcodes.
- * Khi phát hiện tag lồng nhau, inner tag sẽ được thay bằng tag VBC tương đương khác tên.
- * Điều này tránh việc dùng thẻ <div> HTML thô vốn bị WAF chặn.
+ * Khi phát hiện tag lồng nhau, inner tag sẽ được thay bằng tag VBC cùng tên nhưng kèm suffix _inner hoặc _inner_1, _inner_2...
+ * Điều này tránh việc trùng tên làm hỏng shortcode parser của WordPress, đồng thời vẫn giữ nguyên semantic tag name.
  */
 function fixNestedShortcodes(content) {
     let fixed = content;
@@ -68,10 +55,11 @@ function fixNestedShortcodes(content) {
                 for (const openMatch of opens) {
                     depth++;
                     if (depth > 1) {
-                        // Đây là nested tag → cần thay thế bằng tag tương đương khác tên
+                        // Đây là nested tag → cần thay thế bằng tag có kèm suffix độ sâu
+                        const suffix = (depth === 2) ? '_inner' : `_inner_${depth - 2}`;
+                        const targetTag = `${tag}${suffix}`;
                         const fullMatch = openMatch[0]; // e.g. [vbc_box display="flex" custom_css="..."]
                         const attrs = openMatch[1] || '';
-                        const targetTag = ALTERNATIVE_TAGS[tag] || 'vbc_container';
                         const replacementOpen = `[${targetTag} ${attrs.trim()}]`.replace(/\s+\]$/, ']');
                         
                         lines[i] = lines[i].replace(fullMatch, replacementOpen);

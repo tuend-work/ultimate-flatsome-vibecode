@@ -77,6 +77,11 @@
     cursor: pointer;
     transition: all 0.15s ease-in-out;
     outline: none;
+    user-select: none;
+}
+
+.vbc-category-tab * {
+    pointer-events: none;
 }
 
 .vbc-category-tab:hover {
@@ -127,6 +132,11 @@
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     box-sizing: border-box;
     min-height: 105px;
+    user-select: none;
+}
+
+.vbc-icon-card * {
+    pointer-events: none;
 }
 
 .vbc-icon-card:hover {

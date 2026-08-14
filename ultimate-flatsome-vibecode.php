@@ -3,7 +3,7 @@
  * Plugin Name: Ultimate Flatsome VibeCode Elements
  * Plugin URI: https://github.com/tuend-work/ultimate-flatsome-vibecode
  * Description: Thêm các phần tử HTML cơ bản tích hợp sâu với Flatsome UX Builder, hỗ trợ responsive hoàn hảo, chèn dữ liệu động (Post Meta, ACF) và chỉnh sửa CSS nâng cao.
- * Version: 1.6.1
+ * Version: 1.6.2
  * Author: Antigravity AI
  * Author URI: https://github.com/tuend-work
  * License: GPL2
@@ -1178,6 +1178,17 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
                 }
             } elseif ($atts['img_source'] === 'manual') {
                 $img_url = $atts['img_url'];
+            }
+            
+            // Fallback tự động nhận diện URL
+            if (empty($img_url)) {
+                if (!empty($atts['img_url'])) {
+                    $img_url = $atts['img_url'];
+                } elseif (!empty($atts['img_src'])) {
+                    $img_url = $atts['img_src'];
+                } elseif (!empty($atts['src'])) {
+                    $img_url = $atts['src'];
+                }
             } elseif ($atts['img_source'] === 'post_meta') {
                 $meta_key = $atts['img_meta_key'];
                 if (!empty($meta_key)) {

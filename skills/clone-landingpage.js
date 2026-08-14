@@ -393,6 +393,19 @@ function fixInvalidHtmlComments(content) {
     return { content: result, fixes };
 }
 
+function fixImageShortcodes(content) {
+    let fixes = 0;
+    let fixed = content.replace(/\[(vbc_img(?:_inner(?:_\d+)?)?)\s+([^\]]*?)img_src=(["'])(.*?)\3([^\]]*?)\]/gi, (match, tag, before, quote, src, after) => {
+        fixes++;
+        return `[${tag} ${before}img_source="manual" img_url="${src}"${after}]`;
+    });
+    fixed = fixed.replace(/\[(vbc_img(?:_inner(?:_\d+)?)?)\s+([^\]]*?)(?<!img_)src=(["'])(.*?)\3([^\]]*?)\]/gi, (match, tag, before, quote, src, after) => {
+        fixes++;
+        return `[${tag} ${before}img_source="manual" img_url="${src}"${after}]`;
+    });
+    return { content: fixed, fixes };
+}
+
 function fixLinkShortcodes(content) {
     let fixes = 0;
     const pattern = /\[vbc_a(_inner(?:_\d+)?)?([^\]]*)\]/g;
@@ -555,7 +568,8 @@ function sanitizeShortcodeContent(content) {
     
     const commentResult = fixInvalidHtmlComments(content);
     const fontResult = stripHardcodedFontFamily(commentResult.content);
-    const linkResult = fixLinkShortcodes(fontResult.content);
+    const imgResult = fixImageShortcodes(fontResult.content);
+    const linkResult = fixLinkShortcodes(imgResult.content);
     const flexResult = fixFlexProperties(linkResult.content);
     const hexResult = fixRawHexColors(flexResult.content);
     const badgeResult = convertSpanWithIconToDiv(hexResult.content);
@@ -563,7 +577,7 @@ function sanitizeShortcodeContent(content) {
     const escResult = escapeRawLessThan(nestResult.content);
     const contentAttrResult = migrateTagsToContentAttribute(escResult.content);
 
-    const totalFixes = commentResult.fixes + fontResult.fixes + linkResult.fixes + flexResult.fixes + hexResult.fixes + badgeResult.fixes + nestResult.fixes + escResult.fixes + contentAttrResult.fixes;
+    const totalFixes = commentResult.fixes + fontResult.fixes + imgResult.fixes + linkResult.fixes + flexResult.fixes + hexResult.fixes + badgeResult.fixes + nestResult.fixes + escResult.fixes + contentAttrResult.fixes;
     console.log(`  \x1b[32m✓ Đã tự động tối ưu & chuyển đổi thành công ${totalFixes} thành phần shortcode!\x1b[0m`);
 
     return contentAttrResult.content;

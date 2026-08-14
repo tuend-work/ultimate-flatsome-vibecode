@@ -3,7 +3,7 @@
  * Plugin Name: Ultimate Flatsome VibeCode Elements
  * Plugin URI: https://github.com/tuend-work/ultimate-flatsome-vibecode
  * Description: Thêm các phần tử HTML cơ bản tích hợp sâu với Flatsome UX Builder, hỗ trợ responsive hoàn hảo, chèn dữ liệu động (Post Meta, ACF) và chỉnh sửa CSS nâng cao.
- * Version: 1.7.0
+ * Version: 1.7.1
  * Author: Antigravity AI
  * Author URI: https://github.com/tuend-work
  * License: GPL2
@@ -1960,14 +1960,34 @@ function vbc_fullpage_shortcode($atts, $content = null) {
 // Đăng ký Menu Quản Trị trong WordPress Admin
 add_action('admin_menu', 'vbc_register_admin_menu');
 function vbc_register_admin_menu() {
+    // Menu chính cấp 1 trên thanh Admin Sidebar
     add_menu_page(
         __('VibeCode Flatsome', 'vibecode'),
         __('VibeCode', 'vibecode'),
         'manage_options',
         'vibecode-settings',
         'vbc_render_admin_settings_page',
-        'dashicons-superhero-alt',
-        59
+        'dashicons-layout',
+        30
+    );
+
+    // Menu phụ dưới Flatsome Panel nếu có
+    add_submenu_page(
+        'flatsome-panel',
+        __('VibeCode Flatsome', 'vibecode'),
+        __('VibeCode Settings', 'vibecode'),
+        'manage_options',
+        'vibecode-settings',
+        'vbc_render_admin_settings_page'
+    );
+
+    // Menu phụ dưới Cài đặt (Settings) dự phòng
+    add_options_page(
+        __('VibeCode Flatsome', 'vibecode'),
+        __('VibeCode', 'vibecode'),
+        'manage_options',
+        'vibecode-settings',
+        'vbc_render_admin_settings_page'
     );
 }
 

@@ -3,7 +3,7 @@
  * Plugin Name: Ultimate Flatsome VibeCode Elements
  * Plugin URI: https://github.com/tuend-work/ultimate-flatsome-vibecode
  * Description: Thêm các phần tử HTML cơ bản tích hợp sâu với Flatsome UX Builder, hỗ trợ responsive hoàn hảo, chèn dữ liệu động (Post Meta, ACF) và chỉnh sửa CSS nâng cao.
- * Version: 1.8.0
+ * Version: 1.8.2
  * Author: Antigravity AI
  * Author URI: https://github.com/tuend-work
  * License: GPL2
@@ -2468,20 +2468,33 @@ function vbc_post_shortcode($atts, $content = null) {
         $css_rules .= '.' . $grid_class . ' { display: grid; grid-template-columns: repeat(' . $columns_desktop . ', 1fr); gap: ' . $gap . '; width: 100%; box-sizing: border-box; } ';
         $css_rules .= '@media (max-width: 849px) { .' . $grid_class . ' { grid-template-columns: repeat(' . $columns_tablet . ', 1fr); } } ';
         $css_rules .= '@media (max-width: 549px) { .' . $grid_class . ' { grid-template-columns: repeat(' . $columns_mobile . ', 1fr); } } ';
+        
+        // Card styling for Grid
+        $css_rules .= '.' . $grid_class . ' .vbc-post-card { ';
+        $css_rules .= 'background: ' . $card_bg . '; ';
+        $css_rules .= 'padding: ' . $card_padding . '; ';
+        $css_rules .= 'border-radius: ' . $card_radius . '; ';
+        $css_rules .= 'border: ' . $card_border . '; ';
+        $css_rules .= 'box-shadow: ' . $card_shadow . '; ';
+        $css_rules .= 'display: flex; flex-wrap: wrap; align-items: center; align-content: flex-start; gap: 8px 12px; ';
+        $css_rules .= 'position: relative; overflow: hidden; box-sizing: border-box; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); ';
+        $css_rules .= '} ';
     } elseif ($atts['layout'] === 'list') {
         $css_rules .= '.' . $grid_class . ' { display: flex; flex-direction: column; gap: ' . $gap . '; width: 100%; } ';
+        
+        // Card styling for List (Horizontal)
+        $css_rules .= '.' . $grid_class . ' .vbc-post-card { ';
+        $css_rules .= 'background: ' . $card_bg . '; ';
+        $css_rules .= 'padding: ' . $card_padding . '; ';
+        $css_rules .= 'border-radius: ' . $card_radius . '; ';
+        $css_rules .= 'border: ' . $card_border . '; ';
+        $css_rules .= 'box-shadow: ' . $card_shadow . '; ';
+        $css_rules .= 'display: flex; flex-direction: row; align-items: center; gap: 20px; ';
+        $css_rules .= 'position: relative; overflow: hidden; box-sizing: border-box; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); ';
+        $css_rules .= '} ';
+        $css_rules .= '@media (max-width: 680px) { .' . $grid_class . ' .vbc-post-card { flex-direction: column; align-items: stretch; } } ';
+        $css_rules .= '.' . $grid_class . ' .vbc-post-list-body { flex: 1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; width: 100%; } ';
     }
-
-    // Card styling
-    $css_rules .= '.' . $grid_class . ' .vbc-post-card { ';
-    $css_rules .= 'background: ' . $card_bg . '; ';
-    $css_rules .= 'padding: ' . $card_padding . '; ';
-    $css_rules .= 'border-radius: ' . $card_radius . '; ';
-    $css_rules .= 'border: ' . $card_border . '; ';
-    $css_rules .= 'box-shadow: ' . $card_shadow . '; ';
-    $css_rules .= 'display: flex; flex-wrap: wrap; align-items: center; align-content: flex-start; gap: 8px 12px; ';
-    $css_rules .= 'position: relative; overflow: hidden; box-sizing: border-box; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); ';
-    $css_rules .= '} ';
 
     if ($card_hover === 'translateY') {
         $css_rules .= '.' . $grid_class . ' .vbc-post-card:hover { transform: translateY(-6px); box-shadow: 0 18px 35px rgba(0,0,0,0.09); } ';
@@ -2495,7 +2508,7 @@ function vbc_post_shortcode($atts, $content = null) {
     $css_rules .= '.' . $grid_class . ' .vbc-post-card:hover .vbc-post-thumb-img { transform: scale(1.06); } ';
 
     // Title styling
-    $title_color_css = !empty($atts['title_color']) ? 'color: ' . esc_attr($atts['title_color']) . ' !important;' : '';
+    $title_color_css = !empty($atts['title_color']) ? 'color: ' . esc_attr($atts['title_color']) . ' !important;' : 'color: #0f172a !important;';
     $title_hover_css = !empty($atts['title_hover_color']) ? 'color: ' . esc_attr($atts['title_hover_color']) . ' !important;' : 'color: #2563eb !important;';
     $css_rules .= '.' . $grid_class . ' .vbc-post-title-link { ' . $title_color_css . ' text-decoration: none; transition: color 0.2s; } ';
     $css_rules .= '.' . $grid_class . ' .vbc-post-title-link:hover { ' . $title_hover_css . ' } ';
@@ -2540,6 +2553,10 @@ function vbc_post_shortcode($atts, $content = null) {
     $image_height = !empty($atts['image_height']) ? $atts['image_height'] : '220px';
     $image_fit = !empty($atts['image_fit']) ? $atts['image_fit'] : 'cover';
 
+    // Kiểm tra xem người dùng có truyền template tùy chỉnh hợp lệ có placeholder không
+    $trimmed_content = trim($content ?: '');
+    $has_custom_template = !empty($trimmed_content) && (strpos($trimmed_content, '{{') !== false || strpos($trimmed_content, '[vbc_') !== false);
+
     if ($atts['layout'] === 'table') {
         // Render Dạng Bảng (Table List)
         $output .= '<div class="' . $class_attr_str . '" style="overflow-x: auto; width: 100%;">';
@@ -2547,14 +2564,14 @@ function vbc_post_shortcode($atts, $content = null) {
         $output .= '<thead><tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; text-align: left;">';
         foreach ($parsed_fields as $f) {
             $col_name = ucfirst($f['type']);
-            if ($f['type'] === 'thumbnail') $col_name = 'Hình ảnh';
+            if ($f['type'] === 'thumbnail' || $f['type'] === 'image') $col_name = 'Hình ảnh';
             elseif ($f['type'] === 'title') $col_name = 'Tiêu đề';
             elseif ($f['type'] === 'price') $col_name = 'Giá';
-            elseif ($f['type'] === 'excerpt') $col_name = 'Mô tả';
+            elseif ($f['type'] === 'excerpt' || $f['type'] === 'desc') $col_name = 'Mô tả';
             elseif ($f['type'] === 'date') $col_name = 'Ngày đăng';
             elseif ($f['type'] === 'author') $col_name = 'Tác giả';
-            elseif ($f['type'] === 'categories') $col_name = 'Danh mục';
-            elseif ($f['type'] === 'button') $col_name = 'Thao tác';
+            elseif ($f['type'] === 'categories' || $f['type'] === 'terms') $col_name = 'Danh mục';
+            elseif ($f['type'] === 'button' || $f['type'] === 'read_more') $col_name = 'Thao tác';
             elseif (!empty($f['meta_key'])) $col_name = $f['meta_key'];
 
             $output .= '<th style="padding: 14px 18px; font-weight: 700; font-size: 13px; color: #475569; width: ' . esc_attr($f['width']) . ';">' . esc_html($col_name) . '</th>';
@@ -2571,23 +2588,38 @@ function vbc_post_shortcode($atts, $content = null) {
             foreach ($parsed_fields as $f) {
                 $output .= '<td style="padding: 14px 18px; vertical-align: middle; width: ' . esc_attr($f['width']) . ';">';
 
-                if ($f['type'] === 'thumbnail') {
+                if ($f['type'] === 'thumbnail' || $f['type'] === 'image') {
                     $thumb_url = get_the_post_thumbnail_url($post_id, $atts['image_size']);
                     if ($thumb_url) {
                         $output .= '<a href="' . esc_url($permalink) . '"><img src="' . esc_url($thumb_url) . '" alt="' . esc_attr(get_the_title()) . '" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; display: block;"></a>';
+                    } else {
+                        $output .= '<div style="width: 60px; height: 60px; background: #f1f5f9; border-radius: 8px; display: flex; align-items: center; justify-content: center;"><i data-lucide="file-text" style="width: 22px; height: 22px; color: #94a3b8;"></i></div>';
                     }
                 } elseif ($f['type'] === 'title') {
                     $output .= '<a href="' . esc_url($permalink) . '" style="font-weight: 700; color: #0f172a; text-decoration: none; font-size: 15px;">' . get_the_title() . '</a>';
                 } elseif ($f['type'] === 'price') {
+                    $price_html = '';
                     if (function_exists('wc_get_product')) {
                         $product = wc_get_product($post_id);
-                        if ($product) {
-                            $output .= '<div style="font-weight: 700; color: ' . esc_attr($price_color) . ';">' . $product->get_price_html() . '</div>';
-                        }
+                        if ($product) $price_html = $product->get_price_html();
                     }
+                    if (empty($price_html)) {
+                        $raw_price = get_post_meta($post_id, '_price', true) ?: (get_post_meta($post_id, 'price', true) ?: get_post_meta($post_id, 'gia', true));
+                        if (is_numeric($raw_price)) $price_html = number_format($raw_price, 0, ',', '.') . ' ₫';
+                        elseif (!empty($raw_price)) $price_html = esc_html($raw_price);
+                    }
+                    $output .= '<div style="font-weight: 700; color: ' . esc_attr($price_color) . ';">' . ($price_html ?: '-') . '</div>';
                 } elseif ($f['type'] === 'date') {
                     $output .= '<span style="font-size: 13px; color: #64748b;">' . get_the_date('d/m/Y') . '</span>';
-                } elseif ($f['type'] === 'button') {
+                } elseif ($f['type'] === 'author') {
+                    $output .= '<span style="font-size: 13px; color: #64748b;">' . get_the_author() . '</span>';
+                } elseif ($f['type'] === 'categories' || $f['type'] === 'terms') {
+                    $tax = !empty($atts['taxonomy']) ? $atts['taxonomy'] : ($post_type === 'product' ? 'product_cat' : 'category');
+                    $terms_list = get_the_terms($post_id, $tax);
+                    if ($terms_list && !is_wp_error($terms_list)) {
+                        $output .= '<span style="background: rgba(37,99,235,0.08); color: #2563eb; font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 6px;">' . esc_html($terms_list[0]->name) . '</span>';
+                    }
+                } elseif ($f['type'] === 'button' || $f['type'] === 'read_more') {
                     $output .= '<a href="' . esc_url($permalink) . '" class="vbc-btn vbc-btn-' . esc_attr($btn_variant) . '" style="padding: 6px 14px; font-size: 13px; border-radius: ' . esc_attr($btn_radius) . '; text-decoration: none; display: inline-block;">' . esc_html($btn_text_default) . '</a>';
                 } elseif ($f['type'] === 'meta' || $f['type'] === 'custom_field') {
                     $val = get_post_meta($post_id, $f['meta_key'], true);
@@ -2611,9 +2643,9 @@ function vbc_post_shortcode($atts, $content = null) {
             $permalink = get_permalink($post_id);
             $post_title = get_the_title();
 
-            // Nếu người dùng cung cấp template tùy chỉnh bên trong [vbc_post]...[/vbc_post]
-            if (!empty($content)) {
-                $raw_tpl = $content;
+            // Nếu người dùng cung cấp template tùy chỉnh có chứa placeholders
+            if ($has_custom_template) {
+                $raw_tpl = $trimmed_content;
                 $thumb_url = get_the_post_thumbnail_url($post_id, $atts['image_size']) ?: '';
                 $excerpt = get_the_excerpt();
 
@@ -2643,11 +2675,42 @@ function vbc_post_shortcode($atts, $content = null) {
                 continue;
             }
 
+            // Render theo Fields Config
             $output .= '<div class="vbc-post-card">';
+
+            // Phân loại thumbnail và các field còn lại nếu ở chế độ list layout
+            $is_list_layout = ($atts['layout'] === 'list');
+            $thumb_rendered_in_list = false;
+
+            if ($is_list_layout) {
+                // Render Thumbnail bên trái
+                foreach ($parsed_fields as $f) {
+                    if ($f['type'] === 'thumbnail' || $f['type'] === 'image') {
+                        $thumb_url = get_the_post_thumbnail_url($post_id, $atts['image_size']);
+                        $thumb_w = !empty($f['width']) && $f['width'] !== '100%' ? $f['width'] : '240px';
+
+                        $output .= '<div class="vbc-post-list-thumb" style="width: ' . esc_attr($thumb_w) . '; flex: 0 0 ' . esc_attr($thumb_w) . '; height: ' . esc_attr($image_height) . '; overflow: hidden; border-radius: ' . esc_attr($card_radius) . '; position: relative;">';
+                        if ($thumb_url) {
+                            $output .= '<a href="' . esc_url($permalink) . '" style="display: block; width: 100%; height: 100%;"><img src="' . esc_url($thumb_url) . '" alt="' . esc_attr($post_title) . '" class="vbc-post-thumb-img" style="width: 100%; height: 100%; object-fit: ' . esc_attr($image_fit) . '; display: block; transition: transform 0.4s ease;"></a>';
+                        } else {
+                            $output .= '<div style="width: 100%; height: 100%; background: #f1f5f9; display: flex; align-items: center; justify-content: center;"><i data-lucide="file-text" style="width: 40px; height: 40px; color: #cbd5e1;"></i></div>';
+                        }
+                        $output .= '</div>';
+                        $thumb_rendered_in_list = true;
+                        break;
+                    }
+                }
+                $output .= '<div class="vbc-post-list-body">';
+            }
 
             foreach ($parsed_fields as $f) {
                 $f_type = $f['type'];
                 $f_width = $f['width'];
+
+                // Bỏ qua thumbnail nếu đã render ở list mode
+                if ($is_list_layout && ($f_type === 'thumbnail' || $f_type === 'image') && $thumb_rendered_in_list) {
+                    continue;
+                }
 
                 // Tính toán flex styling dựa theo độ rộng
                 $flex_css = 'width: 100%; flex: 0 0 100%; box-sizing: border-box;';
@@ -2675,13 +2738,15 @@ function vbc_post_shortcode($atts, $content = null) {
                         }
                     }
 
+                    $output .= '<div class="vbc-post-field vbc-post-field-thumb" style="' . $flex_css . ' margin-bottom: 6px;">';
+                    $output .= '<div class="vbc-post-thumb-wrap" style="position: relative; width: 100%; height: ' . esc_attr($image_height) . '; overflow: hidden; border-radius: ' . esc_attr($card_radius) . ';">';
+                    $output .= $sale_badge_html;
                     if ($thumb_url) {
-                        $output .= '<div class="vbc-post-field vbc-post-field-thumb" style="' . $flex_css . ' margin-bottom: 6px;">';
-                        $output .= '<div class="vbc-post-thumb-wrap" style="position: relative; width: 100%; height: ' . esc_attr($image_height) . '; overflow: hidden; border-radius: ' . esc_attr($card_radius) . ';">';
-                        $output .= $sale_badge_html;
                         $output .= '<a href="' . esc_url($permalink) . '" style="display: block; width: 100%; height: 100%;"><img src="' . esc_url($thumb_url) . '" alt="' . esc_attr($post_title) . '" class="vbc-post-thumb-img" style="width: 100%; height: 100%; object-fit: ' . esc_attr($image_fit) . '; display: block; transition: transform 0.4s ease;"></a>';
-                        $output .= '</div></div>';
+                    } else {
+                        $output .= '<div style="width: 100%; height: 100%; background: #f1f5f9; display: flex; align-items: center; justify-content: center;"><i data-lucide="file-text" style="width: 36px; height: 36px; color: #cbd5e1;"></i></div>';
                     }
+                    $output .= '</div></div>';
                 } elseif ($f_type === 'title') {
                     $clamp_css = $title_lines > 0 ? 'display: -webkit-box; -webkit-line-clamp: ' . $title_lines . '; -webkit-box-orient: vertical; overflow: hidden;' : '';
                     $output .= '<div class="vbc-post-field vbc-post-field-title" style="' . $flex_css . ' margin: 4px 0 6px 0;">';
@@ -2712,6 +2777,15 @@ function vbc_post_shortcode($atts, $content = null) {
                     }
                 } elseif ($f_type === 'excerpt' || $f_type === 'desc' || $f_type === 'description') {
                     $raw_excerpt = get_the_excerpt($post_id);
+                    if (empty($raw_excerpt) || strpos($raw_excerpt, '[') !== false) {
+                        $post_body = get_post_field('post_content', $post_id);
+                        $clean_body = strip_shortcodes($post_body);
+                        $clean_body = wp_strip_all_tags($clean_body);
+                        $clean_body = preg_replace('/\s+/', ' ', trim($clean_body));
+                        if (!empty($clean_body)) {
+                            $raw_excerpt = $clean_body;
+                        }
+                    }
                     $trimmed_excerpt = wp_trim_words($raw_excerpt, intval($atts['excerpt_length']), '...');
                     if (!empty($trimmed_excerpt)) {
                         $output .= '<div class="vbc-post-field vbc-post-field-excerpt" style="' . $flex_css . '">';
@@ -2799,10 +2873,14 @@ function vbc_post_shortcode($atts, $content = null) {
                 }
             }
 
+            if ($is_list_layout) {
+                $output .= '</div>'; // End list-body
+            }
+
             $output .= '</div>'; // End Card
         }
 
-        $output .= '</div>'; // End Grid
+        $output .= '</div>'; // End Grid/List
     }
 
     // 5. Phân trang nếu được bật
@@ -2829,7 +2907,6 @@ function vbc_post_shortcode($atts, $content = null) {
 
     return $style_tag . $output;
 }
-
 
 /**
  * 3. HỆ THỐNG TRANG QUẢN TRỊ VIBECODE & XUẤT DỰ ÁN CHO ANTIGRAVITY

@@ -296,6 +296,40 @@ function checkRowInColNesting(content) {
 }
 
 /**
+ * Tự động chuyển đổi:
+ * [vbc_span ...][vbc_icon ... attrs] Text [/vbc_span]
+ * thành:
+ * [vbc_div ... display="flex" ...][vbc_icon ... attrs][vbc_span_inner content="Text"][/vbc_span_inner][/vbc_div]
+ */
+function convertSpanWithIconToDiv(content) {
+    let fixes = 0;
+    const pattern = /\[vbc_span([^\]]*)\]\s*(\[vbc_icon[^\]]*\])\s*([^\[]+?)\s*\[\/vbc_span\]/gs;
+
+    const result = content.replace(pattern, (match, spanAttrs, iconShortcode, text) => {
+        const trimmedText = text.trim();
+        const trimmedSpanAttrs = spanAttrs.trim();
+
+        const escapedText = trimmedText.replace(/"/g, '\\"');
+        fixes++;
+
+        let divAttrs = trimmedSpanAttrs;
+        if (!divAttrs.includes('display=')) {
+            divAttrs += ' display="inline-flex"';
+        }
+        if (!divAttrs.includes('align_items=')) {
+            divAttrs += ' align_items="center"';
+        }
+        if (!divAttrs.includes('gap=')) {
+            divAttrs += ' gap="8px"';
+        }
+
+        return `[vbc_div ${divAttrs.trim()}]${iconShortcode}[vbc_span_inner content="${escapedText}"][/vbc_span_inner][/vbc_div]`;
+    });
+
+    return { content: result, fixes };
+}
+
+/**
  * Hàm sanitize tổng hợp — chạy tất cả các bước kiểm tra & sửa lỗi thông minh.
  */
 function sanitizeShortcodeContent(content) {

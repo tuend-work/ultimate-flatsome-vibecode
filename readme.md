@@ -145,17 +145,42 @@ Sử dụng tuần tự các thẻ bí danh theo cấp bậc:
 
 ---
 
-## 6. REST API & CLI Skill
+## 6. Bộ Công Cụ CLI Skills (CLI Skills Suite)
 
 ### REST API Endpoints
 * **Tải ảnh lên thư viện**: `POST /wp-json/vbc/v1/upload` (Xác thực qua header `X-VBC-Token`)
 * **Đăng/Cập nhật trang**: `POST /wp-json/vbc/v1/page` (Xác thực qua header `X-VBC-Token`)
 
-### Sử Dụng CLI Tool (Tích hợp Smart Linter & Sanitizer)
+---
+
+### A. Skill 1: Xuất Bản Landing Page Từ Shortcode (`create-landing-page.js`)
+Công cụ xuất bản nhanh từ file shortcode soạn sẵn kèm bộ linter & sanitizer tự động.
 ```bash
 node skills/create-landing-page.js --title "Tiêu đề trang" --slug "duong-dan-tinh" --file "duong-dan-file-shortcode.txt"
 ```
-*(CLI tự động chạy bộ Stack-based Tokenizer, tự động chuẩn hóa thẻ liên kết, gom thuộc tính Flex/Grid vào selector và cảnh báo lỗi lồng thẻ trước khi xuất bản)*
+
+---
+
+### B. Skill 2: Clone Giao Diện Đa Nguồn Về Flatsome VibeCode (`clone-landingpage.js`)
+Công cụ mạnh mẽ hỗ trợ chuyển đổi mọi nguồn giao diện (URL trực tiếp, HTML, ZIP, Screenshot) thành cấu trúc VibeCode chuẩn Flatsome:
+
+1. **Clone từ URL trang web trực tiếp**:
+   ```bash
+   node skills/clone-landingpage.js --url "https://example.com/landing-mau" --title "Trang Mẫu Clone" --slug "trang-mau-clone"
+   ```
+2. **Clone từ file HTML cục bộ**:
+   ```bash
+   node skills/clone-landingpage.js --html "templates/saas-dark.html" --title "SaaS Dark Template" --slug "saas-dark-template"
+   ```
+3. **Clone từ gói ZIP template**:
+   ```bash
+   node skills/clone-landingpage.js --zip "downloads/agency-theme.zip" --title "Agency Landing" --slug "agency-landing"
+   ```
+4. **Chế độ kiểm tra xem trước không xuất bản (Dry Run)**:
+   ```bash
+   node skills/clone-landingpage.js --url "https://example.com" --dry-run
+   ```
+*(Tự động trích xuất CSS inline, tải và upload toàn bộ ảnh lên WordPress Media Library, tự động gom thuộc tính Flex/Grid và chuẩn hóa nesting `_inner`)*
 
 ---
 

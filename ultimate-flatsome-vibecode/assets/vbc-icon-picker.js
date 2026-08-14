@@ -1,437 +1,391 @@
+/**
+ * ============================================================================
+ * ULTIMATE FLATSOME VIBECODE - WORDPRESS MEDIA MODAL SVG ICON EXTENSION
+ * ============================================================================
+ * Tích hợp tab thứ 3 "SVG Icon" vào WordPress Media Library Modal chuẩn (wp.media).
+ * Cho phép người dùng chọn Icon trực quan theo hình ảnh/danh mục mà không cần nhớ tên.
+ * ============================================================================
+ */
+
 (function($) {
     'use strict';
 
-    console.log('[VBC Icon Picker v1.4.0] Loaded.');
+    // 1. KHO ICON DỮ LIỆU ĐA DẠNG ĐƯỢC PHÂN THEO DANH MỤC TRỰC QUAN
+    var VBC_ICON_CATEGORIES = [
+        { id: 'all', name: '✨ Tất cả Icons' },
+        { id: 'security', name: '🛡️ Bảo mật & Uy tín' },
+        { id: 'business', name: '🚀 Kinh doanh & Tăng trưởng' },
+        { id: 'ecommerce', name: '🛒 Bán hàng & E-commerce' },
+        { id: 'contact', name: '📞 Liên hệ & Hỗ trợ' },
+        { id: 'tech', name: '💻 Công nghệ & Website' },
+        { id: 'interface', name: '⚙️ Giao diện & Tiện ích' },
+        { id: 'arrows', name: '➡️ Mũi tên & Điều hướng' },
+        { id: 'social', name: '💖 Tương tác & Người dùng' },
+        { id: 'brands', name: '🌐 Thương hiệu & Mạng XH' }
+    ];
 
-    // Curated icon libraries
-    const ICON_LIBRARIES = {
-        lucide: [
-            'home', 'user', 'mail', 'phone', 'search', 'settings', 'check', 'x', 'shield', 'shield-check',
-            'shield-alert', 'zap', 'star', 'info', 'alert-triangle', 'trash-2', 'lock', 'key',
-            'activity', 'file-text', 'code', 'smartphone', 'trending-up', 'credit-card',
-            'refresh-cw', 'heart', 'message-square', 'sparkles', 'gauge', 'cloud-lightning',
-            'hammer', 'monitor', 'laptop', 'server', 'globe', 'cloud', 'cpu', 'database',
-            'terminal', 'arrow-right', 'arrow-left', 'download', 'upload', 'menu',
-            'check-circle', 'x-circle', 'help-circle', 'alert-circle', 'clock', 'calendar',
-            'map-pin', 'folder', 'file', 'link', 'external-link', 'eye', 'eye-off', 'layers',
-            'package', 'box', 'rocket', 'headphones', 'wifi', 'bluetooth', 'battery', 'power'
-        ],
-        fontawesome: [
-            'fa-solid fa-house', 'fa-solid fa-user', 'fa-solid fa-envelope', 'fa-solid fa-phone', 'fa-solid fa-magnifying-glass',
-            'fa-solid fa-gear', 'fa-solid fa-check', 'fa-solid fa-xmark', 'fa-solid fa-shield-halved', 'fa-solid fa-bolt',
-            'fa-solid fa-star', 'fa-solid fa-circle-info', 'fa-solid fa-circle-exclamation', 'fa-solid fa-trash', 'fa-solid fa-lock',
-            'fa-solid fa-key', 'fa-solid fa-chart-line', 'fa-solid fa-server', 'fa-solid fa-globe', 'fa-solid fa-cloud',
-            'fa-solid fa-cpu', 'fa-solid fa-database', 'fa-solid fa-terminal', 'fa-solid fa-code', 'fa-solid fa-heart',
-            'fa-solid fa-comment', 'fa-solid fa-bell', 'fa-solid fa-bookmark', 'fa-solid fa-share', 'fa-solid fa-link',
-            'fa-solid fa-arrow-right', 'fa-solid fa-arrow-left', 'fa-solid fa-download', 'fa-solid fa-upload', 'fa-solid fa-gauge',
-            'fa-solid fa-screwdriver-wrench', 'fa-solid fa-arrows-rotate', 'fa-solid fa-credit-card', 'fa-solid fa-circle-check',
-            'fa-brands fa-facebook', 'fa-brands fa-google', 'fa-brands fa-youtube', 'fa-brands fa-twitter', 'fa-brands fa-instagram',
-            'fa-brands fa-github', 'fa-brands fa-tiktok', 'fa-brands fa-wordpress'
-        ],
-        remix: [
-            'ri-home-line', 'ri-user-line', 'ri-mail-line', 'ri-phone-line', 'ri-search-line', 'ri-settings-line',
-            'ri-check-line', 'ri-close-line', 'ri-shield-check-line', 'ri-flashlight-line', 'ri-star-line', 'ri-information-line',
-            'ri-alert-line', 'ri-delete-bin-line', 'ri-lock-line', 'ri-key-line', 'ri-line-chart-line', 'ri-heart-line',
-            'ri-chat-3-line', 'ri-notification-line', 'ri-server-line', 'ri-global-line', 'ri-cloud-line', 'ri-cpu-line',
-            'ri-database-line', 'ri-terminal-line', 'ri-code-line', 'ri-arrow-right-line', 'ri-arrow-left-line',
-            'ri-download-line', 'ri-upload-line', 'ri-facebook-fill', 'ri-google-fill', 'ri-youtube-fill',
-            'ri-shield-cross-line', 'ri-spam-line', 'ri-database-2-line', 'ri-braces-line', 'ri-mac-line'
-        ],
-        phosphor: [
-            'ph ph-house', 'ph ph-user', 'ph ph-envelope', 'ph ph-phone', 'ph ph-magnifying-glass',
-            'ph ph-gear', 'ph ph-check', 'ph ph-x', 'ph ph-shield', 'ph ph-shield-check',
-            'ph ph-lightning', 'ph ph-star', 'ph ph-info', 'ph ph-warning', 'ph ph-trash', 'ph ph-lock',
-            'ph ph-key', 'ph ph-chart-line', 'ph ph-server', 'ph ph-globe', 'ph ph-cloud', 'ph ph-cpu',
-            'ph ph-database', 'ph ph-terminal', 'ph ph-code', 'ph ph-heart', 'ph ph-chat', 'ph ph-bell',
-            'ph ph-arrow-right', 'ph ph-arrow-left', 'ph ph-download', 'ph ph-upload'
-        ],
-        material: [
-            'home', 'person', 'mail', 'call', 'search', 'settings', 'check', 'close', 'security', 'shield',
-            'bolt', 'star', 'info', 'warning', 'delete', 'lock', 'vpn_key', 'trending_up', 'dns', 'language',
-            'cloud', 'memory', 'storage', 'terminal', 'code', 'favorite', 'chat', 'notifications',
-            'arrow_forward', 'arrow_back', 'download', 'upload', 'shield_heart', 'bug_report', 'build', 'cached'
-        ]
-    };
+    var VBC_ICONS_DATA = [
+        // Security & Trust
+        { id: 'shield-check', name: 'Khiên bảo vệ hoàn thành', cat: 'security', pack: 'lucide', keywords: 'shield check verified protect security' },
+        { id: 'shield', name: 'Khiên bảo vệ', cat: 'security', pack: 'lucide', keywords: 'shield security protect' },
+        { id: 'shield-alert', name: 'Cảnh báo bảo mật', cat: 'security', pack: 'lucide', keywords: 'shield alert warning danger' },
+        { id: 'award', name: 'Huy chương danh dự', cat: 'security', pack: 'lucide', keywords: 'award medal badge winner reward' },
+        { id: 'lock', name: 'Khóa bảo mật', cat: 'security', pack: 'lucide', keywords: 'lock security private password' },
+        { id: 'key', name: 'Chìa khóa', cat: 'security', pack: 'lucide', keywords: 'key security access password' },
+        { id: 'check-circle', name: 'Tích tròn thành công', cat: 'security', pack: 'lucide', keywords: 'check circle success done verified' },
+        { id: 'check-check', name: 'Đã xác thực kép', cat: 'security', pack: 'lucide', keywords: 'check double verified' },
+        { id: 'badge-check', name: 'Huy hiệu tích xanh', cat: 'security', pack: 'lucide', keywords: 'badge check verified official' },
+        { id: 'fingerprint', name: 'Vân tay bảo mật', cat: 'security', pack: 'lucide', keywords: 'fingerprint biometric security' },
 
-    let $activeInput = null;
-    let currentTab = 'media';
-    let tempSelectedValue = ''; // Stores temporary selection (img:URL or icon:class)
-    let wpMediaFrame = null;
+        // Business & Growth
+        { id: 'trending-up', name: 'Biểu đồ tăng trưởng', cat: 'business', pack: 'lucide', keywords: 'trending up growth success chart stock' },
+        { id: 'rocket', name: 'Tên lửa tăng tốc', cat: 'business', pack: 'lucide', keywords: 'rocket launch startup boost fast' },
+        { id: 'target', name: 'Mục tiêu chiến lược', cat: 'business', pack: 'lucide', keywords: 'target goal focus aim' },
+        { id: 'briefcase', name: 'Cặp doanh nhân / Dự án', cat: 'business', pack: 'lucide', keywords: 'briefcase business job work bag' },
+        { id: 'dollar-sign', name: 'Đô la / Doanh thu', cat: 'business', pack: 'lucide', keywords: 'dollar money cash finance price' },
+        { id: 'coins', name: 'Tiền xu / Tài chính', cat: 'business', pack: 'lucide', keywords: 'coins money wealth finance gold' },
+        { id: 'pie-chart', name: 'Biểu đồ tròn', cat: 'business', pack: 'lucide', keywords: 'chart pie analytics stats' },
+        { id: 'bar-chart-3', name: 'Biểu đồ cột', cat: 'business', pack: 'lucide', keywords: 'chart bar analytics report' },
+        { id: 'percent', name: 'Phần trăm ưu đãi', cat: 'business', pack: 'lucide', keywords: 'percent discount sale offer' },
+        { id: 'sparkles', name: 'Lấp lánh / AI Thông minh', cat: 'business', pack: 'lucide', keywords: 'sparkles magic ai star new premium' },
+        { id: 'zap', name: 'Tia sét / Nhanh chóng', cat: 'business', pack: 'lucide', keywords: 'zap lightning speed fast power energy' },
 
-    // Core: Write value to input and trigger Flatsome update
-    function writeValueToInput($input, value) {
-        if (!$input || $input.length === 0) return false;
-        console.log('[VBC Icon Picker] Saving value:', value);
+        // E-commerce & Shopping
+        { id: 'shopping-cart', name: 'Giỏ hàng mua sắm', cat: 'ecommerce', pack: 'lucide', keywords: 'cart shopping store buy ecommerce' },
+        { id: 'shopping-bag', name: 'Túi mua sắm', cat: 'ecommerce', pack: 'lucide', keywords: 'bag shopping store market' },
+        { id: 'credit-card', name: 'Thẻ thanh toán', cat: 'ecommerce', pack: 'lucide', keywords: 'card credit payment bank visa master' },
+        { id: 'package', name: 'Kiện hàng / Đóng gói', cat: 'ecommerce', pack: 'lucide', keywords: 'package box delivery parcel shipping' },
+        { id: 'truck', name: 'Xe giao hàng', cat: 'ecommerce', pack: 'lucide', keywords: 'truck delivery shipping express transport' },
+        { id: 'tag', name: 'Thẻ giá / Khuyến mãi', cat: 'ecommerce', pack: 'lucide', keywords: 'tag price label discount sale' },
+        { id: 'gift', name: 'Hộp quà tặng', cat: 'ecommerce', pack: 'lucide', keywords: 'gift present reward bonus' },
+        { id: 'store', name: 'Cửa hàng', cat: 'ecommerce', pack: 'lucide', keywords: 'store shop market boutique' },
+        { id: 'receipt', name: 'Hóa đơn thanh toán', cat: 'ecommerce', pack: 'lucide', keywords: 'receipt bill invoice paper payment' },
 
-        // Update value
-        $input.val(value);
+        // Contact & Support
+        { id: 'phone', name: 'Điện thoại liên hệ', cat: 'contact', pack: 'lucide', keywords: 'phone call hotline contact mobile' },
+        { id: 'phone-call', name: 'Đang gọi điện', cat: 'contact', pack: 'lucide', keywords: 'phone call dial ring ring' },
+        { id: 'mail', name: 'Hòm thư điện tử', cat: 'contact', pack: 'lucide', keywords: 'mail email message envelope inbox' },
+        { id: 'message-square', name: 'Tin nhắn / Trao đổi', cat: 'contact', pack: 'lucide', keywords: 'message chat comment talk sms' },
+        { id: 'message-circle', name: 'Hội thoại tròn', cat: 'contact', pack: 'lucide', keywords: 'chat speech bubble message' },
+        { id: 'send', name: 'Gửi tin nhắn', cat: 'contact', pack: 'lucide', keywords: 'send message fly paper aircraft' },
+        { id: 'headphones', name: 'Tai nghe hỗ trợ viên', cat: 'contact', pack: 'lucide', keywords: 'headphones support agent customer audio' },
+        { id: 'map-pin', name: 'Địa chỉ vị trí', cat: 'contact', pack: 'lucide', keywords: 'map pin location address marker place' },
+        { id: 'clock', name: 'Đồng hồ thời gian', cat: 'contact', pack: 'lucide', keywords: 'clock time hour minute schedule watch' },
+        { id: 'calendar', name: 'Lịch hẹn ngày', cat: 'contact', pack: 'lucide', keywords: 'calendar date schedule event month' },
 
-        // Dispatch React/HTML5 events
-        var nativeInput = $input[0];
-        var nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value');
-        if (nativeInputValueSetter) {
-            nativeInputValueSetter.set.call(nativeInput, value);
-        }
+        // Tech & Website
+        { id: 'globe', name: 'Quả địa cầu / Website', cat: 'tech', pack: 'lucide', keywords: 'globe web internet world domain online' },
+        { id: 'monitor', name: 'Màn hình máy tính', cat: 'tech', pack: 'lucide', keywords: 'monitor screen desktop display computer' },
+        { id: 'laptop', name: 'Máy tính xách tay', cat: 'tech', pack: 'lucide', keywords: 'laptop computer macbook pc notebook' },
+        { id: 'smartphone', name: 'Điện thoại di động', cat: 'tech', pack: 'lucide', keywords: 'smartphone phone mobile iphone android' },
+        { id: 'server', name: 'Máy chủ Server', cat: 'tech', pack: 'lucide', keywords: 'server cloud host hosting rack database' },
+        { id: 'database', name: 'Cơ sở dữ liệu', cat: 'tech', pack: 'lucide', keywords: 'database sql storage data data' },
+        { id: 'cpu', name: 'Vi xử lý CPU', cat: 'tech', pack: 'lucide', keywords: 'cpu chip processor hardware hardware' },
+        { id: 'code', name: 'Mã nguồn / Lập trình', cat: 'tech', pack: 'lucide', keywords: 'code programming html dev software' },
+        { id: 'terminal', name: 'Dòng lệnh Terminal', cat: 'tech', pack: 'lucide', keywords: 'terminal console command prompt cli' },
+        { id: 'wifi', name: 'Sóng WiFi mạng', cat: 'tech', pack: 'lucide', keywords: 'wifi internet connection wireless signal' },
+        { id: 'cloud', name: 'Điện toán đám mây', cat: 'tech', pack: 'lucide', keywords: 'cloud hosting storage drive sync' },
+        { id: 'cloud-lightning', name: 'Máy chủ tốc độ cao', cat: 'tech', pack: 'lucide', keywords: 'cloud lightning fast speed server' },
+        { id: 'activity', name: 'Hiệu năng nhịp tim', cat: 'tech', pack: 'lucide', keywords: 'activity pulse heart rate performance monitor' },
 
-        ['input', 'change', 'keyup', 'blur'].forEach(function(evtName) {
-            nativeInput.dispatchEvent(new Event(evtName, { bubbles: true, cancelable: true }));
-        });
+        // Interface & General UI
+        { id: 'home', name: 'Trang chủ Home', cat: 'interface', pack: 'lucide', keywords: 'home house main page dashboard' },
+        { id: 'search', name: 'Kính lúp tìm kiếm', cat: 'interface', pack: 'lucide', keywords: 'search find magnifying glass' },
+        { id: 'settings', name: 'Bánh răng cài đặt', cat: 'interface', pack: 'lucide', keywords: 'settings gear options preferences tools' },
+        { id: 'menu', name: 'Menu điều hướng', cat: 'interface', pack: 'lucide', keywords: 'menu hamburger nav navigation list' },
+        { id: 'check', name: 'Dấu tích kiểm', cat: 'interface', pack: 'lucide', keywords: 'check tick ok yes approve' },
+        { id: 'x', name: 'Dấu đóng / Xóa', cat: 'interface', pack: 'lucide', keywords: 'x close cancel delete remove' },
+        { id: 'plus', name: 'Dấu cộng thêm', cat: 'interface', pack: 'lucide', keywords: 'plus add new create' },
+        { id: 'minus', name: 'Dấu trừ', cat: 'interface', pack: 'lucide', keywords: 'minus remove subtract' },
+        { id: 'eye', name: 'Con mắt / Xem trước', cat: 'interface', pack: 'lucide', keywords: 'eye view preview watch visible' },
+        { id: 'eye-off', name: 'Ẩn nội dung', cat: 'interface', pack: 'lucide', keywords: 'eye off hide hidden invisible' },
+        { id: 'refresh-cw', name: 'Làm mới / Đồng bộ', cat: 'interface', pack: 'lucide', keywords: 'refresh sync reload update rotate' },
+        { id: 'download', name: 'Tải xuống', cat: 'interface', pack: 'lucide', keywords: 'download save get export' },
+        { id: 'upload', name: 'Tải lên', cat: 'interface', pack: 'lucide', keywords: 'upload send import file' },
+        { id: 'trash-2', name: 'Thùng rác xóa', cat: 'interface', pack: 'lucide', keywords: 'trash delete remove bin' },
+        { id: 'edit-3', name: 'Chỉnh sửa bút', cat: 'interface', pack: 'lucide', keywords: 'edit pen write modify pencil' },
+        { id: 'file-text', name: 'Tài liệu văn bản', cat: 'interface', pack: 'lucide', keywords: 'file text document paper doc page' },
+        { id: 'folder', name: 'Thư mục tệp', cat: 'interface', pack: 'lucide', keywords: 'folder directory file storage' },
+        { id: 'link', name: 'Liên kết URL', cat: 'interface', pack: 'lucide', keywords: 'link url href anchor chain' },
+        { id: 'external-link', name: 'Mở liên kết ngoài', cat: 'interface', pack: 'lucide', keywords: 'external link open new window tab' },
+        { id: 'help-circle', name: 'Hỏi đáp hỗ trợ', cat: 'interface', pack: 'lucide', keywords: 'help question circle faq info' },
+        { id: 'alert-triangle', name: 'Cảnh báo tam giác', cat: 'interface', pack: 'lucide', keywords: 'alert warning caution triangle' },
+        { id: 'info', name: 'Thông tin chi tiết', cat: 'interface', pack: 'lucide', keywords: 'info information detail about' },
 
-        $input.trigger('input').trigger('change').trigger('keyup');
-        $input.focus();
-        setTimeout(function() { $input.blur(); }, 50);
+        // Arrows & Navigation
+        { id: 'arrow-right', name: 'Mũi tên sang phải', cat: 'arrows', pack: 'lucide', keywords: 'arrow right next forward direction' },
+        { id: 'arrow-left', name: 'Mũi tên sang trái', cat: 'arrows', pack: 'lucide', keywords: 'arrow left back previous direction' },
+        { id: 'arrow-up', name: 'Mũi tên lên trên', cat: 'arrows', pack: 'lucide', keywords: 'arrow up top direction' },
+        { id: 'arrow-down', name: 'Mũi tên xuống dưới', cat: 'arrows', pack: 'lucide', keywords: 'arrow down bottom direction' },
+        { id: 'chevron-right', name: 'Dấu nhọn phải', cat: 'arrows', pack: 'lucide', keywords: 'chevron right angle next' },
+        { id: 'chevron-left', name: 'Dấu nhọn trái', cat: 'arrows', pack: 'lucide', keywords: 'chevron left angle prev' },
+        { id: 'chevron-down', name: 'Dấu nhọn xuống', cat: 'arrows', pack: 'lucide', keywords: 'chevron down angle dropdown' },
+        { id: 'corner-down-right', name: 'Rẽ nhánh sang phải', cat: 'arrows', pack: 'lucide', keywords: 'corner down right sub reply' },
 
-        // Update inline preview in sidebar
-        updateSidebarPreview($input);
-        return true;
-    }
+        // Social & Users
+        { id: 'user', name: 'Tài khoản người dùng', cat: 'social', pack: 'lucide', keywords: 'user account person profile avatar' },
+        { id: 'users', name: 'Đội ngũ / Nhóm khách hàng', cat: 'social', pack: 'lucide', keywords: 'users group team people community' },
+        { id: 'user-check', name: 'Người dùng xác thực', cat: 'social', pack: 'lucide', keywords: 'user check verified member' },
+        { id: 'user-plus', name: 'Thêm thành viên', cat: 'social', pack: 'lucide', keywords: 'user plus add member register' },
+        { id: 'heart', name: 'Trái tim yêu thích', cat: 'social', pack: 'lucide', keywords: 'heart love like favorite health' },
+        { id: 'star', name: 'Ngôi sao đánh giá', cat: 'social', pack: 'lucide', keywords: 'star rating favorite review bookmark' },
+        { id: 'thumbs-up', name: 'Thích / Đánh giá tốt', cat: 'social', pack: 'lucide', keywords: 'thumbs up like good approve praise' },
+        { id: 'share-2', name: 'Chia sẻ liên kết', cat: 'social', pack: 'lucide', keywords: 'share link social network send' },
 
-    // Update the visual preview box next to the input in UX Builder sidebar
-    function updateSidebarPreview($input) {
-        var val = $input.val().trim();
-        var $previewContainer = $input.parent().find('.vbc-preview-box');
-        if ($previewContainer.length === 0) {
-            $previewContainer = $('<div class="vbc-preview-box" style="margin-top:8px;padding:10px;background:#27272a;border-radius:6px;display:flex;align-items:center;gap:10px;border:1px solid #3f3f46;min-height:52px;"></div>');
-            $input.after($previewContainer);
-        }
+        // Brands & Networks
+        { id: 'fa-brands fa-facebook', name: 'Facebook Logo', cat: 'brands', pack: 'fontawesome', keywords: 'facebook social network meta' },
+        { id: 'fa-brands fa-google', name: 'Google Logo', cat: 'brands', pack: 'fontawesome', keywords: 'google search gsuite' },
+        { id: 'fa-brands fa-youtube', name: 'YouTube Logo', cat: 'brands', pack: 'fontawesome', keywords: 'youtube video stream media' },
+        { id: 'fa-brands fa-tiktok', name: 'TikTok Logo', cat: 'brands', pack: 'fontawesome', keywords: 'tiktok video social trend' },
+        { id: 'fa-brands fa-instagram', name: 'Instagram Logo', cat: 'brands', pack: 'fontawesome', keywords: 'instagram photo social story' },
+        { id: 'fa-brands fa-twitter', name: 'Twitter / X Logo', cat: 'brands', pack: 'fontawesome', keywords: 'twitter x social tweet' },
+        { id: 'fa-brands fa-github', name: 'GitHub Logo', cat: 'brands', pack: 'fontawesome', keywords: 'github code repo git developer' },
+        { id: 'fa-brands fa-wordpress', name: 'WordPress Logo', cat: 'brands', pack: 'fontawesome', keywords: 'wordpress cms blog web' }
+    ];
 
-        $previewContainer.empty();
-        if (!val) {
-            $previewContainer.html('<span style="color:#71717a;font-size:12px;">Chưa chọn Ảnh / Icon</span>');
+    // 2. TÍCH HỢP TAB "SVG ICON" VÀO WORDPRESS MEDIA MODAL (wp.media)
+    function setupWordPressMediaModalExtension() {
+        if (typeof wp === 'undefined' || !wp.media || !wp.media.view || !wp.media.view.MediaFrame || !wp.media.view.MediaFrame.Select) {
             return;
         }
 
-        if (val.indexOf('img:') === 0) {
-            var url = val.substring(4);
-            $previewContainer.html('<img src="' + url + '" style="width:32px;height:32px;object-fit:contain;background:#18181b;padding:2px;border-radius:4px;" />' +
-                                   '<span style="color:#e4e4e7;font-size:12px;word-break:break-all;flex-grow:1;">Ảnh SVG/PNG</span>');
-        } else if (val.indexOf('icon:') === 0) {
-            var cls = val.substring(5);
-            var iconHtml = '';
-            // Render icon preview based on class format
-            if (cls.indexOf('ri-') === 0) {
-                iconHtml = '<i class="' + cls + '" style="font-size:24px;color:#fff;"></i>';
-            } else if (cls.indexOf('fa-') >= 0) {
-                iconHtml = '<i class="' + cls + '" style="font-size:20px;color:#fff;"></i>';
-            } else if (cls.indexOf('ph-') >= 0 || cls.indexOf('ph ') === 0) {
-                iconHtml = '<i class="' + cls + '" style="font-size:24px;color:#fff;"></i>';
-            } else if (cls.indexOf('_') >= 0 && cls.indexOf('-') === -1) {
-                iconHtml = '<span class="material-symbols-outlined" style="font-size:24px;color:#fff;">' + cls + '</span>';
-            } else {
-                // Lucide
-                iconHtml = '<i data-lucide="' + cls + '" style="display:inline-block;width:24px;height:24px;color:#fff;"></i>';
-            }
-            $previewContainer.html('<div style="background:#18181b;padding:6px;border-radius:4px;display:flex;align-items:center;justify-content:center;">' + iconHtml + '</div>' +
-                                   '<span style="color:#e4e4e7;font-size:12px;font-family:monospace;word-break:break-all;">' + cls + '</span>');
-            
-            if (val.indexOf('icon:') === 0 && typeof lucide !== 'undefined') {
-                try { lucide.createIcons(); } catch(e) {}
-            }
-        } else {
-            $previewContainer.html('<span style="color:#ef4444;font-size:12px;">Định dạng không hợp lệ: ' + val + '</span>');
-        }
-    }
+        var MediaFrameSelect = wp.media.view.MediaFrame.Select;
 
-    // Modal HTML & events setup
-    function initModal() {
-        if ($('#vbc-unified-picker').length > 0) return;
-
-        var modalHtml = 
-        '<div id="vbc-unified-picker" class="vbc-modal-overlay">' +
-            '<div class="vbc-modal-box">' +
-                '<div class="vbc-modal-header">' +
-                    '<h3 class="vbc-modal-title">🎨 Bộ Chọn Ảnh / Icon VBC</h3>' +
-                    '<div class="vbc-search-wrapper" style="display:none;">' +
-                        '<span class="vbc-search-icon">🔍</span>' +
-                        '<input type="text" class="vbc-search-input" placeholder="Tìm kiếm icon...">' +
-                    '</div>' +
-                    '<button class="vbc-modal-close" type="button">✕</button>' +
-                '</div>' +
-                '<div class="vbc-modal-nav">' +
-                    '<button class="vbc-tab-btn active" data-tab="media" type="button">🖼️ Thư viện Ảnh (Upload SVG/PNG)</button>' +
-                    '<button class="vbc-tab-btn" data-tab="lucide" type="button">Lucide</button>' +
-                    '<button class="vbc-tab-btn" data-tab="fontawesome" type="button">Font Awesome 6</button>' +
-                    '<button class="vbc-tab-btn" data-tab="remix" type="button">Remix Icon</button>' +
-                    '<button class="vbc-tab-btn" data-tab="phosphor" type="button">Phosphor</button>' +
-                    '<button class="vbc-tab-btn" data-tab="material" type="button">Material Symbols</button>' +
-                '</div>' +
-                '<div class="vbc-modal-body">' +
-                    '<div class="vbc-media-view" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:15px;padding:40px 20px;">' +
-                        '<div class="vbc-media-preview-box" style="width:96px;height:96px;border:2px dashed #3f3f46;border-radius:10px;display:flex;align-items:center;justify-content:center;background:#18181b;padding:8px;">' +
-                            '<span style="color:#71717a;font-size:32px;">🖼️</span>' +
-                        '</div>' +
-                        '<button type="button" class="vbc-open-wp-media-btn" style="background:#ef4444;color:#fff;border:none;padding:12px 24px;border-radius:8px;font-weight:700;cursor:pointer;font-size:14px;transition:all 0.2s;">Mở Thư Viện WordPress</button>' +
-                        '<p style="color:#a1a1aa;font-size:12px;margin:0;text-align:center;">Bạn có thể tải lên file .svg, .png, .jpg từ máy tính hoặc chọn ảnh có sẵn.</p>' +
-                    '</div>' +
-                    '<div class="vbc-icon-grid" style="display:none;"></div>' +
-                '</div>' +
-                '<div class="vbc-modal-footer">' +
-                    '<div class="vbc-selected-preview"><span>Đang chọn:</span><strong class="vbc-selected-name">None</strong></div>' +
-                    '<button class="vbc-confirm-btn" type="button">✓ Xác Nhận Sử Dụng</button>' +
-                '</div>' +
-            '</div>' +
-        '</div>';
-
-        $('body').append(modalHtml);
-
-        var $modal = $('#vbc-unified-picker');
-        $modal.find('.vbc-modal-close').on('click', closeModal);
-        $modal.on('click', function(e) { if ($(e.target).is($modal)) closeModal(); });
-        $modal.find('.vbc-tab-btn').on('click', function() { switchTab($(this).data('tab')); });
-        $modal.find('.vbc-search-input').on('input', function() { filterIcons($(this).val()); });
-        $modal.find('.vbc-confirm-btn').on('click', confirmSelection);
-        $modal.find('.vbc-open-wp-media-btn').on('click', openWPMediaFrame);
-    }
-
-    function openModal($input) {
-        $activeInput = $input;
-        initModal();
-
-        var $modal = $('#vbc-unified-picker');
-        $modal.addClass('active');
-
-        // Parse existing value
-        var val = $input.val().trim();
-        tempSelectedValue = val;
-
-        if (val.indexOf('img:') === 0) {
-            switchTab('media');
-            showMediaPreview(val.substring(4));
-        } else if (val.indexOf('icon:') === 0) {
-            var iconClass = val.substring(5);
-            // Auto detect tab
-            var pack = 'lucide';
-            if (iconClass.indexOf('fa-') >= 0) pack = 'fontawesome';
-            else if (iconClass.indexOf('ri-') === 0) pack = 'remix';
-            else if (iconClass.indexOf('ph-') >= 0 || iconClass.indexOf('ph ') === 0) pack = 'phosphor';
-            else if (iconClass.indexOf('_') >= 0 && iconClass.indexOf('-') === -1) pack = 'material';
-            switchTab(pack);
-            selectIconItem(iconClass);
-        } else {
-            switchTab('media');
-            clearMediaPreview();
-        }
-    }
-
-    function closeModal() {
-        $('#vbc-unified-picker').removeClass('active');
-        $activeInput = null;
-    }
-
-    function switchTab(tab) {
-        currentTab = tab;
-        var $modal = $('#vbc-unified-picker');
-        $modal.find('.vbc-tab-btn').removeClass('active');
-        $modal.find('.vbc-tab-btn[data-tab="' + tab + '"]').addClass('active');
-
-        if (tab === 'media') {
-            $modal.find('.vbc-media-view').show();
-            $modal.find('.vbc-icon-grid').hide();
-            $modal.find('.vbc-search-wrapper').hide();
-            $modal.find('.vbc-selected-name').text(tempSelectedValue.indexOf('img:') === 0 ? 'Ảnh: ' + tempSelectedValue.substring(4).split('/').pop() : 'None');
-        } else {
-            $modal.find('.vbc-media-view').hide();
-            $modal.find('.vbc-icon-grid').show();
-            $modal.find('.vbc-search-wrapper').show();
-            $modal.find('.vbc-search-input').val('');
-            renderIcons(ICON_LIBRARIES[tab]);
-            
-            var cleanIconClass = (tempSelectedValue.indexOf('icon:') === 0) ? tempSelectedValue.substring(5) : '';
-            if (cleanIconClass) {
-                selectIconItem(cleanIconClass);
-            } else {
-                $modal.find('.vbc-selected-name').text('None');
-            }
-        }
-    }
-
-    function openWPMediaFrame(e) {
-        e.preventDefault();
-
-        if (wpMediaFrame) {
-            wpMediaFrame.open();
-            return;
-        }
-
-        wpMediaFrame = wp.media({
-            title: 'Chọn Ảnh SVG hoặc PNG / JPG làm Icon',
-            button: { text: 'Use this image' },
-            multiple: false,
-            library: { type: ['image', 'image/svg+xml'] }
-        });
-
-        wpMediaFrame.on('select', function() {
-            var attachment = wpMediaFrame.state().get('selection').first().toJSON();
-            var url = attachment.url;
-            console.log('[VBC Icon Picker] Selected WP image URL:', url);
-            
-            tempSelectedValue = 'img:' + url;
-            showMediaPreview(url);
-            $('#vbc-unified-picker .vbc-selected-name').text('Ảnh: ' + url.split('/').pop());
-        });
-
-        wpMediaFrame.open();
-    }
-
-    function showMediaPreview(url) {
-        var $box = $('#vbc-unified-picker .vbc-media-preview-box');
-        $box.css('border-style', 'solid').html('<img src="' + url + '" style="max-width:100%;max-height:100%;object-fit:contain;" />');
-    }
-
-    function clearMediaPreview() {
-        var $box = $('#vbc-unified-picker .vbc-media-preview-box');
-        $box.css('border-style', 'dashed').html('<span style="color:#71717a;font-size:32px;">🖼️</span>');
-        $('#vbc-unified-picker .vbc-selected-name').text('None');
-    }
-
-    function renderIcons(icons) {
-        var $grid = $('#vbc-unified-picker .vbc-icon-grid');
-        $grid.empty();
-
-        icons.forEach(function(icon) {
-            var iconHtml = '';
-            if (currentTab === 'fontawesome') {
-                iconHtml = '<i class="' + icon + '"></i>';
-            } else if (currentTab === 'remix') {
-                iconHtml = '<i class="' + icon + '"></i>';
-            } else if (currentTab === 'phosphor') {
-                iconHtml = '<i class="' + icon + '"></i>';
-            } else if (currentTab === 'material') {
-                iconHtml = '<span class="material-symbols-outlined">' + icon + '</span>';
-            } else {
-                iconHtml = '<i data-lucide="' + icon + '" style="display:inline-block;width:22px;height:22px;"></i>';
-            }
-
-            var cleanName = icon.replace('fa-solid ', '').replace('fa-brands ', '').replace('ri-', '').replace('ph ph-', '').replace('ph-', '');
-            var $item = $('<div class="vbc-icon-item" data-icon="' + icon + '">' + iconHtml + '<div class="vbc-icon-name">' + cleanName + '</div></div>');
-
-            $item.on('click', function() {
-                tempSelectedValue = 'icon:' + icon;
-                selectIconItem(icon);
+        // A. Thêm Router Tab "SVG Icon"
+        var originalBrowseRouter = MediaFrameSelect.prototype.browseRouter;
+        MediaFrameSelect.prototype.browseRouter = function(routerView, state) {
+            originalBrowseRouter.apply(this, arguments);
+            routerView.set({
+                'vbc_svg_icons': {
+                    text: 'SVG Icon',
+                    priority: 50
+                }
             });
+        };
 
-            $item.on('dblclick', function() {
-                tempSelectedValue = 'icon:' + icon;
-                selectIconItem(icon);
-                confirmSelection();
+        // B. Bind event khi tab SVG Icon được kích hoạt
+        var originalBindHandlers = MediaFrameSelect.prototype.bindHandlers;
+        MediaFrameSelect.prototype.bindHandlers = function() {
+            originalBindHandlers.apply(this, arguments);
+            this.on('content:create:vbc_svg_icons', this.vbcRenderSvgIconTab, this);
+            this.on('content:render:vbc_svg_icons', this.vbcRenderSvgIconTab, this);
+        };
+
+        // C. Renderer View cho Tab SVG Icon
+        MediaFrameSelect.prototype.vbcRenderSvgIconTab = function(contentRegion) {
+            var state = this.state();
+            var browserView = new wp.media.view.VbcSvgIconBrowser({
+                controller: this,
+                model: state
             });
+            (contentRegion || this.content).set(browserView);
+        };
 
-            $grid.append($item);
-        });
+        // D. Khởi tạo Backbone View cho giao diện kho Icon
+        wp.media.view.VbcSvgIconBrowser = wp.media.View.extend({
+            className: 'vbc-svg-media-browser-container',
+            selectedIcon: null,
 
-        if (currentTab === 'lucide' && typeof lucide !== 'undefined') {
-            try { lucide.createIcons(); } catch(e) {}
-        }
-    }
+            events: {
+                'input .vbc-search-input': 'onSearchChange',
+                'click .vbc-category-tab': 'onCategoryClick',
+                'click .vbc-icon-card': 'onIconCardClick',
+                'dblclick .vbc-icon-card': 'onIconCardDoubleClick'
+            },
 
-    function selectIconItem(iconClass) {
-        var $modal = $('#vbc-unified-picker');
-        $modal.find('.vbc-icon-item').removeClass('active');
-        $modal.find('.vbc-icon-item[data-icon="' + iconClass + '"]').addClass('active');
-        $modal.find('.vbc-selected-name').text(iconClass);
-    }
+            initialize: function() {
+                this.currentCategory = 'all';
+                this.searchQuery = '';
+            },
 
-    function filterIcons(query) {
-        var term = query.toLowerCase().trim();
-        $('#vbc-unified-picker .vbc-icon-item').each(function() {
-            $(this).toggle($(this).data('icon').toLowerCase().includes(term));
-        });
-    }
+            render: function() {
+                var self = this;
+                var html = '';
 
-    function confirmSelection() {
-        if ($activeInput && tempSelectedValue) {
-            writeValueToInput($activeInput, tempSelectedValue);
-        }
-        closeModal();
-    }
+                // Header Toolbar (Tìm kiếm & Danh mục)
+                html += '<div class="vbc-svg-toolbar">';
+                html += '  <div class="vbc-search-box">';
+                html += '    <i data-lucide="search" style="width:16px;height:16px;color:#94a3b8;position:absolute;left:12px;top:50%;transform:translateY(-50%);pointer-events:none;"></i>';
+                html += '    <input type="text" class="vbc-search-input" placeholder="🔍 Tìm kiếm icon nhanh theo chủ đề (shield, check, phone, rocket, star, cart...)" value="' + this.searchQuery + '" />';
+                html += '  </div>';
 
-    // Attach unified selection button to input — runs every second
-    function attachPickerButtons() {
-        $('input').each(function() {
-            var $input = $(this);
-
-            // Skip inputs inside our own modal or already processed
-            if ($input.closest('#vbc-unified-picker').length > 0) return;
-            if ($input.parent().find('.vbc-unified-picker-btn').length > 0) return;
-            if ($input.hasClass('vbc-processed')) return;
-
-            var isTarget = false;
-
-            // Strategy 1: data-setting attribute directly on input
-            var ds = $input.attr('data-setting') || '';
-            if (ds === 'icon_value') isTarget = true;
-
-            // Strategy 2: name attribute
-            if (!isTarget) {
-                var nm = $input.attr('name') || '';
-                if (nm === 'icon_value' || nm.indexOf('[icon_value]') >= 0) isTarget = true;
-            }
-
-            // Strategy 3: walk parents for data-setting
-            if (!isTarget) {
-                $input.parents().each(function() {
-                    var pds = $(this).attr('data-setting') || '';
-                    if (pds === 'icon_value') { isTarget = true; return false; }
+                html += '  <div class="vbc-categories-wrap">';
+                VBC_ICON_CATEGORIES.forEach(function(cat) {
+                    var activeCls = (cat.id === self.currentCategory) ? 'active' : '';
+                    html += '<button type="button" class="vbc-category-tab ' + activeCls + '" data-cat="' + cat.id + '">' + cat.name + '</button>';
                 });
-            }
+                html += '  </div>';
+                html += '</div>';
 
-            // Strategy 4: check nearby label text (case-insensitive, strip diacritics-tolerant)
-            if (!isTarget) {
-                var $wrap = $input.parent();
-                for (var i = 0; i < 5; i++) {
-                    var lbl = $wrap.find('label').first().text() || '';
-                    if (!lbl) lbl = $wrap.prev().text() || '';
-                    lbl = lbl.toLowerCase();
-                    if (lbl.indexOf('nh / icon') >= 0 || lbl.indexOf('icon') >= 0 && lbl.indexOf('nh') >= 0) {
-                        isTarget = true; break;
+                // Main Content (Grid Gallery + Details Sidebar)
+                html += '<div class="vbc-svg-content-layout">';
+                html += '  <div class="vbc-svg-grid-scroll">';
+                html += '    <div class="vbc-svg-grid-inner">';
+                html +=        this.renderIconCardsHtml();
+                html += '    </div>';
+                html += '  </div>';
+
+                // Sidebar Info Panel
+                html += '  <div class="vbc-svg-sidebar-panel">';
+                html +=      this.renderSidebarHtml();
+                html += '  </div>';
+                html += '</div>';
+
+                this.$el.html(html);
+
+                // Kích hoạt render Lucide icons
+                setTimeout(function() {
+                    if (typeof lucide !== 'undefined') {
+                        lucide.createIcons();
                     }
-                    $wrap = $wrap.parent();
-                    if ($wrap.length === 0) break;
+                }, 50);
+
+                return this;
+            },
+
+            renderIconCardsHtml: function() {
+                var self = this;
+                var query = this.searchQuery.toLowerCase().trim();
+                var cat = this.currentCategory;
+                var count = 0;
+                var cardsHtml = '';
+
+                VBC_ICONS_DATA.forEach(function(icon) {
+                    // Lọc theo Category
+                    if (cat !== 'all' && icon.cat !== cat) {
+                        return;
+                    }
+                    // Lọc theo Search Query
+                    if (query) {
+                        var match = (icon.id.toLowerCase().indexOf(query) !== -1) ||
+                                    (icon.name.toLowerCase().indexOf(query) !== -1) ||
+                                    (icon.keywords && icon.keywords.toLowerCase().indexOf(query) !== -1);
+                        if (!match) return;
+                    }
+
+                    count++;
+                    var isSelected = self.selectedIcon && self.selectedIcon.id === icon.id;
+                    var selectedClass = isSelected ? 'selected' : '';
+
+                    cardsHtml += '<div class="vbc-icon-card ' + selectedClass + '" data-icon-id="' + icon.id + '" data-pack="' + icon.pack + '" data-name="' + icon.name + '">';
+                    cardsHtml += '  <div class="vbc-icon-render-box">';
+                    if (icon.pack === 'fontawesome') {
+                        cardsHtml += '    <i class="' + icon.id + '" style="font-size:32px;"></i>';
+                    } else if (icon.pack === 'remix') {
+                        cardsHtml += '    <i class="' + icon.id + '" style="font-size:32px;"></i>';
+                    } else {
+                        cardsHtml += '    <i data-lucide="' + icon.id + '" style="width:32px;height:32px;"></i>';
+                    }
+                    cardsHtml += '  </div>';
+                    cardsHtml += '  <div class="vbc-icon-title-label">' + icon.name + '</div>';
+                    cardsHtml += '  <div class="vbc-check-badge">✓</div>';
+                    cardsHtml += '</div>';
+                });
+
+                if (count === 0) {
+                    return '<div class="vbc-no-results"><div style="font-size:36px;margin-bottom:10px;">🔍</div>Không tìm thấy icon nào phù hợp với từ khóa "<strong>' + this.searchQuery + '</strong>".</div>';
+                }
+
+                return cardsHtml;
+            },
+
+            renderSidebarHtml: function() {
+                if (!this.selectedIcon) {
+                    return '<div class="vbc-sidebar-empty">' +
+                           '  <div style="font-size:42px;margin-bottom:12px;opacity:0.6;">🎨</div>' +
+                           '  <div style="font-weight:700;font-size:14px;color:#334155;margin-bottom:6px;">Chưa chọn Icon</div>' +
+                           '  <div style="font-size:12px;color:#64748b;">Nhấp vào một icon bất kỳ trong danh sách bên trái để xem trước và chèn vào trang.</div>' +
+                           '</div>';
+                }
+
+                var icon = this.selectedIcon;
+                var previewHtml = '';
+                if (icon.pack === 'fontawesome') {
+                    previewHtml = '<i class="' + icon.id + '" style="font-size:56px;color:#2563eb;"></i>';
+                } else if (icon.pack === 'remix') {
+                    previewHtml = '<i class="' + icon.id + '" style="font-size:56px;color:#2563eb;"></i>';
+                } else {
+                    previewHtml = '<i data-lucide="' + icon.id + '" style="width:56px;height:56px;color:#2563eb;"></i>';
+                }
+
+                var html = '<div class="vbc-sidebar-detail">';
+                html += '  <h3 style="margin:0 0 16px 0;font-size:14px;font-weight:700;color:#0f172a;text-transform:uppercase;letter-spacing:0.5px;">Chi Tiết Icon Đã Chọn</h3>';
+                html += '  <div class="vbc-sidebar-preview-canvas">' + previewHtml + '</div>';
+                html += '  <div class="vbc-sidebar-info-row"><strong>Tên:</strong> <span>' + icon.name + '</span></div>';
+                html += '  <div class="vbc-sidebar-info-row"><strong>Định dạng:</strong> <span>SVG Vector (' + icon.pack.toUpperCase() + ')</span></div>';
+                html += '  <div class="vbc-sidebar-info-row"><strong>Mã Icon:</strong> <code>' + icon.id + '</code></div>';
+                html += '  <div class="vbc-sidebar-tips">✓ Tự động hiển thị sắc nét 100% trên mọi màn hình Retina / 4K và tương thích responsive Flatsome UX Builder.</div>';
+                html += '</div>';
+
+                return html;
+            },
+
+            onSearchChange: function(e) {
+                this.searchQuery = $(e.currentTarget).val();
+                this.$el.find('.vbc-svg-grid-inner').html(this.renderIconCardsHtml());
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            },
+
+            onCategoryClick: function(e) {
+                var $btn = $(e.currentTarget);
+                this.$el.find('.vbc-category-tab').removeClass('active');
+                $btn.addClass('active');
+                this.currentCategory = $btn.data('cat');
+                this.$el.find('.vbc-svg-grid-inner').html(this.renderIconCardsHtml());
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            },
+
+            onIconCardClick: function(e) {
+                var $card = $(e.currentTarget);
+                var iconId = $card.data('icon-id');
+                var pack = $card.data('pack');
+                var name = $card.data('name');
+
+                this.selectedIcon = { id: iconId, pack: pack, name: name };
+
+                this.$el.find('.vbc-icon-card').removeClass('selected');
+                $card.addClass('selected');
+
+                this.$el.find('.vbc-svg-sidebar-panel').html(this.renderSidebarHtml());
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+
+                // Tạo đối tượng Attachment Model tương thích WordPress Media Selection
+                var attachment = new wp.media.model.Attachment({
+                    id: 'icon:' + iconId,
+                    title: name,
+                    filename: iconId + '.svg',
+                    url: 'icon:' + iconId,
+                    type: 'image',
+                    subtype: 'svg+xml',
+                    sizes: {
+                        full: { url: 'icon:' + iconId }
+                    }
+                });
+
+                // Cập nhật selection của Media Frame để bật nút Select ở góc dưới phải
+                this.controller.state().get('selection').reset([attachment]);
+            },
+
+            onIconCardDoubleClick: function(e) {
+                this.onIconCardClick(e);
+                // Tự động bấm nút Select đóng modal khi double click
+                var $selectBtn = $('.media-button-select, .media-frame-toolbar .button-primary');
+                if ($selectBtn.length > 0) {
+                    $selectBtn.trigger('click');
                 }
             }
-
-            if (!isTarget) return;
-
-            // Mark processed
-            $input.addClass('vbc-processed');
-
-            // Style the raw input
-            $input.css({ 'border-color': '#3f3f46', 'background': '#27272a', 'color': '#a1a1aa', 'font-size': '11px' });
-
-            var $btn = $('<button type="button" class="vbc-unified-picker-btn" style="display:block;width:100%;margin-top:8px;background:#ef4444;color:#fff;border:none;border-radius:6px;padding:9px 15px;font-weight:700;cursor:pointer;font-size:14px;text-align:center;transition:all 0.2s;">🎨 Chọn Ảnh / Icon</button>');
-
-            $btn.on('mouseenter', function() { $(this).css('background', '#dc2626'); });
-            $btn.on('mouseleave', function() { $(this).css('background', '#ef4444'); });
-            $btn.on('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                openModal($input);
-            });
-
-            $input.after($btn);
-            updateSidebarPreview($input);
-
-            console.log('[VBC Icon Picker] Button attached to input:', $input[0]);
         });
+
+        console.log('[VBC Media Modal] Đã tích hợp thành công tab "SVG Icon" vào WordPress Media Library.');
     }
 
-    // Global debug helper — run vbcDebug() in browser console to diagnose
-    window.vbcDebug = function() {
-        console.log('[VBC Debug] All inputs found:', $('input').length);
-        $('input').each(function(i) {
-            var $el = $(this);
-            console.log('  [' + i + ']',
-                'name=' + ($el.attr('name') || '–'),
-                'data-setting=' + ($el.attr('data-setting') || '–'),
-                'label=' + ($el.parents().find('label').first().text().trim().substring(0, 30))
-            );
-        });
-    };
-
-    // Poller to hook into Flatsome dynamic React rendering
+    // 3. TỰ ĐỘNG KHỞI CHẠY KHI DOM SẴN SÀNG
     $(document).ready(function() {
-        console.log('[VBC Icon Picker v1.4.3] DOM ready, starting poller.');
-        setInterval(attachPickerButtons, 800);
+        setupWordPressMediaModalExtension();
     });
+
+    if (typeof wp !== 'undefined' && wp.media) {
+        setupWordPressMediaModalExtension();
+    }
 
 })(jQuery);

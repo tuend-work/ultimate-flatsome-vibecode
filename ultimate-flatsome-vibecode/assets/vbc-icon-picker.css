@@ -1,283 +1,276 @@
-/* VBC Visual Icon Picker Styles */
-.vbc-picker-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: #ef4444;
-    color: #ffffff;
-    border: none;
-    border-radius: 4px;
-    padding: 6px 12px;
-    font-size: 11px;
-    font-weight: 700;
-    cursor: pointer;
-    margin-top: 5px;
-    transition: all 0.2s ease;
-}
-.vbc-picker-btn:hover {
-    background: #dc2626;
-    transform: translateY(-1px);
-}
-.vbc-picker-btn i {
-    font-size: 12px;
-}
+/**
+ * ============================================================================
+ * ULTIMATE FLATSOME VIBECODE - WORDPRESS MEDIA MODAL SVG TAB STYLING
+ * ============================================================================
+ */
 
-/* Modal Overlay */
-.vbc-modal-overlay {
-    position: fixed;
+/* Container chính của Tab SVG Icon trong wp.media */
+.vbc-svg-media-browser-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    background: #f8fafc;
+    box-sizing: border-box;
+    position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(9, 9, 11, 0.7);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999999;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-}
-.vbc-modal-overlay.active {
-    opacity: 1;
-    pointer-events: auto;
+    overflow: hidden;
 }
 
-/* Modal Box */
-.vbc-modal-box {
-    width: 750px;
-    max-width: 90%;
-    height: 600px;
-    max-height: 85%;
-    background: #18181b;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 16px;
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+/* Header Toolbar: Tìm kiếm & Danh mục */
+.vbc-svg-toolbar {
+    padding: 16px 20px 12px 20px;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    flex-shrink: 0;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-    transform: scale(0.95);
-    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    color: #f4f4f5;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-}
-.vbc-modal-overlay.active .vbc-modal-box {
-    transform: scale(1);
-}
-
-/* Modal Header */
-.vbc-modal-header {
-    padding: 20px 24px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-}
-.vbc-modal-title {
-    font-size: 18px;
-    font-weight: 800;
-    color: #ffffff;
-    margin: 0;
-}
-.vbc-modal-close {
-    background: transparent;
-    border: none;
-    color: #a1a1aa;
-    font-size: 20px;
-    cursor: pointer;
-    padding: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: color 0.2s;
-}
-.vbc-modal-close:hover {
-    color: #ffffff;
-}
-
-/* Search Bar */
-.vbc-search-wrapper {
-    flex-grow: 1;
-    max-width: 320px;
-    position: relative;
-}
-.vbc-search-input {
-    width: 100%;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 8px;
-    padding: 8px 12px 8px 36px;
-    color: #ffffff;
-    font-size: 13px;
-    outline: none;
-    transition: all 0.2s;
-}
-.vbc-search-input:focus {
-    border-color: #ef4444;
-    background: rgba(255, 255, 255, 0.05);
-    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
-}
-.vbc-search-icon {
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #71717a;
-    font-size: 14px;
-    pointer-events: none;
-}
-
-/* Modal Nav (Tabs) */
-.vbc-modal-nav {
-    display: flex;
-    gap: 5px;
-    padding: 10px 24px 0 24px;
-    background: rgba(0, 0, 0, 0.15);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-}
-.vbc-tab-btn {
-    background: transparent;
-    border: none;
-    color: #a1a1aa;
-    padding: 10px 16px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    position: relative;
-    transition: color 0.2s;
-}
-.vbc-tab-btn:hover {
-    color: #ffffff;
-}
-.vbc-tab-btn.active {
-    color: #ef4444;
-}
-.vbc-tab-btn.active::after {
-    content: "";
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: #ef4444;
-    border-radius: 2px;
-}
-
-/* Modal Body */
-.vbc-modal-body {
-    flex-grow: 1;
-    overflow-y: auto;
-    padding: 24px;
-}
-
-/* Icon Grid */
-.vbc-icon-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
     gap: 12px;
 }
-.vbc-icon-item {
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.04);
-    border-radius: 10px;
-    padding: 15px 10px;
+
+.vbc-search-box {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+}
+
+.vbc-search-input {
+    width: 100% !important;
+    height: 40px !important;
+    padding: 0 16px 0 38px !important;
+    background: #f1f5f9 !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    font-size: 14px !important;
+    color: #0f172a !important;
+    box-shadow: none !important;
+    transition: all 0.2s !important;
+    box-sizing: border-box !important;
+}
+
+.vbc-search-input:focus {
+    background: #ffffff !important;
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
+    outline: none !important;
+}
+
+/* Category Filter Pills */
+.vbc-categories-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.vbc-category-tab {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+    outline: none;
+}
+
+.vbc-category-tab:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+    border-color: #cbd5e1;
+}
+
+.vbc-category-tab.active {
+    background: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+}
+
+/* Layout nội dung: Grid (trái) & Details Sidebar (phải) */
+.vbc-svg-content-layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Grid Scroll Area */
+.vbc-svg-grid-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.vbc-svg-grid-inner {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+    gap: 14px;
+}
+
+/* Thẻ Icon Card */
+.vbc-icon-card {
+    background: #ffffff;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px 8px 12px 8px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 8px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    position: relative;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-sizing: border-box;
+    min-height: 105px;
 }
-.vbc-icon-item:hover {
-    background: rgba(239, 68, 68, 0.08);
-    border-color: rgba(239, 68, 68, 0.25);
-    color: #ef4444;
+
+.vbc-icon-card:hover {
+    border-color: #93c5fd;
     transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
 }
-.vbc-icon-item i,
-.vbc-icon-item span.material-symbols-outlined {
-    font-size: 24px;
-    color: #e4e4e7;
-    transition: color 0.2s;
+
+.vbc-icon-card.selected {
+    border-color: #2563eb;
+    background: #eff6ff;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
 }
-.vbc-icon-item:hover i,
-.vbc-icon-item:hover span.material-symbols-outlined {
-    color: #ef4444;
+
+.vbc-icon-render-box {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #334155;
+    transition: transform 0.2s;
 }
-.vbc-icon-name {
-    font-size: 10px;
-    color: #71717a;
+
+.vbc-icon-card:hover .vbc-icon-render-box {
+    transform: scale(1.15);
+    color: #2563eb;
+}
+
+.vbc-icon-card.selected .vbc-icon-render-box {
+    color: #2563eb;
+}
+
+.vbc-icon-title-label {
+    font-size: 11px;
+    color: #64748b;
     text-align: center;
+    margin-top: 8px;
+    line-height: 1.3;
+    font-weight: 500;
     width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-}
-.vbc-icon-item:hover .vbc-icon-name {
-    color: #a1a1aa;
+    padding: 0 4px;
+    box-sizing: border-box;
 }
 
-/* Footer status */
-.vbc-modal-footer {
-    padding: 15px 24px;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-    background: rgba(0, 0, 0, 0.15);
+.vbc-icon-card.selected .vbc-icon-title-label {
+    color: #1e40af;
+    font-weight: 700;
+}
+
+/* Checkmark Badge khi được chọn */
+.vbc-check-badge {
+    display: none;
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 22px;
+    height: 22px;
+    background: #2563eb;
+    color: #ffffff;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: 800;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
+    border: 2px solid #ffffff;
+}
+
+.vbc-icon-card.selected .vbc-check-badge {
+    display: flex;
+}
+
+/* Không tìm thấy kết quả */
+.vbc-no-results {
+    grid-column: 1 / -1;
+    padding: 60px 20px;
+    text-align: center;
+    color: #64748b;
+    font-size: 14px;
+}
+
+/* Sidebar Info Panel */
+.vbc-svg-sidebar-panel {
+    width: 290px;
+    background: #ffffff;
+    border-left: 1px solid #e2e8f0;
+    padding: 24px 20px;
+    flex-shrink: 0;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+.vbc-sidebar-empty {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.vbc-sidebar-preview-canvas {
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    height: 140px;
     display: flex;
     align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.vbc-sidebar-info-row {
+    font-size: 13px;
+    color: #334155;
+    margin-bottom: 10px;
+    display: flex;
     justify-content: space-between;
-}
-.vbc-selected-preview {
-    display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 13px;
-    color: #a1a1aa;
-}
-.vbc-selected-preview strong {
-    color: #ffffff;
-}
-.vbc-confirm-btn {
-    background: #ef4444;
-    color: #ffffff;
-    border: none;
-    border-radius: 6px;
-    padding: 8px 16px;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-.vbc-confirm-btn:hover {
-    background: #dc2626;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 8px;
 }
 
-/* Icon item active selection state */
-.vbc-icon-item.active {
-    background: rgba(239, 68, 68, 0.16);
-    border-color: #ef4444;
-    color: #ef4444;
-}
-.vbc-icon-item.active i,
-.vbc-icon-item.active span.material-symbols-outlined {
-    color: #ef4444;
-}
-.vbc-icon-item.active .vbc-icon-name {
-    color: #ffffff;
-    font-weight: 700;
+.vbc-sidebar-info-row code {
+    background: #f1f5f9;
+    color: #2563eb;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 11px;
 }
 
-/* Media upload button hover effect */
-.vbc-open-wp-media-btn:hover {
-    background: #dc2626 !important;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-}
-
-/* Hide WordPress default active tab line under ours since we manually toggle active class */
-.media-modal .media-router .vbc-media-tab.active::after {
-    display: none !important;
+.vbc-sidebar-tips {
+    margin-top: 24px;
+    padding: 12px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #166534;
+    line-height: 1.5;
 }

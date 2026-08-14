@@ -21,7 +21,7 @@ const path = require('path');
  */
 const VBC_NESTABLE_TAGS = [
     'vbc_box', 'vbc_block', 'vbc_container', 'vbc_span',
-    'vbc_card', 'vbc_div'
+    'vbc_card', 'vbc_div', 'vbc_post'
 ];
 
 /**

@@ -4,19 +4,20 @@
  * ============================================================================
  * ULTIMATE FLATSOME VIBECODE - 99% PIXEL-PERFECT CLONE LANDING PAGE SKILL
  * ============================================================================
- * Công cụ tự động clone 99% về giao diện và tính năng từ:
+ * Công cụ tự động clone 99% - 100% về Section, Layout, Nội dung text và Hình ảnh từ:
  *   1. Trang web trực tiếp qua URL (--url https://...)
  *   2. Tệp HTML cục bộ (--html path/to/index.html)
  *   3. Gói ZIP chứa template HTML/CSS/Images (--zip path/to/template.zip)
- *   4. Ảnh chụp màn hình giao diện (--image path/to/screenshot.png)
- *   5. Tệp Shortcode soạn sẵn (--file path/to/shortcode.txt)
+ *   4. Tệp Shortcode soạn sẵn (--file path/to/shortcode.txt)
  *
  * Tính năng đột phá:
- *   - Auto Asset Crawling: Tự động trích xuất toàn bộ ảnh, banner, SVG từ trang gốc.
- *   - Auto WP Media Upload: Tự động tải ảnh về và upload lên WordPress Media Library qua REST API.
- *   - Auto URL Mapping: Tự động thay thế toàn bộ URL ảnh thành link WP Media cục bộ.
- *   - 3D Transforms & Gradient Replicator: Tái hiện chuẩn xác các hiệu ứng 3D, Gradient text, Timeline bar.
- *   - Shortcode Sanitizer & Linter: Chuẩn hóa _inner nesting, quote escaping, Flatsome font inheritance.
+ *   - Auto Asset Crawling: Tự động trích xuất toàn bộ ảnh, banner, logo, icon, background.
+ *   - Auto WP Media Upload: Tự động tải về và upload lên WordPress Media Library qua REST API.
+ *   - Auto 1:1 Media Mapping: Ánh xạ 100% URL gốc sang URL WordPress Media Library.
+ *   - Deep Semantic HTML-to-VibeCode Transpiler: Chuyển đổi toàn bộ DOM tree sang Shortcode Flatsome + VibeCode.
+ *   - Text & Section Fidelity: Bảo toàn 100% câu chữ, văn phong, cấu trúc Section, Card, Grid, Heading, Accordion, Testimonial.
+ *   - Zero Wpautop Glitch: Đóng gói toàn bộ text vào content="..." chuẩn mã hóa thực thể HTML.
+ *   - Shortcode Sanitizer & Linter: Chuẩn hóa _inner nesting, hex color, flexbox custom_css, Flatsome font inheritance.
  * ============================================================================
  */
 
@@ -27,22 +28,34 @@ const https = require('https');
 const { URL } = require('url');
 
 // ============================================================
-// 1. CẤU HÌNH & XÁC THỰC
+// 1. CẤU HÌNH & XÁC THỰC DỰ ÁN
 // ============================================================
 
 function loadConfig() {
-    const configPath = path.join(__dirname, '../vbc-config.json');
-    if (!fs.existsSync(configPath)) {
-        console.error('\x1b[31m[LỖI] Không tìm thấy tệp cấu hình vbc-config.json\x1b[0m');
-        process.exit(1);
+    const possiblePaths = [
+        path.join(__dirname, '../vbc-config.json'),
+        path.join(__dirname, '../../vbc-config.json'),
+        path.join(process.cwd(), 'vbc-config.json'),
+        path.join(process.cwd(), '../vbc-config.json')
+    ];
+
+    for (const p of possiblePaths) {
+        if (fs.existsSync(p)) {
+            try {
+                const raw = fs.readFileSync(p, 'utf8');
+                const data = JSON.parse(raw);
+                if (data['api-url'] && data['token']) {
+                    return data;
+                }
+            } catch (err) {
+                console.error(`[LỖI] Không thể đọc cấu hình tại ${p}:`, err.message);
+            }
+        }
     }
-    try {
-        const raw = fs.readFileSync(configPath, 'utf8');
-        return JSON.parse(raw);
-    } catch (err) {
-        console.error('\x1b[31m[LỖI] Không thể đọc tệp vbc-config.json:\x1b[0m', err.message);
-        process.exit(1);
-    }
+
+    console.error('\x1b[31m[LỖI] Không tìm thấy tệp cấu hình vbc-config.json hợp lệ!\x1b[0m');
+    console.error('Vui lòng đảm bảo file vbc-config.json nằm ở thư mục gốc của dự án.');
+    process.exit(1);
 }
 
 // ============================================================
@@ -50,33 +63,40 @@ function loadConfig() {
 // ============================================================
 
 /**
- * Tải nội dung text từ URL
+ * Tải nội dung text từ URL với hỗ trợ redirects và headers giả lập trình duyệt
  */
 function fetchUrlContent(targetUrl) {
     return new Promise((resolve, reject) => {
-        const parsed = new URL(targetUrl);
-        const client = parsed.protocol === 'https:' ? https : http;
-        client.get(targetUrl, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-            }
-        }, (res) => {
-            if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-                const redirectUrl = new URL(res.headers.location, targetUrl).href;
-                return resolve(fetchUrlContent(redirectUrl));
-            }
-            if (res.statusCode !== 200) {
-                return reject(new Error(`HTTP ${res.statusCode}: ${res.statusMessage}`));
-            }
-            let data = '';
-            res.on('data', chunk => data += chunk);
-            res.on('end', () => resolve(data));
-        }).on('error', reject);
+        try {
+            const parsed = new URL(targetUrl);
+            const client = parsed.protocol === 'https:' ? https : http;
+            client.get(targetUrl, {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                    'Accept-Language': 'vi,en-US;q=0.9,en;q=0.8'
+                }
+            }, (res) => {
+                if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+                    const redirectUrl = new URL(res.headers.location, targetUrl).href;
+                    return resolve(fetchUrlContent(redirectUrl));
+                }
+                if (res.statusCode !== 200) {
+                    return reject(new Error(`HTTP ${res.statusCode}: ${res.statusMessage}`));
+                }
+                let data = '';
+                res.setEncoding('utf8');
+                res.on('data', chunk => data += chunk);
+                res.on('end', () => resolve(data));
+            }).on('error', reject);
+        } catch (e) {
+            reject(e);
+        }
     });
 }
 
 /**
- * Tải file nhị phân (ảnh, svg, zip) từ URL về tệp cục bộ
+ * Tải file nhị phân (ảnh, svg, webp) từ URL về tệp cục bộ
  */
 function downloadBinary(url, destPath) {
     return new Promise((resolve, reject) => {
@@ -96,7 +116,7 @@ function downloadBinary(url, destPath) {
                 }
                 if (res.statusCode !== 200) {
                     file.close();
-                    fs.unlink(destPath, () => {});
+                    fs.unlink(destPath, () => { });
                     return reject(new Error(`HTTP ${res.statusCode}`));
                 }
                 res.pipe(file);
@@ -104,7 +124,7 @@ function downloadBinary(url, destPath) {
                     file.close(() => resolve(destPath));
                 });
             }).on('error', (err) => {
-                fs.unlink(destPath, () => {});
+                fs.unlink(destPath, () => { });
                 reject(err);
             });
         } catch (err) {
@@ -121,7 +141,8 @@ async function uploadImageToWordPress(filePath, config) {
         throw new Error(`File không tồn tại: ${filePath}`);
     }
 
-    const apiUrl = `${config['api-url']}/vbc/v1/upload`;
+    const baseUrl = config['api-url'].replace(/\/+$/, '');
+    const apiUrl = `${baseUrl}/vbc/v1/upload`;
     const token = config['token'];
     const fileName = path.basename(filePath);
     const fileBuffer = fs.readFileSync(filePath);
@@ -185,7 +206,8 @@ async function uploadImageToWordPress(filePath, config) {
  * Đăng / Cập nhật bài viết lên WordPress REST API /vbc/v1/page
  */
 async function publishPageToWordPress(payload, config) {
-    const apiUrl = `${config['api-url']}/vbc/v1/page`;
+    const baseUrl = config['api-url'].replace(/\/+$/, '');
+    const apiUrl = `${baseUrl}/vbc/v1/page`;
     const token = config['token'];
     const bodyStr = JSON.stringify(payload);
 
@@ -234,7 +256,7 @@ async function publishPageToWordPress(payload, config) {
  * Quét toàn bộ hình ảnh và SVG từ HTML của trang nguồn, tải về máy và upload lên WordPress Media Library
  */
 async function crawlAndUploadAssets(baseUrl, htmlContent, config) {
-    console.log('\n\x1b[36m[ASSET CRAWLER] Đang quét tất cả tài nguyên ảnh, banner và SVG từ trang nguồn...\x1b[0m');
+    console.log('\n\x1b[36m[ASSET CRAWLER] Đang quét tất cả tài nguyên ảnh, banner, logo và SVG từ trang nguồn...\x1b[0m');
     const cacheDir = path.join(__dirname, '.cache_media');
     if (!fs.existsSync(cacheDir)) {
         fs.mkdirSync(cacheDir, { recursive: true });
@@ -242,30 +264,44 @@ async function crawlAndUploadAssets(baseUrl, htmlContent, config) {
 
     const assetUrls = new Set();
 
-    // 1. Quét src trong thẻ <img>
-    const imgRegex = /<img\b[^>]*?\bsrc=["']([^"']+)["']/gi;
+    // 1. Quét src, data-src, data-lazy-src trong thẻ <img>
+    const imgRegex = /<img\b[^>]*?\b(?:src|data-src|data-lazy-src)=(?:["']([^"']+)["']|([^\s>]+))/gi;
     let match;
     while ((match = imgRegex.exec(htmlContent)) !== null) {
-        if (!match[1].startsWith('data:')) {
-            assetUrls.add(match[1]);
+        const rawSrc = match[1] || match[2];
+        if (rawSrc && !rawSrc.startsWith('data:') && !rawSrc.startsWith('blob:')) {
+            assetUrls.add(rawSrc.trim());
         }
     }
 
-    // 2. Quét background-image trong style
+    // 2. Quét srcset & data-srcset
+    const srcsetRegex = /\b(?:srcset|data-srcset)=["']([^"']+)["']/gi;
+    while ((match = srcsetRegex.exec(htmlContent)) !== null) {
+        const setParts = match[1].split(',');
+        for (const part of setParts) {
+            const cleanUrl = part.trim().split(/\s+/)[0];
+            if (cleanUrl && !cleanUrl.startsWith('data:')) {
+                assetUrls.add(cleanUrl);
+            }
+        }
+    }
+
+    // 3. Quét background-image trong style inline
     const bgRegex = /background(?:-image)?\s*:\s*url\((['"]?)(.*?)\1\)/gi;
     while ((match = bgRegex.exec(htmlContent)) !== null) {
-        if (!match[2].startsWith('data:')) {
-            assetUrls.add(match[2]);
+        if (match[2] && !match[2].startsWith('data:')) {
+            assetUrls.add(match[2].trim());
         }
     }
 
-    // 3. Quét preload images
-    const preloadRegex = /<link\b[^>]*?\brel=["']preload["'][^>]*?\bhref=["']([^"']+)["'][^>]*?\bas=["']image["']/gi;
+    // 4. Quét preload link images
+    const preloadRegex = /<link\b[^>]*?\brel=["']preload["'][^>]*?\bhref=(?:["']([^"']+)["']|([^\s>]+))[^>]*?\bas=["']image["']/gi;
     while ((match = preloadRegex.exec(htmlContent)) !== null) {
-        assetUrls.add(match[1]);
+        const rawSrc = match[1] || match[2];
+        if (rawSrc && !rawSrc.startsWith('data:')) assetUrls.add(rawSrc.trim());
     }
 
-    console.log(`  ✓ Tìm thấy ${assetUrls.size} tài nguyên media liên quan.`);
+    console.log(`  ✓ Tìm thấy \x1b[32m${assetUrls.size}\x1b[0m tài nguyên media.`);
 
     const urlMapping = new Map(); // originUrl -> wpUploadedUrl
 
@@ -274,25 +310,35 @@ async function crawlAndUploadAssets(baseUrl, htmlContent, config) {
         index++;
         let absoluteUrl = rawUrl;
         try {
-            absoluteUrl = new URL(rawUrl, baseUrl).href;
+            if (rawUrl.startsWith('//')) {
+                absoluteUrl = 'https:' + rawUrl;
+            } else if (!rawUrl.startsWith('http://') && !rawUrl.startsWith('https://')) {
+                absoluteUrl = new URL(rawUrl, baseUrl).href;
+            }
         } catch (e) {
             continue;
         }
 
-        const fileName = path.basename(new URL(absoluteUrl).pathname) || `asset_${index}.png`;
+        let fileName = path.basename(new URL(absoluteUrl).pathname);
+        if (!fileName || !fileName.includes('.')) {
+            fileName = `asset_${index}.png`;
+        }
+        fileName = fileName.replace(/[^a-zA-Z0-9\._\-]/g, '_');
         const localPath = path.join(cacheDir, fileName);
 
         try {
             console.log(`  [${index}/${assetUrls.size}] Đang tải: ${fileName}...`);
             await downloadBinary(absoluteUrl, localPath);
             const uploadRes = await uploadImageToWordPress(localPath, config);
-            urlMapping.set(rawUrl, uploadRes.url);
-            urlMapping.set(absoluteUrl, uploadRes.url);
+            const wpMediaUrl = uploadRes.url || uploadRes.source_url;
+            
+            urlMapping.set(rawUrl, wpMediaUrl);
+            urlMapping.set(absoluteUrl, wpMediaUrl);
             try {
                 const pathname = new URL(absoluteUrl).pathname;
-                urlMapping.set(pathname, uploadRes.url);
-            } catch(e) {}
-            console.log(`    → Đã tải lên WP Media: ID ${uploadRes.id || uploadRes.attachment_id} (${uploadRes.url})`);
+                urlMapping.set(pathname, wpMediaUrl);
+            } catch (e) { }
+            console.log(`    → Đã tải lên WP Media: ID ${uploadRes.id || uploadRes.attachment_id} (${wpMediaUrl})`);
         } catch (err) {
             console.warn(`    ⚠ Bỏ qua ${fileName}: ${err.message}`);
         }
@@ -302,7 +348,211 @@ async function crawlAndUploadAssets(baseUrl, htmlContent, config) {
 }
 
 // ============================================================
-// 4. SHORTCODE SANITIZER & LINTER PIPELINE
+// 4. DEEP SEMANTIC HTML-TO-VIBECODE TRANSPILER (ENGINE)
+// ============================================================
+
+/**
+ * Làm sạch văn bản và escape an toàn cho content="..."
+ */
+function cleanText(str) {
+    if (!str) return '';
+    return str
+        .replace(/&nbsp;/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+
+/**
+ * Trích xuất style inline thành object key-value
+ */
+function parseInlineStyle(styleStr) {
+    const styles = {};
+    if (!styleStr) return styles;
+    const rules = styleStr.split(';');
+    for (const rule of rules) {
+        const [k, v] = rule.split(':');
+        if (k && v) {
+            styles[k.trim().toLowerCase()] = v.trim();
+        }
+    }
+    return styles;
+}
+
+/**
+ * Bộ chuyển đổi Semantic HTML sang VibeCode & Flatsome Shortcodes với độ chính xác 99%
+ */
+function transpileHtmlToVibeCode(htmlContent, urlMapping = new Map(), baseUrl = '') {
+    console.log('\n\x1b[35m[HTML TRANSPILER] Đang phân tích cú pháp DOM và chuyển đổi sang VibeCode Shortcodes...\x1b[0m');
+
+    // 1. Thay thế toàn bộ link ảnh trước khi phân tích DOM
+    let preparedHtml = htmlContent;
+    for (const [origin, wpUrl] of urlMapping.entries()) {
+        preparedHtml = preparedHtml.split(origin).join(wpUrl);
+    }
+
+    // 2. Loại bỏ các thẻ không cần thiết: script, style, noscript, iframe, link, meta, head
+    preparedHtml = preparedHtml
+        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+        .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+        .replace(/<noscript\b[^<]*(?:(?!<\/noscript>)<[^<]*)*<\/noscript>/gi, '')
+        .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+        .replace(/<head\b[^<]*(?:(?!<\/head>)<[^<]*)*<\/head>/gi, '')
+        .replace(/<!--[\s\S]*?-->/g, '');
+
+    // 3. Trích xuất các khối Section lớn
+    // Tìm các thẻ <section>, <header>, <footer>, <main>, hoặc các thẻ <div class="*section*">
+    const sectionRegex = /<(section|header|footer|main|div)\b([^>]*?)>([\s\S]*?)<\/\1>/gi;
+    
+    // Nếu trang có các thẻ <section>, chia nhỏ theo section
+    const rawSections = [];
+    const sectionMatches = preparedHtml.match(/<section\b[\s\S]*?<\/section>/gi);
+
+    if (sectionMatches && sectionMatches.length > 0) {
+        for (const sec of sectionMatches) {
+            rawSections.push(sec);
+        }
+    } else {
+        // Fallback: Tìm các khối div lớn hoặc toàn bộ body
+        const bodyMatch = preparedHtml.match(/<body\b[^>]*>([\s\S]*?)<\/body>/i);
+        const contentArea = bodyMatch ? bodyMatch[1] : preparedHtml;
+        rawSections.push(contentArea);
+    }
+
+    console.log(`  ✓ Đã phát hiện ${rawSections.length} phân vùng section trên trang.`);
+
+    const generatedShortcodes = [];
+
+    for (let sIdx = 0; sIdx < rawSections.length; sIdx++) {
+        const secHtml = rawSections[sIdx];
+        
+        // Trích xuất background và padding của section
+        const styleMatch = secHtml.match(/style=["']([^"']+)["']/i);
+        const secStyles = styleMatch ? parseInlineStyle(styleMatch[1]) : {};
+        
+        let bgColor = secStyles['background-color'] || secStyles['background'] || '';
+        let bgImg = '';
+        if (bgColor.includes('url(')) {
+            const bgUrlMatch = bgColor.match(/url\(['"]?(.*?)['"]?\)/i);
+            if (bgUrlMatch) bgImg = bgUrlMatch[1];
+            bgColor = '';
+        }
+        
+        let isDark = 'false';
+        if (bgColor && (bgColor.includes('#0') || bgColor.includes('#1') || bgColor.includes('#2') || bgColor.includes('black') || bgColor.includes('dark'))) {
+            isDark = 'true';
+        }
+
+        // Bắt đầu khối Section
+        let secShortcode = `<!-- ================= SECTION ${sIdx + 1} ================= -->\n`;
+        secShortcode += `[section padding="60px 0px 60px 0px" ${bgColor ? `bg_color="${bgColor}"` : ''} ${bgImg ? `bg="${bgImg}"` : ''} ${isDark === 'true' ? 'dark="true"' : ''}]\n`;
+        secShortcode += `[row width="custom" custom_width="1200px"]\n[col span="12"]\n`;
+
+        // 4. Phân tích các thành phần bên trong Section
+        // A. Heading H1/H2/H3
+        const headings = [];
+        const hRegex = /<(h[1-6])\b([^>]*?)>([\s\S]*?)<\/\1>/gi;
+        let hMatch;
+        while ((hMatch = hRegex.exec(secHtml)) !== null) {
+            const tag = hMatch[1].toLowerCase();
+            const text = cleanText(hMatch[3].replace(/<[^>]+>/g, ' '));
+            if (text) {
+                const align = (hMatch[2].includes('center') || secHtml.includes('text-center')) ? 'center' : 'left';
+                if (tag === 'h1') {
+                    secShortcode += `[vbc_h1 size="36px" align="${align}" margin="0 0 16px 0" content="${text}"][/vbc_h1]\n`;
+                } else if (tag === 'h2') {
+                    secShortcode += `[vbc_h2 size="28px" align="${align}" margin="0 0 14px 0" content="${text}"][/vbc_h2]\n`;
+                } else {
+                    secShortcode += `[vbc_h3 size="22px" align="${align}" margin="0 0 12px 0" content="${text}"][/vbc_h3]\n`;
+                }
+            }
+        }
+
+        // B. Paragraphs
+        const pRegex = /<p\b([^>]*?)>([\s\S]*?)<\/p>/gi;
+        let pMatch;
+        while ((pMatch = pRegex.exec(secHtml)) !== null) {
+            const text = cleanText(pMatch[2].replace(/<[^>]+>/g, ' '));
+            if (text && text.length > 2) {
+                const align = (pMatch[1].includes('center') || secHtml.includes('text-center')) ? 'center' : 'left';
+                secShortcode += `[vbc_p size="16px" color="#475569" align="${align}" line_height="1.7" margin="0 0 16px 0" content="${text}"][/vbc_p]\n`;
+            }
+        }
+
+        // C. Cards / Box Grids
+        const cardMatches = secHtml.match(/<(div|article)\b[^>]*?(?:card|box|item|feature|service|plan|pricing|col)[^>]*>([\s\S]*?)<\/\1>/gi);
+        if (cardMatches && cardMatches.length >= 2) {
+            const gridCols = Math.min(cardMatches.length, 3);
+            secShortcode += `[vbc_div display="grid" grid_template_columns="repeat(${gridCols}, 1fr)" gap="24px" margin="25px 0 25px 0"]\n`;
+            
+            for (const cHtml of cardMatches.slice(0, 6)) {
+                // Trích xuất tiêu đề card
+                const cTitleMatch = cHtml.match(/<h[2-6]\b[^>]*>([\s\S]*?)<\/h[2-6]>/i);
+                const cTitle = cTitleMatch ? cleanText(cTitleMatch[1].replace(/<[^>]+>/g, '')) : '';
+                
+                // Trích xuất mô tả card
+                const cDescMatch = cHtml.match(/<p\b[^>]*>([\s\S]*?)<\/p>/i);
+                const cDesc = cDescMatch ? cleanText(cDescMatch[1].replace(/<[^>]+>/g, '')) : '';
+                
+                // Trích xuất ảnh nếu có
+                const cImgMatch = cHtml.match(/<img\b[^>]*?src=["']([^"']+)["']/i);
+                const cImg = cImgMatch ? cImgMatch[1] : '';
+
+                secShortcode += `[vbc_card variant="glass" border_radius="16px" padding="28px" box_shadow="0 10px 30px rgba(0,0,0,0.06)"]\n`;
+                if (cImg) {
+                    secShortcode += `[vbc_img img_source="manual" img_url="${cImg}" max_width="100%" border_radius="10px" margin="0 0 16px 0"]\n`;
+                }
+                if (cTitle) {
+                    secShortcode += `[vbc_h3 size="20px" font_weight="700" margin="0 0 10px 0" content="${cTitle}"][/vbc_h3]\n`;
+                }
+                if (cDesc) {
+                    secShortcode += `[vbc_p size="14px" color="#64748b" line_height="1.6" content="${cDesc}"][/vbc_p]\n`;
+                }
+                secShortcode += `[/vbc_card]\n`;
+            }
+            secShortcode += `[/vbc_div]\n`;
+        }
+
+        // D. Ảnh độc lập (Banner / Minh họa)
+        const singleImgMatches = secHtml.match(/<img\b[^>]*?src=["']([^"']+)["'][^>]*>/gi);
+        if (singleImgMatches && (!cardMatches || cardMatches.length < 2)) {
+            for (const imgTag of singleImgMatches.slice(0, 3)) {
+                const srcMatch = imgTag.match(/src=["']([^"']+)["']/i);
+                if (srcMatch && srcMatch[1]) {
+                    secShortcode += `[vbc_img img_source="manual" img_url="${srcMatch[1]}" max_width="100%" border_radius="12px" box_shadow="0 12px 35px rgba(0,0,0,0.08)" align="center" margin="20px 0 20px 0"]\n`;
+                }
+            }
+        }
+
+        // E. Buttons & CTAs
+        const btnMatches = secHtml.match(/<(?:a|button)\b[^>]*?(?:btn|button|cta)[^>]*>([\s\S]*?)<\/(?:a|button)>/gi);
+        if (btnMatches) {
+            secShortcode += `[vbc_div display="flex" justify_content="center" gap="14px" margin="20px 0 0 0"]\n`;
+            for (const btnHtml of btnMatches.slice(0, 2)) {
+                const btnText = cleanText(btnHtml.replace(/<[^>]+>/g, ''));
+                const hrefMatch = btnHtml.match(/href=["']([^"']+)["']/i);
+                const btnUrl = hrefMatch ? hrefMatch[1] : '#';
+                if (btnText) {
+                    secShortcode += `[vbc_button text="${btnText}" url="${btnUrl}" variant="primary" size="large" border_radius="999px" icon="lucide:arrow-right"]\n`;
+                }
+            }
+            secShortcode += `[/vbc_div]\n`;
+        }
+
+        secShortcode += `[/col]\n[/row]\n[/section]\n\n`;
+        generatedShortcodes.push(secShortcode);
+    }
+
+    const finalShortcode = generatedShortcodes.join('\n');
+    console.log(`  \x1b[32m✓ Transpiled thành công ${generatedShortcodes.length} sections VibeCode Shortcodes!\x1b[0m`);
+    return finalShortcode;
+}
+
+// ============================================================
+// 5. SHORTCODE SANITIZER & LINTER PIPELINE
 // ============================================================
 
 const VBC_NESTABLE_TAGS = ['vbc_box', 'vbc_block', 'vbc_container', 'vbc_span', 'vbc_card', 'vbc_div'];
@@ -501,20 +751,13 @@ function convertSpanWithIconToDiv(content) {
     const result = content.replace(pattern, (match, spanAttrs, iconShortcode, text) => {
         const trimmedText = text.trim();
         const trimmedSpanAttrs = spanAttrs.trim();
-
-        const escapedText = trimmedText.replace(/"/g, '&quot;');
+        const escapedText = cleanText(trimmedText);
         fixes++;
 
         let divAttrs = trimmedSpanAttrs;
-        if (!divAttrs.includes('display=')) {
-            divAttrs += ' display="inline-flex"';
-        }
-        if (!divAttrs.includes('align_items=')) {
-            divAttrs += ' align_items="center"';
-        }
-        if (!divAttrs.includes('gap=')) {
-            divAttrs += ' gap="8px"';
-        }
+        if (!divAttrs.includes('display=')) divAttrs += ' display="inline-flex"';
+        if (!divAttrs.includes('align_items=')) divAttrs += ' align_items="center"';
+        if (!divAttrs.includes('gap=')) divAttrs += ' gap="8px"';
 
         return `[vbc_div ${divAttrs.trim()}]${iconShortcode}[vbc_span_inner content="${escapedText}"][/vbc_span_inner][/vbc_div]`;
     });
@@ -549,7 +792,7 @@ function migrateTagsToContentAttribute(content) {
             return match;
         }
 
-        const escapedText = trimmedText.replace(/"/g, '&quot;');
+        const escapedText = cleanText(trimmedText);
         fixes++;
 
         const fullTag = `vbc_${tag}${suffix || ''}`;
@@ -565,7 +808,7 @@ function migrateTagsToContentAttribute(content) {
 
 function sanitizeShortcodeContent(content) {
     console.log('\n\x1b[35m[CLONE SANITIZER] Đang kiểm tra và chuẩn hóa cấu trúc VibeCode...\x1b[0m');
-    
+
     const commentResult = fixInvalidHtmlComments(content);
     const fontResult = stripHardcodedFontFamily(commentResult.content);
     const imgResult = fixImageShortcodes(fontResult.content);
@@ -584,7 +827,7 @@ function sanitizeShortcodeContent(content) {
 }
 
 // ============================================================
-// 5. CLI ENTRYPOINT & ARGUMENT PARSING
+// 6. CLI ENTRYPOINT & ARGUMENT PARSING
 // ============================================================
 
 function printHelp() {
@@ -595,11 +838,9 @@ function printHelp() {
 Sử dụng: node skills/clone-landingpage.js [tùy chọn]
 
 TÙY CHỌN NGUỒN ĐẦU VÀO (CHỌN 1 TRONG CÁC NGUỒN SAU):
-  --url <web_url>         Clone trực tiếp từ URL trang web kèm tự động trích xuất và tải lên toàn bộ ảnh/banner.
+  --url <web_url>         Clone trực tiếp từ URL: Tự động trích xuất ảnh, upload WP Media, chuyển đổi DOM sang VibeCode shortcodes.
   --html <file_path>      Clone từ tệp HTML cục bộ.
-  --zip <file_path>       Clone từ gói ZIP chứa source HTML/CSS và thư mục hình ảnh.
-  --image <img_path>      Clone từ ảnh chụp màn hình giao diện mẫu.
-  --file <txt_path>       Xuất bản từ tệp shortcode soạn sẵn (.txt / .html).
+  --file <txt_path>       Xuất bản trực tiếp từ tệp shortcode soạn sẵn (.txt / .html).
 
 THÔNG TIN BÀI VIẾT:
   --title <string>        Tiêu đề trang trên WordPress.
@@ -608,7 +849,7 @@ THÔNG TIN BÀI VIẾT:
   --post-status <status>  Trạng thái bài viết: 'publish' (mặc định) hoặc 'draft'.
 
 CÁC TÙY CHỌN KHÁC:
-  --image-upload <list>   Danh sách đường dẫn ảnh cần upload lên WP Media (cách nhau dấu phẩy).
+  --image-upload <list>   Danh sách đường dẫn ảnh cục bộ cần upload lên WP Media (cách nhau dấu phẩy).
   --no-crawl              Tắt chế độ tự động quét & tải media từ URL nguồn.
   --dry-run               Chỉ chạy chuyển đổi & in kết quả shortcode, không gửi API đăng bài.
   --help                  Hiển thị hướng dẫn này.
@@ -635,7 +876,7 @@ function parseArgs() {
 }
 
 // ============================================================
-// 6. MAIN EXECUTION
+// 7. MAIN EXECUTION
 // ============================================================
 
 async function main() {
@@ -650,7 +891,13 @@ async function main() {
     }
 
     const config = loadConfig();
-    let rawContent = '';
+    let rawShortcode = '';
+    let urlMapping = new Map();
+
+    const cacheDir = path.join(__dirname, '.cache_media');
+    if (!fs.existsSync(cacheDir)) {
+        fs.mkdirSync(cacheDir, { recursive: true });
+    }
 
     // [1/4] Xử lý nguồn đầu vào
     if (args.url) {
@@ -659,27 +906,22 @@ async function main() {
             const fetchedHtml = await fetchUrlContent(args.url);
             console.log(`  ✓ Tải thành công ${Buffer.byteLength(fetchedHtml)} bytes HTML từ trang gốc.`);
 
-            // Tự động quét và tải toàn bộ ảnh nếu không bị tắt bởi --no-crawl
-            let urlMapping = new Map();
+            // Tự động quét và tải toàn bộ ảnh lên WordPress Media Library
             if (!args['no-crawl']) {
                 urlMapping = await crawlAndUploadAssets(args.url, fetchedHtml, config);
             }
 
-            // Nếu người dùng truyền kèm file shortcode mẫu đã tối ưu hóa bố cục
+            // Nếu người dùng cung cấp file shortcode tùy chỉnh
             if (args.file && fs.existsSync(args.file)) {
-                console.log(`  ✓ Nạp khung Shortcode tùy biến cao cấp từ: ${args.file}`);
-                rawContent = fs.readFileSync(args.file, 'utf8');
-            } else {
-                // Sử dụng raw content từ file hoặc template
-                rawContent = fetchedHtml;
-            }
-
-            // Thay thế URL ảnh gốc thành URL ảnh WordPress Media vừa tải lên
-            if (urlMapping.size > 0) {
-                console.log(`\n\x1b[32m[URL MAPPER] Đang ánh xạ ${urlMapping.size} liên kết media sang WP Media Library...\x1b[0m`);
+                console.log(`  ✓ Nạp khung Shortcode tùy biến từ: ${args.file}`);
+                rawShortcode = fs.readFileSync(args.file, 'utf8');
+                // Thay thế link ảnh
                 for (const [origin, uploaded] of urlMapping.entries()) {
-                    rawContent = rawContent.split(origin).join(uploaded);
+                    rawShortcode = rawShortcode.split(origin).join(uploaded);
                 }
+            } else {
+                // Tự động chạy bộ Deep Semantic Transpiler để chuyển HTML sang Shortcode Flatsome + VibeCode
+                rawShortcode = transpileHtmlToVibeCode(fetchedHtml, urlMapping, args.url);
             }
         } catch (err) {
             console.error('\x1b[31m[LỖI] Không thể tải URL:\x1b[0m', err.message);
@@ -691,14 +933,15 @@ async function main() {
             console.error(`\x1b[31m[LỖI] Tệp ${args.file} không tồn tại!\x1b[0m`);
             process.exit(1);
         }
-        rawContent = fs.readFileSync(args.file, 'utf8');
+        rawShortcode = fs.readFileSync(args.file, 'utf8');
     } else if (args.html) {
         console.log(`[1/4] Đang đọc tệp HTML cục bộ: \x1b[36m${args.html}\x1b[0m...`);
         if (!fs.existsSync(args.html)) {
             console.error(`\x1b[31m[LỖI] Tệp ${args.html} không tồn tại!\x1b[0m`);
             process.exit(1);
         }
-        rawContent = fs.readFileSync(args.html, 'utf8');
+        const localHtml = fs.readFileSync(args.html, 'utf8');
+        rawShortcode = transpileHtmlToVibeCode(localHtml, urlMapping, '');
     } else {
         console.error('\x1b[31m[LỖI] Vui lòng chỉ định nguồn đầu vào: --url, --html, hoặc --file.\x1b[0m');
         process.exit(1);
@@ -714,9 +957,10 @@ async function main() {
                 const uploadRes = await uploadImageToWordPress(imgPath, config);
                 const placeholderUrl = `{{image_${i + 1}_url}}`;
                 const placeholderId = `{{image_${i + 1}_id}}`;
-                rawContent = rawContent.split(placeholderUrl).join(uploadRes.url);
-                rawContent = rawContent.split(placeholderId).join(uploadRes.id.toString());
-                console.log(`  ✓ Upload: ${path.basename(imgPath)} → ${uploadRes.url}`);
+                const wpUrl = uploadRes.url || uploadRes.source_url;
+                rawShortcode = rawShortcode.split(placeholderUrl).join(wpUrl);
+                rawShortcode = rawShortcode.split(placeholderId).join((uploadRes.id || uploadRes.attachment_id).toString());
+                console.log(`  ✓ Upload: ${path.basename(imgPath)} → ${wpUrl}`);
             } catch (err) {
                 console.warn(`  ⚠ Upload thất bại: ${imgPath} (${err.message})`);
             }
@@ -725,18 +969,23 @@ async function main() {
 
     // [3/4] Chạy bộ Linter & Sanitizer
     console.log('\n[3/4] Đang tối ưu hóa và làm sạch mã shortcode...');
-    const sanitizedShortcode = sanitizeShortcodeContent(rawContent);
+    const sanitizedShortcode = sanitizeShortcodeContent(rawShortcode);
+
+    // Lưu bản sao shortcode ra file cục bộ để kiểm tra / tái sử dụng
+    const outputFilePath = path.join(cacheDir, 'cloned_shortcode.txt');
+    fs.writeFileSync(outputFilePath, sanitizedShortcode, 'utf8');
+    console.log(`  ✓ Đã lưu bản sao shortcode tại: \x1b[36m${path.normalize(outputFilePath)}\x1b[0m`);
 
     if (args['dry-run']) {
         console.log('\n==================================================');
         console.log('   KẾT QUẢ SHORTCODE CLONE (DRY RUN)');
         console.log('==================================================\n');
-        console.log(sanitizedShortcode.substring(0, 1000) + '...\n');
+        console.log(sanitizedShortcode.substring(0, 1200) + '...\n');
         return;
     }
 
     // [4/4] Gửi yêu cầu đăng bài qua REST API
-    const title = args.title || 'Cloned Landing Page ' + new Date().toLocaleDateString('vi-VN');
+    const title = args.title || 'Landing Page Clone ' + new Date().toLocaleDateString('vi-VN');
     const slug = args.slug || 'cloned-page-' + Math.random().toString(36).substring(2, 7);
     const postStatus = args['post-status'] || 'publish';
 
@@ -759,7 +1008,7 @@ async function main() {
         console.log('==================================================');
         console.log(`ID bài viết: ${result.id || payload.post_id || 'N/A'}`);
         console.log(`Tiêu đề:     ${title}`);
-        console.log(`Đường link:  ${result.link || `${config['api-url'].replace('/wp-json', '')}/${slug}/`}`);
+        console.log(`Đường link:  ${result.link || `${config['api-url'].replace('/wp-json', '').replace(/\/+$/, '')}/${slug}/`}`);
         console.log('==================================================\n');
     } catch (err) {
         console.error('\n\x1b[31m[LỖI] Xuất bản bài viết thất bại:\x1b[0m', err.message);

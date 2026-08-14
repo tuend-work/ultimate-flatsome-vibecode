@@ -19,19 +19,32 @@ Các shortcode của VibeCode bắt đầu bằng tiền tố `vbc_`. Chúng h�
 * `[vbc_hr]`, `[vbc_br]`
 * `[vbc_img]` (Thuộc tính: `img_source="default|manual|post_meta|acf" img_attachment="ID" alt="..."`)
 
-### C. Thư Viện Icon Thông Minh (`[vbc_icon]`)
+### C. Thư Viện Icon & Media Thông Minh (`[vbc_icon]`)
 > [!IMPORTANT]
-> **QUY TẮC BẮT BUỘC**: KHÔNG BAO GIỜ sử dụng các ký tự Emoji Unicode thô (ví dụ: 🔥, ⚡, 🚨, 🛑) vì sẽ bị WordPress tự động chuyển thành các ảnh SVG xấu (`s.w.org`). **BẮT BUỘC** luôn dùng `[vbc_icon]` với các vector icon từ FontAwesome 6, Remix Icon, Lucide...
+> **QUY TẮC BẮT BUỘC**: KHÔNG BAO GIỜ sử dụng các ký tự Emoji Unicode thô (ví dụ: 🔥, ⚡, 🚨, 🛑) vì sẽ bị WordPress tự động chuyển thành các ảnh SVG xấu (`s.w.org`). **BẮT BUỘC** luôn dùng `[vbc_icon]` với các vector icon hoặc ảnh SVG từ Thư viện Media.
 
-* Nạp **duy nhất** thư viện icon được gọi (Selective Lazy Loading), hoàn toàn không làm nặng website.
-* Hỗ trợ 5 bộ icon hàng đầu thế giới:
-  1. `pack="lucide"` (Khuyên dùng): `name="shield-check"`, `name="zap"`, `name="phone"`, `name="check-circle"`
-  2. `pack="fontawesome"` (Font Awesome 6): `name="fa-solid fa-shield-halved"`
-  3. `pack="remix"` (Remix Icon): `name="ri-shield-check-line"`
-  4. `pack="phosphor"` (Phosphor Icons): `name="ph-bold ph-shield-check"`
-  5. `pack="material"` (Google Material Symbols): `name="security"`
-* Thuộc tính: `color="#ef4444"`, `size="24px"`, `custom_class="..."`, `custom_css="..."`.
-* Ví dụ: `[vbc_icon pack="lucide" name="shield-check" color="#2563eb" size="20px"]`
+* Hỗ trợ 2 chế độ chính:
+  1. **Chọn Ảnh / SVG từ Thư viện WordPress**: Tích hợp nút **Select Image** chuẩn Flatsome qua thuộc tính `image_id="123"` hoặc `image_url="https://..."`.
+  2. **Vector Icon Thông Minh**: Hỗ trợ 5 bộ icon hàng đầu thế giới với bộ chọn trực quan trong UX Builder:
+     - `icon_type="lucide"`: `name="shield-check"`, `name="zap"`, `name="rocket"`, `name="award"`
+     - `icon_type="fontawesome"`: `name="fa-solid fa-shield-halved"`, `name="fa-solid fa-bolt"`
+     - `icon_type="remix"`: `name="ri-shield-check-line"`
+     - `icon_type="material"`: `name="shield"`, `name="bolt"`
+     - `icon_type="phosphor"`: `name="ph ph-shield-check"`
+* **Cấu hình giao diện & huy hiệu (Badge Styling)**:
+  - `size="32px"` (Hỗ trợ responsive `size__md`, `size__sm`).
+  - `color="#2563eb"`, `hover_color="#1d4ed8"`.
+  - `background_color="#eff6ff"`, `padding="12px"`, `border_radius="50%"`, `border_color="#bfdbfe"`, `box_shadow="0 8px 20px rgba(37,99,235,0.15)"`.
+  - `display="inline-flex"`, `margin="0 10px 0 0"`.
+* **Ví dụ Shortcode**:
+  - Vector Icon có nền huy hiệu tròn:
+    ```html
+    [vbc_icon icon_type="lucide" name="shield-check" color="#2563eb" size="28px" background_color="#eff6ff" padding="12px" border_radius="50%" border_color="#bfdbfe"]
+    ```
+  - Ảnh SVG từ Media Library:
+    ```html
+    [vbc_icon icon_type="image" image_id="120" size="40px"]
+    ```
 
 ### D. Thuộc tính CSS Tự Do (`custom_css`) & Quy Tắc Flexbox/Grid
 Sử dụng từ khóa `selector` để định vị phần tử hiện tại.

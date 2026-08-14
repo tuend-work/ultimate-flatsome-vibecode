@@ -3,7 +3,7 @@
  * Plugin Name: Ultimate Flatsome VibeCode Elements
  * Plugin URI: https://github.com/tuend-work/ultimate-flatsome-vibecode
  * Description: Thêm các phần tử HTML cơ bản tích hợp sâu với Flatsome UX Builder, hỗ trợ responsive hoàn hảo, chèn dữ liệu động (Post Meta, ACF) và chỉnh sửa CSS nâng cao.
- * Version: 1.8.2
+ * Version: 1.8.3
  * Author: Antigravity AI
  * Author URI: https://github.com/tuend-work
  * License: GPL2
@@ -1694,6 +1694,11 @@ function vbc_register_component_shortcodes() {
     add_shortcode('vbc_post_inner', 'vbc_post_shortcode');
     for ($i = 1; $i <= 5; $i++) {
         add_shortcode('vbc_post_inner_' . $i, 'vbc_post_shortcode');
+    }
+    add_shortcode('vbc_icon', 'vbc_icon_shortcode_renderer');
+    add_shortcode('vbc_icon_inner', 'vbc_icon_shortcode_renderer');
+    for ($i = 1; $i <= 5; $i++) {
+        add_shortcode('vbc_icon_inner_' . $i, 'vbc_icon_shortcode_renderer');
     }
 }
 
@@ -4382,162 +4387,613 @@ function vbc_editor_scripts() {
 // Đăng ký UX Builder & Shortcode handler cho [vbc_icon]
 add_action('ux_builder_setup', 'vbc_register_icon_ux_builder');
 function vbc_register_icon_ux_builder() {
-    if (function_exists('add_ux_builder_shortcode')) {
-        add_ux_builder_shortcode('vbc_icon', array(
-            'name'     => 'VBC Icon Pack',
-            'category' => 'VibeCode HTML',
-            'options'  => array(
-                'icon_value' => array(
-                    'type'        => 'textfield',
-                    'heading'     => 'Ảnh / Icon đã chọn',
-                    'default'     => 'icon:shield-check',
-                    'description' => 'Nhấn nút bên dưới để mở bộ chọn.',
-                ),
-                'color' => array(
-                    'type'    => 'colorpicker',
-                    'heading' => 'Màu sắc',
-                    'default' => '',
-                ),
-                'size' => array(
-                    'type'    => 'textfield',
-                    'heading' => 'Kích thước (Size)',
-                    'default' => '32px',
-                ),
-                'custom_class' => array(
-                    'type'    => 'textfield',
-                    'heading' => 'Custom Class',
-                    'default' => '',
-                ),
-                'custom_css' => array(
-                    'type'    => 'textarea',
-                    'heading' => 'Custom CSS',
-                    'default' => '',
+    if (!function_exists('add_ux_builder_shortcode')) {
+        return;
+    }
+
+    add_ux_builder_shortcode('vbc_icon', array(
+        'name'     => 'VBC Icon & Media Pack',
+        'category' => 'VibeCode HTML',
+        'options'  => array(
+            'source_group' => array(
+                'type' => 'group',
+                'heading' => 'Nguồn Icon / Hình Ảnh (Source)',
+                'options' => array(
+                    'icon_type' => array(
+                        'type' => 'select',
+                        'heading' => 'Loại Icon / Ảnh',
+                        'default' => 'lucide',
+                        'options' => array(
+                            'lucide' => 'Lucide Vector Icons (Khuyên dùng)',
+                            'fontawesome' => 'FontAwesome 6 Icons',
+                            'remix' => 'Remix Icons',
+                            'material' => 'Google Material Icons',
+                            'phosphor' => 'Phosphor Icons',
+                            'image' => 'Hình Ảnh / SVG (Thư viện Media)',
+                            'image_url' => 'Hình Ảnh / SVG (Đường link URL)',
+                            'custom_class' => 'Nhập Class Icon tùy biến',
+                        ),
+                    ),
+                    'image_id' => array(
+                        'type' => 'image',
+                        'heading' => 'Chọn Ảnh / SVG từ Thư Viện',
+                        'default' => '',
+                        'conditions' => 'icon_type === "image"',
+                    ),
+                    'image_url' => array(
+                        'type' => 'textfield',
+                        'heading' => 'URL Hình Ảnh / SVG',
+                        'default' => '',
+                        'conditions' => 'icon_type === "image_url"',
+                    ),
+                    'name_lucide' => array(
+                        'type' => 'select',
+                        'heading' => 'Chọn Icon Lucide',
+                        'default' => 'shield-check',
+                        'options' => array(
+                            'shield-check' => 'Shield Check (Khiên bảo vệ / Uy tín)',
+                            'shield' => 'Shield (Khiên)',
+                            'check-circle' => 'Check Circle (Tích hoàn thành)',
+                            'check' => 'Check (Dấu tích)',
+                            'zap' => 'Zap (Tia sét / Tốc độ)',
+                            'star' => 'Star (Ngôi sao)',
+                            'award' => 'Award (Huy chương)',
+                            'rocket' => 'Rocket (Tên lửa / Tăng tốc)',
+                            'sparkles' => 'Sparkles (Lấp lánh / AI)',
+                            'activity' => 'Activity (Nhịp tim / Hiệu năng)',
+                            'globe' => 'Globe (Quả cầu / Website)',
+                            'phone' => 'Phone (Điện thoại)',
+                            'phone-call' => 'Phone Call (Gọi điện)',
+                            'mail' => 'Mail (Thư điện tử)',
+                            'message-square' => 'Message (Tin nhắn)',
+                            'heart' => 'Heart (Trái tim / Yêu thích)',
+                            'settings' => 'Settings (Cài đặt)',
+                            'clock' => 'Clock (Đồng hồ)',
+                            'calendar' => 'Calendar (Lịch hẹn)',
+                            'lock' => 'Lock (Khóa bảo mật)',
+                            'arrow-right' => 'Arrow Right (Mũi tên phải)',
+                            'arrow-left' => 'Arrow Left (Mũi tên trái)',
+                            'trending-up' => 'Trending Up (Tăng trưởng)',
+                            'credit-card' => 'Credit Card (Thanh toán)',
+                            'cpu' => 'CPU (Bộ vi xử lý)',
+                            'server' => 'Server (Máy chủ)',
+                            'database' => 'Database (Cơ sở dữ liệu)',
+                            'code' => 'Code (Lập trình)',
+                            'eye' => 'Eye (Con mắt / Xem)',
+                            'file-text' => 'File Text (Tài liệu)',
+                            'package' => 'Package (Gói hàng)',
+                            'laptop' => 'Laptop (Máy tính)',
+                            'smartphone' => 'Smartphone (Điện thoại)',
+                            'wifi' => 'WiFi (Mạng không dây)',
+                            'search' => 'Search (Tìm kiếm)',
+                            'user' => 'User (Người dùng)',
+                            'users' => 'Users (Nhóm người dùng)',
+                            'map-pin' => 'Map Pin (Địa chỉ / Bản đồ)',
+                            'download' => 'Download (Tải xuống)',
+                            'upload' => 'Upload (Tải lên)',
+                            'alert-circle' => 'Alert Circle (Cảnh báo)',
+                            'help-circle' => 'Help Circle (Hỗ trợ)',
+                            'custom' => '✎ Tùy chỉnh (Nhập tên khác)',
+                        ),
+                        'conditions' => 'icon_type === "lucide"',
+                    ),
+                    'name_fa' => array(
+                        'type' => 'select',
+                        'heading' => 'Chọn Icon FontAwesome',
+                        'default' => 'fa-solid fa-shield-halved',
+                        'options' => array(
+                            'fa-solid fa-shield-halved' => 'Shield Halved (Khiên bảo vệ)',
+                            'fa-solid fa-bolt' => 'Bolt (Tia sét)',
+                            'fa-solid fa-star' => 'Star (Ngôi sao)',
+                            'fa-solid fa-circle-check' => 'Circle Check (Tích tròn)',
+                            'fa-solid fa-check' => 'Check (Dấu tích)',
+                            'fa-solid fa-award' => 'Award (Huy chương)',
+                            'fa-solid fa-rocket' => 'Rocket (Tên lửa)',
+                            'fa-solid fa-chart-line' => 'Chart Line (Biểu đồ tăng trưởng)',
+                            'fa-solid fa-globe' => 'Globe (Quả địa cầu)',
+                            'fa-solid fa-phone' => 'Phone (Điện thoại)',
+                            'fa-solid fa-envelope' => 'Envelope (Thư / Email)',
+                            'fa-solid fa-comment' => 'Comment (Bình luận)',
+                            'fa-solid fa-heart' => 'Heart (Trái tim)',
+                            'fa-solid fa-gear' => 'Gear (Bánh răng cài đặt)',
+                            'fa-solid fa-clock' => 'Clock (Đồng hồ)',
+                            'fa-solid fa-calendar' => 'Calendar (Lịch)',
+                            'fa-solid fa-lock' => 'Lock (Khóa bảo vệ)',
+                            'fa-solid fa-arrow-right' => 'Arrow Right (Mũi tên)',
+                            'fa-solid fa-fire' => 'Fire (Lửa / Nổi bật)',
+                            'fa-solid fa-server' => 'Server (Máy chủ)',
+                            'fa-solid fa-database' => 'Database (Dữ liệu)',
+                            'fa-solid fa-code' => 'Code (Mã nguồn)',
+                            'fa-solid fa-credit-card' => 'Credit Card (Thẻ thanh toán)',
+                            'fa-solid fa-box' => 'Box (Hộp hàng)',
+                            'fa-solid fa-laptop' => 'Laptop (Máy tính)',
+                            'fa-solid fa-mobile' => 'Mobile (Di động)',
+                            'fa-solid fa-wifi' => 'WiFi (Sóng mạng)',
+                            'fa-solid fa-magnifying-glass' => 'Search (Kính lúp)',
+                            'fa-solid fa-user' => 'User (Người dùng)',
+                            'fa-solid fa-users' => 'Users (Khách hàng)',
+                            'fa-brands fa-facebook' => 'Facebook Logo',
+                            'fa-brands fa-google' => 'Google Logo',
+                            'fa-brands fa-youtube' => 'YouTube Logo',
+                            'fa-brands fa-tiktok' => 'TikTok Logo',
+                            'fa-brands fa-wordpress' => 'WordPress Logo',
+                            'custom' => '✎ Tùy chỉnh (Nhập tên khác)',
+                        ),
+                        'conditions' => 'icon_type === "fontawesome"',
+                    ),
+                    'name_ri' => array(
+                        'type' => 'select',
+                        'heading' => 'Chọn Icon Remix',
+                        'default' => 'ri-shield-check-line',
+                        'options' => array(
+                            'ri-shield-check-line' => 'Shield Check',
+                            'ri-flashlight-line' => 'Flashlight (Sét)',
+                            'ri-star-line' => 'Star (Ngôi sao)',
+                            'ri-checkbox-circle-line' => 'Checkbox Circle',
+                            'ri-check-line' => 'Check (Tích)',
+                            'ri-award-line' => 'Award (Huy chương)',
+                            'ri-rocket-line' => 'Rocket (Tên lửa)',
+                            'ri-line-chart-line' => 'Line Chart (Tăng trưởng)',
+                            'ri-global-line' => 'Global (Toàn cầu)',
+                            'ri-phone-line' => 'Phone (Điện thoại)',
+                            'ri-mail-line' => 'Mail (Email)',
+                            'ri-chat-3-line' => 'Chat (Tin nhắn)',
+                            'ri-heart-line' => 'Heart (Trái tim)',
+                            'ri-settings-3-line' => 'Settings (Cài đặt)',
+                            'ri-time-line' => 'Time (Thời gian)',
+                            'ri-calendar-line' => 'Calendar (Lịch)',
+                            'ri-lock-line' => 'Lock (Khóa)',
+                            'ri-arrow-right-line' => 'Arrow Right (Mũi tên)',
+                            'ri-fire-line' => 'Fire (Lửa)',
+                            'ri-server-line' => 'Server (Máy chủ)',
+                            'ri-database-2-line' => 'Database (Cơ sở dữ liệu)',
+                            'ri-code-line' => 'Code (Lập trình)',
+                            'ri-bank-card-line' => 'Bank Card (Thanh toán)',
+                            'ri-box-3-line' => 'Box (Hộp)',
+                            'ri-macbook-line' => 'Macbook (Laptop)',
+                            'ri-smartphone-line' => 'Smartphone (Di động)',
+                            'ri-wifi-line' => 'WiFi',
+                            'ri-search-line' => 'Search (Tìm kiếm)',
+                            'ri-user-3-line' => 'User (Người dùng)',
+                            'ri-team-line' => 'Team (Đội ngũ)',
+                            'ri-facebook-fill' => 'Facebook Fill',
+                            'ri-google-fill' => 'Google Fill',
+                            'ri-youtube-fill' => 'YouTube Fill',
+                            'custom' => '✎ Tùy chỉnh (Nhập tên khác)',
+                        ),
+                        'conditions' => 'icon_type === "remix"',
+                    ),
+                    'name_material' => array(
+                        'type' => 'select',
+                        'heading' => 'Chọn Icon Google Material',
+                        'default' => 'shield',
+                        'options' => array(
+                            'shield' => 'Shield (Khiên)',
+                            'security' => 'Security (Bảo mật)',
+                            'bolt' => 'Bolt (Tia sét)',
+                            'star' => 'Star (Ngôi sao)',
+                            'check_circle' => 'Check Circle',
+                            'check' => 'Check',
+                            'award_star' => 'Award Star',
+                            'rocket_launch' => 'Rocket Launch',
+                            'trending_up' => 'Trending Up',
+                            'language' => 'Language / Globe',
+                            'call' => 'Call / Phone',
+                            'mail' => 'Mail / Email',
+                            'chat' => 'Chat / Comment',
+                            'favorite' => 'Favorite / Heart',
+                            'settings' => 'Settings',
+                            'schedule' => 'Schedule / Clock',
+                            'calendar_today' => 'Calendar',
+                            'lock' => 'Lock',
+                            'arrow_forward' => 'Arrow Forward',
+                            'local_fire_department' => 'Fire / Hot',
+                            'dns' => 'DNS / Server',
+                            'database' => 'Database',
+                            'code' => 'Code',
+                            'credit_card' => 'Credit Card',
+                            'package_2' => 'Package',
+                            'laptop' => 'Laptop',
+                            'smartphone' => 'Smartphone',
+                            'wifi' => 'WiFi',
+                            'search' => 'Search',
+                            'person' => 'Person / User',
+                            'group' => 'Group / Users',
+                            'custom' => '✎ Tùy chỉnh (Nhập tên khác)',
+                        ),
+                        'conditions' => 'icon_type === "material"',
+                    ),
+                    'name_phosphor' => array(
+                        'type' => 'select',
+                        'heading' => 'Chọn Icon Phosphor',
+                        'default' => 'ph ph-shield-check',
+                        'options' => array(
+                            'ph ph-shield-check' => 'Shield Check',
+                            'ph ph-lightning' => 'Lightning (Sét)',
+                            'ph ph-star' => 'Star (Ngôi sao)',
+                            'ph ph-check-circle' => 'Check Circle',
+                            'ph ph-check' => 'Check',
+                            'ph ph-medal' => 'Medal (Huy chương)',
+                            'ph ph-rocket-launch' => 'Rocket Launch',
+                            'ph ph-chart-line-up' => 'Chart Line Up',
+                            'ph ph-globe' => 'Globe (Toàn cầu)',
+                            'ph ph-phone' => 'Phone',
+                            'ph ph-envelope' => 'Envelope / Mail',
+                            'ph ph-chat-centered-text' => 'Chat',
+                            'ph ph-heart' => 'Heart',
+                            'ph ph-gear' => 'Gear',
+                            'ph ph-clock' => 'Clock',
+                            'ph ph-calendar' => 'Calendar',
+                            'ph ph-lock' => 'Lock',
+                            'ph ph-arrow-right' => 'Arrow Right',
+                            'ph ph-fire' => 'Fire',
+                            'ph ph-hard-drives' => 'Hard Drives / Server',
+                            'ph ph-database' => 'Database',
+                            'ph ph-code' => 'Code',
+                            'ph ph-credit-card' => 'Credit Card',
+                            'ph ph-package' => 'Package',
+                            'ph ph-laptop' => 'Laptop',
+                            'ph ph-device-mobile' => 'Device Mobile',
+                            'ph ph-wifi-high' => 'WiFi High',
+                            'ph ph-magnifying-glass' => 'Magnifying Glass',
+                            'ph ph-user' => 'User',
+                            'ph ph-users' => 'Users',
+                            'custom' => '✎ Tùy chỉnh (Nhập tên khác)',
+                        ),
+                        'conditions' => 'icon_type === "phosphor"',
+                    ),
+                    'name_custom' => array(
+                        'type' => 'textfield',
+                        'heading' => 'Tên Icon Tùy Chỉnh',
+                        'default' => '',
+                        'description' => 'Nhập tên icon hoặc class (Ví dụ: shield-alert, fa-solid fa-crown, ri-vip-crown-line, memory...)',
+                        'conditions' => 'icon_type === "custom_class" || name_lucide === "custom" || name_fa === "custom" || name_ri === "custom" || name_material === "custom" || name_phosphor === "custom"',
+                    ),
                 ),
             ),
-        ));
-    }
+            'styling_group' => array(
+                'type' => 'group',
+                'heading' => 'Định Dạng & Hiệu Ứng (Design)',
+                'options' => array(
+                    'size' => array(
+                        'type' => 'textfield',
+                        'heading' => 'Kích thước Icon / Ảnh (Size)',
+                        'responsive' => true,
+                        'default' => '32px',
+                        'description' => 'Nhập kích thước (Ví dụ: 24px, 32px, 48px, 64px).',
+                    ),
+                    'color' => array(
+                        'type' => 'colorpicker',
+                        'heading' => 'Màu sắc Icon',
+                        'default' => '#2563eb',
+                    ),
+                    'hover_color' => array(
+                        'type' => 'colorpicker',
+                        'heading' => 'Màu Icon khi Hover',
+                        'default' => '',
+                    ),
+                    'background_color' => array(
+                        'type' => 'colorpicker',
+                        'heading' => 'Màu nền huy hiệu (Badge BG)',
+                        'default' => '',
+                    ),
+                    'padding' => array(
+                        'type' => 'textfield',
+                        'heading' => 'Padding huy hiệu',
+                        'responsive' => true,
+                        'default' => '',
+                        'description' => 'Ví dụ: 12px hoặc 10px 16px.',
+                    ),
+                    'border_radius' => array(
+                        'type' => 'textfield',
+                        'heading' => 'Bo góc huy hiệu (Border Radius)',
+                        'default' => '',
+                        'description' => 'Ví dụ: 50% (tròn), 12px, 999px.',
+                    ),
+                    'border_color' => array(
+                        'type' => 'colorpicker',
+                        'heading' => 'Màu viền huy hiệu',
+                        'default' => '',
+                    ),
+                    'box_shadow' => array(
+                        'type' => 'textfield',
+                        'heading' => 'Đổ bóng (Box Shadow)',
+                        'default' => '',
+                    ),
+                    'display' => array(
+                        'type' => 'select',
+                        'heading' => 'Kiểu hiển thị (Display)',
+                        'default' => 'inline-flex',
+                        'options' => array(
+                            'inline-flex' => 'Inline Flex (Canh giữa tự động)',
+                            'flex' => 'Flex Block',
+                            'inline-block' => 'Inline Block',
+                            'block' => 'Block',
+                        ),
+                    ),
+                    'margin' => array(
+                        'type' => 'textfield',
+                        'heading' => 'Margin',
+                        'responsive' => true,
+                        'default' => '',
+                    ),
+                    'custom_class' => array(
+                        'type' => 'textfield',
+                        'heading' => 'CSS Class',
+                        'default' => '',
+                    ),
+                    'custom_css' => array(
+                        'type' => 'textarea',
+                        'heading' => 'Custom CSS (Dùng selector)',
+                        'default' => '',
+                    ),
+                ),
+            ),
+        ),
+    ));
 }
-
-add_action('init', function() {
-    add_shortcode('vbc_icon', 'vbc_icon_shortcode_renderer');
-});
 
 function vbc_icon_shortcode_renderer($atts) {
     $atts = shortcode_atts(array(
-        'icon_value'    => '',
-        'mode'          => 'icon',
+        // Source
+        'icon_type'     => 'lucide', // lucide, fontawesome, remix, material, phosphor, image, image_url, custom_class
+        'image_id'      => '',
+        'img_attachment'=> '',
+        'image_url'     => '',
+        'img_url'       => '',
         'svg_url'       => '',
-        'pack'          => 'lucide',
+        'icon_value'    => '', // unified legacy: img:URL or icon:name
         'name'          => '',
+        'name_lucide'   => '',
         'name_fa'       => '',
         'name_ri'       => '',
-        'name_lucide'   => '',
-        'name_phosphor' => '',
         'name_material' => '',
+        'name_phosphor' => '',
         'name_custom'   => '',
-        'color'         => '',
+        'pack'          => '',
+        'mode'          => '',
+
+        // Styling
         'size'          => '32px',
+        'size__md'      => '',
+        'size__sm'      => '',
+        'color'         => '',
+        'hover_color'   => '',
+        'background_color' => '',
+        'padding'       => '',
+        'padding__md'   => '',
+        'padding__sm'   => '',
+        'border_radius' => '',
+        'border_color'  => '',
+        'box_shadow'    => '',
+        'display'       => 'inline-flex',
+        'margin'        => '',
+        'margin__md'    => '',
+        'margin__sm'    => '',
         'custom_class'  => '',
         'custom_css'    => '',
     ), $atts);
 
-    $random_id    = wp_generate_password(8, false);
-    $unique_class = 'vbc-icn-' . $random_id;
-    $styles       = array();
-    if (!empty($atts['color'])) $styles[] = 'color: ' . esc_attr($atts['color']) . ';';
+    // 1. Xác định chế độ hiển thị & URL/Tên Icon
+    $icon_type = strtolower(trim($atts['icon_type']));
+    $image_src = '';
+    $icon_class = '';
+    $icon_pack = 'lucide';
+    $raw_name = '';
 
-    $css_rule = '';
-    if (!empty($styles) || !empty($atts['custom_css'])) {
-        $css_rule .= '.' . $unique_class . ' { ' . implode(' ', $styles) . ' } ';
-        if (!empty($atts['custom_css'])) {
-            $raw_css = trim($atts['custom_css']);
-            if (strpos($raw_css, '{') === false) {
-                $css_rule .= '.' . $unique_class . ' { ' . $raw_css . ' } ';
-            } else {
-                $css_rule .= str_replace('selector', '.' . $unique_class, $raw_css);
-            }
-        }
-    }
-    $style_tag = '';
-    if (!empty($css_rule)) {
-        $css_rule = str_replace(array("\r", "\n"), ' ', $css_rule);
-        $css_rule = preg_replace('/\s+/', ' ', $css_rule);
-        if (vbc_should_inline_css()) {
-            $style_tag = '<style>' . $css_rule . '</style>';
-        } else {
-            global $vbc_accumulated_css;
-            if (!is_array($vbc_accumulated_css)) $vbc_accumulated_css = array();
-            $vbc_accumulated_css[] = $css_rule;
-        }
-    }
-    $class_str = esc_attr(trim($unique_class . ' ' . $atts['custom_class']));
-    $sz = !empty($atts['size']) ? $atts['size'] : '32px';
-
-    // === 1. UNIFIED icon_value: img:URL hoac icon:classname ===
+    // Legacy: icon_value (img:URL hoặc icon:name)
     $iv = trim($atts['icon_value']);
     if (!empty($iv)) {
         if (strpos($iv, 'img:') === 0) {
-            $img_url = substr($iv, 4);
-            $img_style = 'width:' . esc_attr($sz) . ';height:' . esc_attr($sz) . ';object-fit:contain;display:inline-block;';
-            return $style_tag . '<img src="' . esc_url($img_url) . '" class="' . $class_str . '" style="' . $img_style . '" alt="icon" loading="lazy">';
+            $icon_type = 'image_url';
+            $image_src = substr($iv, 4);
         } elseif (strpos($iv, 'icon:') === 0) {
             $icon_class = substr($iv, 5);
             if (strpos($icon_class, 'ri-') !== false) {
-                vbc_enqueue_icon_pack('remix');
-                return $style_tag . '<i class="' . esc_attr($icon_class) . ' ' . $class_str . '" style="font-size:' . esc_attr($sz) . ';"></i>';
+                $icon_type = 'remix';
+                $raw_name = $icon_class;
             } elseif (strpos($icon_class, 'ph ') !== false || strpos($icon_class, 'ph-') !== false) {
-                vbc_enqueue_icon_pack('phosphor');
-                return $style_tag . '<i class="' . esc_attr($icon_class) . ' ' . $class_str . '" style="font-size:' . esc_attr($sz) . ';"></i>';
+                $icon_type = 'phosphor';
+                $raw_name = $icon_class;
             } elseif (strpos($icon_class, 'fa-') !== false) {
-                vbc_enqueue_icon_pack('fontawesome');
-                return $style_tag . '<i class="' . esc_attr($icon_class) . ' ' . $class_str . '" style="font-size:' . esc_attr($sz) . ';"></i>';
+                $icon_type = 'fontawesome';
+                $raw_name = $icon_class;
             } elseif (strpos($icon_class, '_') !== false && strpos($icon_class, '-') === false) {
-                vbc_enqueue_icon_pack('material');
-                return $style_tag . '<span class="material-symbols-outlined ' . $class_str . '" style="font-size:' . esc_attr($sz) . ';">' . esc_html($icon_class) . '</span>';
+                $icon_type = 'material';
+                $raw_name = $icon_class;
             } else {
-                vbc_enqueue_icon_pack('lucide');
-                return $style_tag . '<i data-lucide="' . esc_attr($icon_class) . '" class="' . $class_str . '" style="width:' . esc_attr($sz) . ';height:' . esc_attr($sz) . ';display:inline-block;"></i>';
+                $icon_type = 'lucide';
+                $raw_name = $icon_class;
             }
         }
     }
 
-    // === 2. BACKWARD COMPAT: shortcodes cu ===
-    if ($atts['mode'] === 'svg' && !empty($atts['svg_url'])) {
-        $svg_val = trim($atts['svg_url']);
-        $img_url = is_numeric($svg_val) ? wp_get_attachment_url(intval($svg_val)) : $svg_val;
-        if (!empty($img_url)) {
-            $img_style = 'width:' . esc_attr($sz) . ';height:' . esc_attr($sz) . ';object-fit:contain;display:inline-block;';
-            return $style_tag . '<img src="' . esc_url($img_url) . '" class="' . $class_str . '" style="' . $img_style . '" alt="icon" loading="lazy">';
+    // Xử lý Image ID từ WordPress Media Library
+    $attach_id = !empty($atts['image_id']) ? $atts['image_id'] : $atts['img_attachment'];
+    if ($icon_type === 'image' || (!empty($attach_id) && empty($image_src))) {
+        if (is_numeric($attach_id)) {
+            $image_src = wp_get_attachment_url(intval($attach_id));
         }
     }
 
-    $pack = strtolower(trim($atts['pack']));
-    if (empty($pack) || $pack === 'fontawesome') {
-        if (!empty($atts['name_lucide']) && $atts['name_lucide'] !== 'custom')         $pack = 'lucide';
-        elseif (!empty($atts['name_ri']) && $atts['name_ri'] !== 'custom')             $pack = 'remix';
-        elseif (!empty($atts['name_phosphor']) && $atts['name_phosphor'] !== 'custom') $pack = 'phosphor';
-        elseif (!empty($atts['name_material']) && $atts['name_material'] !== 'custom') $pack = 'material';
-        elseif (!empty($atts['name_fa']) && $atts['name_fa'] !== 'custom')             $pack = 'fontawesome';
+    // Xử lý Image URL
+    if (empty($image_src)) {
+        if (!empty($atts['image_url'])) $image_src = trim($atts['image_url']);
+        elseif (!empty($atts['img_url'])) $image_src = trim($atts['img_url']);
+        elseif (!empty($atts['svg_url'])) $image_src = trim($atts['svg_url']);
     }
-    $name = '';
-    if ($pack === 'fontawesome')  $name = !empty($atts['name_fa'])       && $atts['name_fa']       !== 'custom' ? $atts['name_fa']       : $atts['name_custom'];
-    elseif ($pack === 'remix')    $name = !empty($atts['name_ri'])       && $atts['name_ri']       !== 'custom' ? $atts['name_ri']       : $atts['name_custom'];
-    elseif ($pack === 'lucide')   $name = !empty($atts['name_lucide'])   && $atts['name_lucide']   !== 'custom' ? $atts['name_lucide']   : $atts['name_custom'];
-    elseif ($pack === 'phosphor') $name = !empty($atts['name_phosphor']) && $atts['name_phosphor'] !== 'custom' ? $atts['name_phosphor'] : $atts['name_custom'];
-    elseif ($pack === 'material') $name = !empty($atts['name_material']) && $atts['name_material'] !== 'custom' ? $atts['name_material'] : $atts['name_custom'];
-    if (empty($name)) $name = trim($atts['name']);
-    if (strpos($name, 'ri-') !== false) $pack = 'remix';
-    elseif (strpos($name, 'ph-') !== false) $pack = 'phosphor';
 
-    vbc_enqueue_icon_pack($pack);
+    // Nếu là chế độ ảnh mà có link ảnh
+    $is_image_mode = ($icon_type === 'image' || $icon_type === 'image_url' || !empty($image_src) || $atts['mode'] === 'svg');
 
-    if ($pack === 'lucide') {
-        return $style_tag . '<i data-lucide="' . esc_attr($name) . '" class="' . $class_str . '" style="width:' . esc_attr($sz) . ';height:' . esc_attr($sz) . ';display:inline-block;"></i>';
-    } elseif ($pack === 'material') {
-        return $style_tag . '<span class="material-symbols-outlined ' . $class_str . '" style="font-size:' . esc_attr($sz) . ';">' . esc_html($name) . '</span>';
+    if (!$is_image_mode) {
+        // Nhận diện Icon Pack & Icon Name
+        if ($icon_type === 'lucide' || $atts['pack'] === 'lucide') {
+            $icon_pack = 'lucide';
+            $raw_name = (!empty($atts['name_lucide']) && $atts['name_lucide'] !== 'custom') ? $atts['name_lucide'] : (!empty($atts['name_custom']) ? $atts['name_custom'] : $atts['name']);
+            if (empty($raw_name)) $raw_name = 'shield-check';
+        } elseif ($icon_type === 'fontawesome' || $atts['pack'] === 'fontawesome' || $atts['pack'] === 'fa') {
+            $icon_pack = 'fontawesome';
+            $raw_name = (!empty($atts['name_fa']) && $atts['name_fa'] !== 'custom') ? $atts['name_fa'] : (!empty($atts['name_custom']) ? $atts['name_custom'] : $atts['name']);
+            if (empty($raw_name)) $raw_name = 'fa-solid fa-shield-halved';
+        } elseif ($icon_type === 'remix' || $atts['pack'] === 'remix' || $atts['pack'] === 'ri') {
+            $icon_pack = 'remix';
+            $raw_name = (!empty($atts['name_ri']) && $atts['name_ri'] !== 'custom') ? $atts['name_ri'] : (!empty($atts['name_custom']) ? $atts['name_custom'] : $atts['name']);
+            if (empty($raw_name)) $raw_name = 'ri-shield-check-line';
+        } elseif ($icon_type === 'material' || $atts['pack'] === 'material' || $atts['pack'] === 'google') {
+            $icon_pack = 'material';
+            $raw_name = (!empty($atts['name_material']) && $atts['name_material'] !== 'custom') ? $atts['name_material'] : (!empty($atts['name_custom']) ? $atts['name_custom'] : $atts['name']);
+            if (empty($raw_name)) $raw_name = 'shield';
+        } elseif ($icon_type === 'phosphor' || $atts['pack'] === 'phosphor' || $atts['pack'] === 'ph') {
+            $icon_pack = 'phosphor';
+            $raw_name = (!empty($atts['name_phosphor']) && $atts['name_phosphor'] !== 'custom') ? $atts['name_phosphor'] : (!empty($atts['name_custom']) ? $atts['name_custom'] : $atts['name']);
+            if (empty($raw_name)) $raw_name = 'ph ph-shield-check';
+        } elseif ($icon_type === 'custom_class') {
+            $icon_class = !empty($atts['name_custom']) ? trim($atts['name_custom']) : trim($atts['name']);
+            if (strpos($icon_class, 'ri-') !== false) $icon_pack = 'remix';
+            elseif (strpos($icon_class, 'fa-') !== false) $icon_pack = 'fontawesome';
+            elseif (strpos($icon_class, 'ph') !== false) $icon_pack = 'phosphor';
+            elseif (strpos($icon_class, '_') !== false && strpos($icon_class, '-') === false) $icon_pack = 'material';
+            else $icon_pack = 'lucide';
+            $raw_name = $icon_class;
+        } else {
+            // Auto fallback detection
+            $name_cand = !empty($atts['name']) ? trim($atts['name']) : (!empty($atts['name_lucide']) ? $atts['name_lucide'] : 'shield-check');
+            if (strpos($name_cand, 'ri-') !== false) { $icon_pack = 'remix'; }
+            elseif (strpos($name_cand, 'fa-') !== false) { $icon_pack = 'fontawesome'; }
+            elseif (strpos($name_cand, 'ph') !== false) { $icon_pack = 'phosphor'; }
+            else { $icon_pack = 'lucide'; }
+            $raw_name = $name_cand;
+        }
+
+        // Tải CSS/JS của pack tương ứng
+        vbc_enqueue_icon_pack($icon_pack);
+    }
+
+    // 2. Biên dịch CSS Styling
+    $random_id = wp_generate_password(8, false);
+    $unique_class = 'vbc-icn-' . $random_id;
+
+    $sz = !empty($atts['size']) ? $atts['size'] : '32px';
+    $sz_md = !empty($atts['size__md']) ? $atts['size__md'] : '';
+    $sz_sm = !empty($atts['size__sm']) ? $atts['size__sm'] : '';
+
+    $display = !empty($atts['display']) ? $atts['display'] : 'inline-flex';
+    $color = !empty($atts['color']) ? $atts['color'] : '';
+    $hover_color = !empty($atts['hover_color']) ? $atts['hover_color'] : '';
+    $bg_color = !empty($atts['background_color']) ? $atts['background_color'] : '';
+    $padding = !empty($atts['padding']) ? $atts['padding'] : '';
+    $padding_md = !empty($atts['padding__md']) ? $atts['padding__md'] : '';
+    $padding_sm = !empty($atts['padding__sm']) ? $atts['padding__sm'] : '';
+    $radius = !empty($atts['border_radius']) ? $atts['border_radius'] : '';
+    $border = !empty($atts['border_color']) ? '1px solid ' . $atts['border_color'] : '';
+    $shadow = !empty($atts['box_shadow']) ? $atts['box_shadow'] : '';
+    $margin = !empty($atts['margin']) ? $atts['margin'] : '';
+    $margin_md = !empty($atts['margin__md']) ? $atts['margin__md'] : '';
+    $margin_sm = !empty($atts['margin__sm']) ? $atts['margin__sm'] : '';
+
+    $css_rules = '';
+
+    // Desktop
+    $desktop_css = array();
+    $desktop_css[] = 'display: ' . esc_attr($display) . ';';
+    $desktop_css[] = 'align-items: center;';
+    $desktop_css[] = 'justify-content: center;';
+    $desktop_css[] = 'line-height: 1;';
+    $desktop_css[] = 'transition: all 0.25s ease;';
+    $desktop_css[] = 'box-sizing: border-box;';
+
+    if ($color) $desktop_css[] = 'color: ' . esc_attr($color) . ';';
+    if ($bg_color) $desktop_css[] = 'background-color: ' . esc_attr($bg_color) . ';';
+    if ($padding) $desktop_css[] = 'padding: ' . esc_attr($padding) . ';';
+    if ($radius) $desktop_css[] = 'border-radius: ' . esc_attr($radius) . ';';
+    if ($border) $desktop_css[] = 'border: ' . esc_attr($border) . ';';
+    if ($shadow) $desktop_css[] = 'box-shadow: ' . esc_attr($shadow) . ';';
+    if ($margin) $desktop_css[] = 'margin: ' . esc_attr($margin) . ';';
+
+    $css_rules .= '.' . $unique_class . ' { ' . implode(' ', $desktop_css) . ' } ';
+
+    // Hover
+    if ($hover_color) {
+        $css_rules .= '.' . $unique_class . ':hover { color: ' . esc_attr($hover_color) . ' !important; } ';
+    }
+
+    // Tablet
+    $tablet_css = array();
+    if ($padding_md) $tablet_css[] = 'padding: ' . esc_attr($padding_md) . ';';
+    if ($margin_md) $tablet_css[] = 'margin: ' . esc_attr($margin_md) . ';';
+    if (!empty($tablet_css)) {
+        $css_rules .= '@media (max-width: 849px) { .' . $unique_class . ' { ' . implode(' ', $tablet_css) . ' } } ';
+    }
+
+    // Mobile
+    $mobile_css = array();
+    if ($padding_sm) $mobile_css[] = 'padding: ' . esc_attr($padding_sm) . ';';
+    if ($margin_sm) $mobile_css[] = 'margin: ' . esc_attr($margin_sm) . ';';
+    if (!empty($mobile_css)) {
+        $css_rules .= '@media (max-width: 549px) { .' . $unique_class . ' { ' . implode(' ', $mobile_css) . ' } } ';
+    }
+
+    // Custom CSS
+    if (!empty($atts['custom_css'])) {
+        $raw_css = trim($atts['custom_css']);
+        if (strpos($raw_css, '{') === false) {
+            $css_rules .= '.' . $unique_class . ' { ' . $raw_css . ' } ';
+        } else {
+            $css_rules .= str_replace('selector', '.' . $unique_class, $raw_css) . ' ';
+        }
+    }
+
+    $css_rules = str_replace(array("\r", "\n"), ' ', $css_rules);
+    $css_rules = preg_replace('/\s+/', ' ', $css_rules);
+
+    $style_tag = '';
+    if (vbc_should_inline_css()) {
+        $style_tag = '<style>' . $css_rules . '</style>';
     } else {
-        return $style_tag . '<i class="' . esc_attr($name) . ' ' . $class_str . '" style="font-size:' . esc_attr($sz) . ';"></i>';
+        global $vbc_accumulated_css;
+        if (!is_array($vbc_accumulated_css)) $vbc_accumulated_css = array();
+        $vbc_accumulated_css[] = $css_rules;
     }
+
+    // 3. Render HTML phần tử con bên trong
+    $inner_html = '';
+    $wrap_class = esc_attr(trim('vbc-icon-wrap ' . $unique_class . ' ' . $atts['custom_class']));
+
+    if ($is_image_mode) {
+        if (!empty($image_src)) {
+            $img_style = 'width:' . esc_attr($sz) . ';height:' . esc_attr($sz) . ';object-fit:contain;display:block;border-radius:inherit;';
+            $inner_html = '<img src="' . esc_url($image_src) . '" class="vbc-icon-img" style="' . $img_style . '" alt="icon" loading="lazy">';
+        } else {
+            $inner_html = '<div style="width:' . esc_attr($sz) . ';height:' . esc_attr($sz) . ';background:#f1f5f9;border-radius:8px;display:flex;align-items:center;justify-content:center;"><i data-lucide="image" style="width:50%;height:50%;color:#94a3b8;"></i></div>';
+            vbc_enqueue_icon_pack('lucide');
+        }
+    } else {
+        if ($icon_pack === 'lucide') {
+            $clean_lucide = str_replace(array('lucide:', 'lucide-'), '', $raw_name);
+            $inner_html = '<i data-lucide="' . esc_attr($clean_lucide) . '" style="width:' . esc_attr($sz) . ';height:' . esc_attr($sz) . ';display:inline-block;"></i>';
+        } elseif ($icon_pack === 'fontawesome') {
+            $clean_fa = $raw_name;
+            if (strpos($clean_fa, 'fa-') === false) $clean_fa = 'fa-solid fa-' . $clean_fa;
+            elseif (strpos($clean_fa, 'fa-solid') === false && strpos($clean_fa, 'fa-brands') === false && strpos($clean_fa, 'fa-regular') === false) {
+                $clean_fa = 'fa-solid ' . $clean_fa;
+            }
+            $inner_html = '<i class="' . esc_attr($clean_fa) . '" style="font-size:' . esc_attr($sz) . ';line-height:1;"></i>';
+        } elseif ($icon_pack === 'remix') {
+            $clean_ri = $raw_name;
+            if (strpos($clean_ri, 'ri-') === false) $clean_ri = 'ri-' . $clean_ri;
+            $inner_html = '<i class="' . esc_attr($clean_ri) . '" style="font-size:' . esc_attr($sz) . ';line-height:1;"></i>';
+        } elseif ($icon_pack === 'material') {
+            $clean_mat = str_replace('-', '_', $raw_name);
+            $inner_html = '<span class="material-symbols-outlined" style="font-size:' . esc_attr($sz) . ';line-height:1;">' . esc_html($clean_mat) . '</span>';
+        } elseif ($icon_pack === 'phosphor') {
+            $clean_ph = $raw_name;
+            if (strpos($clean_ph, 'ph') === false) $clean_ph = 'ph ph-' . $clean_ph;
+            $inner_html = '<i class="' . esc_attr($clean_ph) . '" style="font-size:' . esc_attr($sz) . ';line-height:1;"></i>';
+        }
+    }
+
+    return $style_tag . '<span class="' . $wrap_class . '">' . $inner_html . '</span>';
 }
 
 /**

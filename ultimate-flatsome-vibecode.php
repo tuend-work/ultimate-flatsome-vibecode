@@ -3,7 +3,7 @@
  * Plugin Name: Ultimate Flatsome VibeCode Elements
  * Plugin URI: https://github.com/tuend-work/ultimate-flatsome-vibecode
  * Description: Thêm các phần tử HTML cơ bản tích hợp sâu với Flatsome UX Builder, hỗ trợ responsive hoàn hảo, chèn dữ liệu động (Post Meta, ACF) và chỉnh sửa CSS nâng cao.
- * Version: 1.6.0
+ * Version: 1.6.1
  * Author: Antigravity AI
  * Author URI: https://github.com/tuend-work
  * License: GPL2
@@ -2068,6 +2068,13 @@ function vbc_api_upload_handler($request) {
         return new WP_Error('vbc_no_file', 'No file was uploaded.', array('status' => 400));
     }
     
+    // Cho phép upload SVG an toàn
+    add_filter('upload_mimes', function($mimes) {
+        $mimes['svg'] = 'image/svg+xml';
+        $mimes['svgz'] = 'image/svg+xml';
+        return $mimes;
+    });
+    
     require_once( ABSPATH . 'wp-admin/includes/image.php' );
     require_once( ABSPATH . 'wp-admin/includes/file.php' );
     require_once( ABSPATH . 'wp-admin/includes/media.php' );
@@ -2082,6 +2089,7 @@ function vbc_api_upload_handler($request) {
     
     return array(
         'success' => true,
+        'id' => $attachment_id,
         'attachment_id' => $attachment_id,
         'url' => $url,
     );
@@ -2113,6 +2121,13 @@ function vbc_api_page_handler($request) {
             'deleted_id' => $post_id,
             'action' => 'delete',
         );
+    }
+    
+    if ($post_id <= 0 && !empty($slug)) {
+        $existing = get_page_by_path($slug, OBJECT, $post_type);
+        if ($existing) {
+            $post_id = $existing->ID;
+        }
     }
     
     if ($post_id > 0) {

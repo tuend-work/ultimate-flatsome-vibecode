@@ -3,7 +3,7 @@
  * Plugin Name: Ultimate Flatsome VibeCode Elements
  * Plugin URI: https://github.com/tuend-work/ultimate-flatsome-vibecode
  * Description: Thêm các phần tử HTML cơ bản tích hợp sâu với Flatsome UX Builder, hỗ trợ responsive hoàn hảo, chèn dữ liệu động (Post Meta, ACF) và chỉnh sửa CSS nâng cao.
- * Version: 1.7.2
+ * Version: 1.7.4
  * Author: Antigravity AI
  * Author URI: https://github.com/tuend-work
  * License: GPL2
@@ -2026,10 +2026,11 @@ function vbc_handle_export_project_request() {
         update_user_meta($user_id, 'vbc_api_token', $token);
     }
 
-    // 2. FTP Info (Fallback <none> & Auto detect plugin path)
-    $detected_plugin_path = defined('WP_PLUGIN_DIR') ? wp_normalize_path(WP_PLUGIN_DIR) : (defined('ABSPATH') ? wp_normalize_path(ABSPATH . 'wp-content/plugins') : '/wp-content/plugins');
+    // 2. FTP Info (Fallback <none> & Auto detect root path)
+    $detected_root_path = defined('ABSPATH') ? wp_normalize_path(untrailingslashit(ABSPATH)) : (defined('WP_CONTENT_DIR') ? wp_normalize_path(dirname(WP_CONTENT_DIR)) : '/public_html');
+    $detected_plugin_path = defined('WP_PLUGIN_DIR') ? wp_normalize_path(WP_PLUGIN_DIR) : $detected_root_path . '/wp-content/plugins';
     $saved_ftp_path = get_option('vbc_ftp_path', '');
-    $default_ftp_path = !empty($saved_ftp_path) ? $saved_ftp_path : $detected_plugin_path;
+    $default_ftp_path = !empty($saved_ftp_path) ? $saved_ftp_path : $detected_root_path;
 
     $ftp_host = !empty($_POST['ftp_host']) ? trim($_POST['ftp_host']) : (get_option('vbc_ftp_host') ?: '<none>');
     $ftp_user = !empty($_POST['ftp_user']) ? trim($_POST['ftp_user']) : (get_option('vbc_ftp_user') ?: '<none>');
@@ -2182,6 +2183,8 @@ function vbc_handle_export_project_request() {
             'user' => $ftp_user,
             'password' => $ftp_password,
             'path' => $ftp_path,
+            'root_path' => $ftp_path,
+            'plugins_path' => $detected_plugin_path,
         ),
         'website_context' => array(
             'site_name' => $site_name,
@@ -2327,14 +2330,15 @@ function vbc_render_admin_settings_page() {
     $domain_host = !empty($parsed_url['host']) ? $parsed_url['host'] : 'website';
     $clean_domain = sanitize_file_name(preg_replace('/[^a-zA-Z0-9\.\-]/', '-', $domain_host));
 
-    // Tự động nhận diện đường dẫn thư mục plugins trên hosting
-    $detected_plugin_path = defined('WP_PLUGIN_DIR') ? wp_normalize_path(WP_PLUGIN_DIR) : (defined('ABSPATH') ? wp_normalize_path(ABSPATH . 'wp-content/plugins') : '/wp-content/plugins');
+    // Tự động nhận diện đường dẫn thư mục gốc website (Root Path chứa wp-config.php)
+    $detected_root_path = defined('ABSPATH') ? wp_normalize_path(untrailingslashit(ABSPATH)) : (defined('WP_CONTENT_DIR') ? wp_normalize_path(dirname(WP_CONTENT_DIR)) : '/public_html');
+    $detected_plugin_path = defined('WP_PLUGIN_DIR') ? wp_normalize_path(WP_PLUGIN_DIR) : $detected_root_path . '/wp-content/plugins';
     $ftp_host = get_option('vbc_ftp_host', '');
     $ftp_user = get_option('vbc_ftp_user', '');
     $ftp_password = get_option('vbc_ftp_password', '');
     $ftp_path = get_option('vbc_ftp_path', '');
     if (empty($ftp_path)) {
-        $ftp_path = $detected_plugin_path;
+        $ftp_path = $detected_root_path;
     }
 
     $brand_phone = get_option('vbc_brand_phone', '');
@@ -2608,10 +2612,10 @@ function vbc_render_admin_settings_page() {
                             <input type="password" name="ftp_password" value="<?php echo esc_attr($ftp_password); ?>" placeholder="••••••••••••" />
                         </div>
                         <div class="vbc-form-group">
-                            <label><?php _e('Đường dẫn Plugins trên Hosting (Remote Path)', 'vibecode'); ?></label>
-                            <input type="text" name="ftp_path" value="<?php echo esc_attr($ftp_path); ?>" placeholder="<?php echo esc_attr($detected_plugin_path); ?>" />
+                            <label><?php _e('Đường dẫn thư mục gốc Website trên Hosting (Root Path)', 'vibecode'); ?></label>
+                            <input type="text" name="ftp_path" value="<?php echo esc_attr($ftp_path); ?>" placeholder="<?php echo esc_attr($detected_root_path); ?>" />
                             <span style="font-size: 11px; color: #64748b; margin-top: 4px; display: block;">
-                                <?php printf(__('Tự động nhận diện đường dẫn thực tế trên hosting: <code>%s</code>', 'vibecode'), esc_html($detected_plugin_path)); ?>
+                                <?php printf(__('Tự động nhận diện thư mục gốc chứa wp-config.php: <code>%s</code>', 'vibecode'), esc_html($detected_root_path)); ?>
                             </span>
                         </div>
                     </div>
@@ -2821,10 +2825,10 @@ function vbc_render_admin_settings_page() {
                             <input type="password" name="ftp_password" value="<?php echo esc_attr($ftp_password); ?>" placeholder="••••••••••••" />
                         </div>
                         <div class="vbc-form-group">
-                            <label><?php _e('Đường dẫn Plugins trên Hosting (Remote Path)', 'vibecode'); ?></label>
-                            <input type="text" name="ftp_path" value="<?php echo esc_attr($ftp_path); ?>" placeholder="<?php echo esc_attr($detected_plugin_path); ?>" />
+                            <label><?php _e('Đường dẫn thư mục gốc Website trên Hosting (Root Path)', 'vibecode'); ?></label>
+                            <input type="text" name="ftp_path" value="<?php echo esc_attr($ftp_path); ?>" placeholder="<?php echo esc_attr($detected_root_path); ?>" />
                             <span style="font-size: 11px; color: #64748b; margin-top: 4px; display: block;">
-                                <?php printf(__('Tự động nhận diện: <code>%s</code>', 'vibecode'), esc_html($detected_plugin_path)); ?>
+                                <?php printf(__('Tự động nhận diện thư mục gốc chứa wp-config.php: <code>%s</code>', 'vibecode'), esc_html($detected_root_path)); ?>
                             </span>
                         </div>
                     </div>

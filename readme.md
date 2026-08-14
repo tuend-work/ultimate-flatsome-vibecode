@@ -134,10 +134,13 @@ Sử dụng tuần tự các thẻ bí danh theo cấp bậc:
 
 | Anti-Pattern | Lý Do Cấm Kỵ | Giải Pháp Bắt Buộc |
 |---|---|---|
+| ❌ **Hardcode `font-family` trong shortcode** | Làm hỏng hiển thị tiếng Việt có dấu và mất tính đồng bộ với Flatsome | **KHÔNG khai báo font-family** trong `custom_css`. Để trang web tự động kế thừa font chữ toàn cục đã cấu hình trong Flatsome Customizer |
+| ❌ **Dùng dấu ngoặc kép thô `"` trong text** | Làm vỡ bộ phân tích thuộc tính shortcode của WordPress | Dùng HTML entities `&ldquo;` / `&rdquo;` hoặc `&quot;` cho các trích dẫn |
 | ❌ **Dùng Emoji Unicode thô (🔥, ⚡, 🚨)** | WordPress core tự biến emoji thành thẻ ảnh SVG `s.w.org` xấu và làm chậm trang | Luôn dùng `[vbc_icon pack="..." name="..."]` |
 | ❌ **Lồng `[row]` bên trong `[col]`** | Flatsome shortcode parser bị vỡ cú pháp và lộ thẻ đóng ra ngoài | Dùng CSS Grid `display: grid; grid-template-columns: 1fr 1fr; gap: 16px;` |
 | ❌ **Thuộc tính Flex trần ngoài `custom_css`** | `align_items`, `gap`, `justify_content` trần không được PHP tự động render | Khai báo trực tiếp trong `custom_css="selector { display: flex; align-items: center; gap: 12px; }"` |
 | ❌ **Dùng `href="..."` thay vì `link_url="..."`** | Thẻ `[vbc_a]` sẽ bị thiếu link đích | Dùng đúng `[vbc_a link_url="..." link_target="_blank"]` |
+| ❌ **Viết sai cú pháp comment HTML (`<-- ... -->`)** | Làm lộ comment thô ra ngoài trang web | Luôn viết đúng chuẩn `<!-- ... -->` |
 | ❌ **Độ tương phản thấp (&lt; 4.5:1)** | Chữ xám nhạt trên nền trắng gây mỏi mắt và vi phạm chuẩn tiếp cận | Luôn dùng `#0f172a` cho heading và `#475569` cho body |
 
 ---

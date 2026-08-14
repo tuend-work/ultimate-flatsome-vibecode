@@ -133,8 +133,39 @@ function escapeRawLessThan(content) {
 }
 
 /**
+ * Tự động loại bỏ các khai báo font-family cứng trong custom_css để kế thừa
+ * trọn vẹn font chữ mặc định của Flatsome (đã được cấu hình tiếng Việt trong Theme Options).
+ */
+function stripHardcodedFontFamily(content) {
+    let fixes = 0;
+    // Tìm font-family trong custom_css
+    const pattern = /font-family:\s*['"][^'"]+['"][^;}]*;?/gi;
+    const result = content.replace(pattern, () => {
+        fixes++;
+        return '';
+    });
+    return { content: result, fixes };
+}
+
+/**
+ * Tự động sửa các comment HTML bị viết sai cú pháp (như <-- ... --> thành <!-- ... -->).
+ */
+function fixInvalidHtmlComments(content) {
+    let fixes = 0;
+    const pattern = /<--\s*(.*?)\s*-->/g;
+    const result = content.replace(pattern, (match, text) => {
+        fixes++;
+        return `<!-- ${text} -->`;
+    });
+    return { content: result, fixes };
+}
+
+/**
  * Tự động chuyển đổi các thẻ text VBC (span, p, h1-h6, a) có nội dung trần 
  * sang dạng thuộc tính content="..." để tránh wpautop tự bọc thẻ <p>.
+ * 
+ * QUAN TRỌNG: Sử dụng &quot; thay vì \" vì bộ phân tích shortcode của WordPress
+ * sẽ bị vỡ thuộc tính ngay khi gặp dấu ngoặc kép đầu tiên.
  */
 function migrateTagsToContentAttribute(content) {
     let fixes = 0;
@@ -155,8 +186,8 @@ function migrateTagsToContentAttribute(content) {
             return match;
         }
 
-        // Escape các dấu nháy kép bên trong text nội dung
-        const escapedText = trimmedText.replace(/"/g, '\\"');
+        // Escape các dấu nháy kép bên trong text thành &quot; an toàn cho shortcode WordPress
+        const escapedText = trimmedText.replace(/"/g, '&quot;');
         fixes++;
 
         const fullTag = `vbc_${tag}${suffix || ''}`;
@@ -309,7 +340,7 @@ function convertSpanWithIconToDiv(content) {
         const trimmedText = text.trim();
         const trimmedSpanAttrs = spanAttrs.trim();
 
-        const escapedText = trimmedText.replace(/"/g, '\\"');
+        const escapedText = trimmedText.replace(/"/g, '&quot;');
         fixes++;
 
         let divAttrs = trimmedSpanAttrs;
@@ -335,55 +366,67 @@ function convertSpanWithIconToDiv(content) {
 function sanitizeShortcodeContent(content) {
     console.log('\n\x1b[35m[SANITIZER & LINTER] Đang kiểm tra và chuẩn hóa nội dung shortcode...\x1b[0m');
     
-    // Bước 1: Chuẩn hóa thẻ link [vbc_a]
-    const linkResult = fixLinkShortcodes(content);
+    // Bước 1: Sửa các comment HTML sai cú pháp (<-- ... -->)
+    const commentResult = fixInvalidHtmlComments(content);
+    if (commentResult.fixes > 0) {
+        console.log(`  \x1b[32m✓ Tự động sửa ${commentResult.fixes} HTML comment sai cú pháp sang <!-- ... -->\x1b[0m`);
+    }
+
+    // Bước 2: Loại bỏ font-family hardcoded để kế thừa trọn vẹn font Flatsome
+    const fontResult = stripHardcodedFontFamily(commentResult.content);
+    if (fontResult.fixes > 0) {
+        console.log(`  \x1b[32m✓ Tự động gỡ bỏ ${fontResult.fixes} khai báo font-family cứng để kế thừa font Flatsome\x1b[0m`);
+    }
+
+    // Bước 3: Chuẩn hóa thẻ link [vbc_a]
+    const linkResult = fixLinkShortcodes(fontResult.content);
     if (linkResult.fixes > 0) {
         console.log(`  \x1b[32m✓ Tự động chuẩn hóa ${linkResult.fixes} thuộc tính liên kết (href -> link_url)\x1b[0m`);
     }
 
-    // Bước 2: Chuẩn hóa thuộc tính Flexbox/Grid vào custom_css
+    // Bước 4: Chuẩn hóa thuộc tính Flexbox/Grid vào custom_css
     const flexResult = fixFlexProperties(linkResult.content);
     if (flexResult.fixes > 0) {
         console.log(`  \x1b[32m✓ Tự động gom ${flexResult.fixes} thuộc tính Flex/Grid vào selector custom_css\x1b[0m`);
     }
 
-    // Bước 3: Chuẩn hóa mã màu Hex
+    // Bước 5: Chuẩn hóa mã màu Hex
     const hexResult = fixRawHexColors(flexResult.content);
     if (hexResult.fixes > 0) {
         console.log(`  \x1b[32m✓ Tự động bổ sung dấu # cho ${hexResult.fixes} mã màu Hex\x1b[0m`);
     }
 
-    // Bước 4: Chuyển đổi vbc_span chứa icon và text thành vbc_div và vbc_span_inner
+    // Bước 6: Chuyển đổi vbc_span chứa icon và text thành vbc_div và vbc_span_inner
     const badgeResult = convertSpanWithIconToDiv(hexResult.content);
     if (badgeResult.fixes > 0) {
         console.log(`  \x1b[33m⚠ Chuyển đổi ${badgeResult.fixes} badge span chứa icon thành khối vbc_div an toàn\x1b[0m`);
     }
 
-    // Bước 5: Sửa nested same-tag shortcodes bằng Stack Tokenizer
+    // Bước 7: Sửa nested same-tag shortcodes bằng Stack Tokenizer
     const nestResult = fixNestedShortcodes(badgeResult.content);
     if (nestResult.fixes > 0) {
         console.log(`  \x1b[33m⚠ Tự động sửa ${nestResult.fixes} trường hợp nested same-tag thành cấu trúc _inner chuẩn\x1b[0m`);
     }
 
-    // Bước 6: Escape ký tự < trong text content
+    // Bước 8: Escape ký tự < trong text content
     const escResult = escapeRawLessThan(nestResult.content);
     if (escResult.fixes > 0) {
         console.log(`  \x1b[33m⚠ Tự động escape ${escResult.fixes} ký tự < thành &lt;\x1b[0m`);
     }
 
-    // Bước 7: Tự động chuyển đổi text-only tags sang dạng content attribute
+    // Bước 9: Tự động chuyển đổi text-only tags sang dạng content attribute
     const contentAttrResult = migrateTagsToContentAttribute(escResult.content);
     if (contentAttrResult.fixes > 0) {
         console.log(`  \x1b[33m⚠ Tự động chuyển ${contentAttrResult.fixes} thẻ text trần sang thuộc tính content="..."\x1b[0m`);
     }
 
-    // Bước 8: Linter kiểm tra lồng [row] trong [col]
+    // Bước 10: Linter kiểm tra lồng [row] trong [col]
     const rowWarnings = checkRowInColNesting(contentAttrResult.content);
     if (rowWarnings > 0) {
         console.warn(`  \x1b[31m⚠ CẢNH BÁO: Phát hiện ${rowWarnings} khối [row] lồng bên trong [col]! Khuyên dùng CSS Grid thay vì lồng [row].\x1b[0m`);
     }
 
-    const totalFixes = linkResult.fixes + flexResult.fixes + hexResult.fixes + badgeResult.fixes + nestResult.fixes + escResult.fixes + contentAttrResult.fixes;
+    const totalFixes = commentResult.fixes + fontResult.fixes + linkResult.fixes + flexResult.fixes + hexResult.fixes + badgeResult.fixes + nestResult.fixes + escResult.fixes + contentAttrResult.fixes;
     if (totalFixes > 0) {
         console.log(`  \x1b[35m→ Tổng cộng bộ Linter đã tự động tối ưu & sửa ${totalFixes} vấn đề kỹ thuật!\x1b[0m`);
     } else {

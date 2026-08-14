@@ -26,111 +26,111 @@
 
     var VBC_ICONS_DATA = [
         // Security & Trust
-        { id: 'shield-check', name: 'Khiên bảo vệ hoàn thành', cat: 'security', pack: 'lucide', keywords: 'shield check verified protect security' },
-        { id: 'shield', name: 'Khiên bảo vệ', cat: 'security', pack: 'lucide', keywords: 'shield security protect' },
+        { id: 'shield-check', name: 'Khiên bảo vệ hoàn thành', cat: 'security', pack: 'lucide', keywords: 'shield check verified protect security uy tin' },
+        { id: 'shield', name: 'Khiên bảo vệ', cat: 'security', pack: 'lucide', keywords: 'shield security protect khien' },
         { id: 'shield-alert', name: 'Cảnh báo bảo mật', cat: 'security', pack: 'lucide', keywords: 'shield alert warning danger' },
-        { id: 'award', name: 'Huy chương danh dự', cat: 'security', pack: 'lucide', keywords: 'award medal badge winner reward' },
-        { id: 'lock', name: 'Khóa bảo mật', cat: 'security', pack: 'lucide', keywords: 'lock security private password' },
-        { id: 'key', name: 'Chìa khóa', cat: 'security', pack: 'lucide', keywords: 'key security access password' },
-        { id: 'check-circle', name: 'Tích tròn thành công', cat: 'security', pack: 'lucide', keywords: 'check circle success done verified' },
-        { id: 'check-check', name: 'Đã xác thực kép', cat: 'security', pack: 'lucide', keywords: 'check double verified' },
-        { id: 'badge-check', name: 'Huy hiệu tích xanh', cat: 'security', pack: 'lucide', keywords: 'badge check verified official' },
-        { id: 'fingerprint', name: 'Vân tay bảo mật', cat: 'security', pack: 'lucide', keywords: 'fingerprint biometric security' },
+        { id: 'award', name: 'Huy chương danh dự', cat: 'security', pack: 'lucide', keywords: 'award medal badge winner reward huy chuong' },
+        { id: 'lock', name: 'Khóa bảo mật', cat: 'security', pack: 'lucide', keywords: 'lock security private password khoa' },
+        { id: 'key', name: 'Chìa khóa', cat: 'security', pack: 'lucide', keywords: 'key security access password chia khoa' },
+        { id: 'check-circle', name: 'Tích tròn thành công', cat: 'security', pack: 'lucide', keywords: 'check circle success done verified hoan thanh' },
+        { id: 'check-check', name: 'Đã xác thực kép', cat: 'security', pack: 'lucide', keywords: 'check double verified xac thuc' },
+        { id: 'badge-check', name: 'Huy hiệu tích xanh', cat: 'security', pack: 'lucide', keywords: 'badge check verified official tich xanh' },
+        { id: 'fingerprint', name: 'Vân tay bảo mật', cat: 'security', pack: 'lucide', keywords: 'fingerprint biometric security van tay' },
 
         // Business & Growth
-        { id: 'trending-up', name: 'Biểu đồ tăng trưởng', cat: 'business', pack: 'lucide', keywords: 'trending up growth success chart stock' },
-        { id: 'rocket', name: 'Tên lửa tăng tốc', cat: 'business', pack: 'lucide', keywords: 'rocket launch startup boost fast' },
-        { id: 'target', name: 'Mục tiêu chiến lược', cat: 'business', pack: 'lucide', keywords: 'target goal focus aim' },
-        { id: 'briefcase', name: 'Cặp doanh nhân / Dự án', cat: 'business', pack: 'lucide', keywords: 'briefcase business job work bag' },
-        { id: 'dollar-sign', name: 'Đô la / Doanh thu', cat: 'business', pack: 'lucide', keywords: 'dollar money cash finance price' },
-        { id: 'coins', name: 'Tiền xu / Tài chính', cat: 'business', pack: 'lucide', keywords: 'coins money wealth finance gold' },
-        { id: 'pie-chart', name: 'Biểu đồ tròn', cat: 'business', pack: 'lucide', keywords: 'chart pie analytics stats' },
-        { id: 'bar-chart-3', name: 'Biểu đồ cột', cat: 'business', pack: 'lucide', keywords: 'chart bar analytics report' },
-        { id: 'percent', name: 'Phần trăm ưu đãi', cat: 'business', pack: 'lucide', keywords: 'percent discount sale offer' },
-        { id: 'sparkles', name: 'Lấp lánh / AI Thông minh', cat: 'business', pack: 'lucide', keywords: 'sparkles magic ai star new premium' },
-        { id: 'zap', name: 'Tia sét / Nhanh chóng', cat: 'business', pack: 'lucide', keywords: 'zap lightning speed fast power energy' },
+        { id: 'trending-up', name: 'Biểu đồ tăng trưởng', cat: 'business', pack: 'lucide', keywords: 'trending up growth success chart stock tang truong' },
+        { id: 'rocket', name: 'Tên lửa tăng tốc', cat: 'business', pack: 'lucide', keywords: 'rocket launch startup boost fast ten lua' },
+        { id: 'target', name: 'Mục tiêu chiến lược', cat: 'business', pack: 'lucide', keywords: 'target goal focus aim muc tieu' },
+        { id: 'briefcase', name: 'Cặp doanh nhân / Dự án', cat: 'business', pack: 'lucide', keywords: 'briefcase business job work bag du an' },
+        { id: 'dollar-sign', name: 'Đô la / Doanh thu', cat: 'business', pack: 'lucide', keywords: 'dollar money cash finance price tien' },
+        { id: 'coins', name: 'Tiền xu / Tài chính', cat: 'business', pack: 'lucide', keywords: 'coins money wealth finance gold tai chinh' },
+        { id: 'pie-chart', name: 'Biểu đồ tròn', cat: 'business', pack: 'lucide', keywords: 'chart pie analytics stats bieu do' },
+        { id: 'bar-chart-3', name: 'Biểu đồ cột', cat: 'business', pack: 'lucide', keywords: 'chart bar analytics report bieu do' },
+        { id: 'percent', name: 'Phần trăm ưu đãi', cat: 'business', pack: 'lucide', keywords: 'percent discount sale offer giam gia' },
+        { id: 'sparkles', name: 'Lấp lánh / AI Thông minh', cat: 'business', pack: 'lucide', keywords: 'sparkles magic ai star new premium thong minh' },
+        { id: 'zap', name: 'Tia sét / Nhanh chóng', cat: 'business', pack: 'lucide', keywords: 'zap lightning speed fast power energy set' },
 
         // E-commerce & Shopping
-        { id: 'shopping-cart', name: 'Giỏ hàng mua sắm', cat: 'ecommerce', pack: 'lucide', keywords: 'cart shopping store buy ecommerce' },
-        { id: 'shopping-bag', name: 'Túi mua sắm', cat: 'ecommerce', pack: 'lucide', keywords: 'bag shopping store market' },
-        { id: 'credit-card', name: 'Thẻ thanh toán', cat: 'ecommerce', pack: 'lucide', keywords: 'card credit payment bank visa master' },
-        { id: 'package', name: 'Kiện hàng / Đóng gói', cat: 'ecommerce', pack: 'lucide', keywords: 'package box delivery parcel shipping' },
-        { id: 'truck', name: 'Xe giao hàng', cat: 'ecommerce', pack: 'lucide', keywords: 'truck delivery shipping express transport' },
-        { id: 'tag', name: 'Thẻ giá / Khuyến mãi', cat: 'ecommerce', pack: 'lucide', keywords: 'tag price label discount sale' },
-        { id: 'gift', name: 'Hộp quà tặng', cat: 'ecommerce', pack: 'lucide', keywords: 'gift present reward bonus' },
-        { id: 'store', name: 'Cửa hàng', cat: 'ecommerce', pack: 'lucide', keywords: 'store shop market boutique' },
-        { id: 'receipt', name: 'Hóa đơn thanh toán', cat: 'ecommerce', pack: 'lucide', keywords: 'receipt bill invoice paper payment' },
+        { id: 'shopping-cart', name: 'Giỏ hàng mua sắm', cat: 'ecommerce', pack: 'lucide', keywords: 'cart shopping store buy ecommerce gio hang' },
+        { id: 'shopping-bag', name: 'Túi mua sắm', cat: 'ecommerce', pack: 'lucide', keywords: 'bag shopping store market tui' },
+        { id: 'credit-card', name: 'Thẻ thanh toán', cat: 'ecommerce', pack: 'lucide', keywords: 'card credit payment bank visa master the' },
+        { id: 'package', name: 'Kiện hàng / Đóng gói', cat: 'ecommerce', pack: 'lucide', keywords: 'package box delivery parcel shipping hang' },
+        { id: 'truck', name: 'Xe giao hàng', cat: 'ecommerce', pack: 'lucide', keywords: 'truck delivery shipping express transport van chuyen' },
+        { id: 'tag', name: 'Thẻ giá / Khuyến mãi', cat: 'ecommerce', pack: 'lucide', keywords: 'tag price label discount sale gia' },
+        { id: 'gift', name: 'Hộp quà tặng', cat: 'ecommerce', pack: 'lucide', keywords: 'gift present reward bonus qua' },
+        { id: 'store', name: 'Cửa hàng', cat: 'ecommerce', pack: 'lucide', keywords: 'store shop market boutique cua hang' },
+        { id: 'receipt', name: 'Hóa đơn thanh toán', cat: 'ecommerce', pack: 'lucide', keywords: 'receipt bill invoice paper payment hoa don' },
 
         // Contact & Support
-        { id: 'phone', name: 'Điện thoại liên hệ', cat: 'contact', pack: 'lucide', keywords: 'phone call hotline contact mobile' },
-        { id: 'phone-call', name: 'Đang gọi điện', cat: 'contact', pack: 'lucide', keywords: 'phone call dial ring ring' },
-        { id: 'mail', name: 'Hòm thư điện tử', cat: 'contact', pack: 'lucide', keywords: 'mail email message envelope inbox' },
-        { id: 'message-square', name: 'Tin nhắn / Trao đổi', cat: 'contact', pack: 'lucide', keywords: 'message chat comment talk sms' },
-        { id: 'message-circle', name: 'Hội thoại tròn', cat: 'contact', pack: 'lucide', keywords: 'chat speech bubble message' },
-        { id: 'send', name: 'Gửi tin nhắn', cat: 'contact', pack: 'lucide', keywords: 'send message fly paper aircraft' },
-        { id: 'headphones', name: 'Tai nghe hỗ trợ viên', cat: 'contact', pack: 'lucide', keywords: 'headphones support agent customer audio' },
-        { id: 'map-pin', name: 'Địa chỉ vị trí', cat: 'contact', pack: 'lucide', keywords: 'map pin location address marker place' },
-        { id: 'clock', name: 'Đồng hồ thời gian', cat: 'contact', pack: 'lucide', keywords: 'clock time hour minute schedule watch' },
-        { id: 'calendar', name: 'Lịch hẹn ngày', cat: 'contact', pack: 'lucide', keywords: 'calendar date schedule event month' },
+        { id: 'phone', name: 'Điện thoại liên hệ', cat: 'contact', pack: 'lucide', keywords: 'phone call hotline contact mobile dien thoai' },
+        { id: 'phone-call', name: 'Đang gọi điện', cat: 'contact', pack: 'lucide', keywords: 'phone call dial ring ring goi dien' },
+        { id: 'mail', name: 'Hòm thư điện tử', cat: 'contact', pack: 'lucide', keywords: 'mail email message envelope inbox thu' },
+        { id: 'message-square', name: 'Tin nhắn / Trao đổi', cat: 'contact', pack: 'lucide', keywords: 'message chat comment talk sms tin nhan' },
+        { id: 'message-circle', name: 'Hội thoại tròn', cat: 'contact', pack: 'lucide', keywords: 'chat speech bubble message hoi thoai' },
+        { id: 'send', name: 'Gửi tin nhắn', cat: 'contact', pack: 'lucide', keywords: 'send message fly paper aircraft gui' },
+        { id: 'headphones', name: 'Tai nghe hỗ trợ viên', cat: 'contact', pack: 'lucide', keywords: 'headphones support agent customer audio tai nghe' },
+        { id: 'map-pin', name: 'Địa chỉ vị trí', cat: 'contact', pack: 'lucide', keywords: 'map pin location address marker place dia chi' },
+        { id: 'clock', name: 'Đồng hồ thời gian', cat: 'contact', pack: 'lucide', keywords: 'clock time hour minute schedule watch dong ho' },
+        { id: 'calendar', name: 'Lịch hẹn ngày', cat: 'contact', pack: 'lucide', keywords: 'calendar date schedule event month lich' },
 
         // Tech & Website
-        { id: 'globe', name: 'Quả địa cầu / Website', cat: 'tech', pack: 'lucide', keywords: 'globe web internet world domain online' },
-        { id: 'monitor', name: 'Màn hình máy tính', cat: 'tech', pack: 'lucide', keywords: 'monitor screen desktop display computer' },
-        { id: 'laptop', name: 'Máy tính xách tay', cat: 'tech', pack: 'lucide', keywords: 'laptop computer macbook pc notebook' },
-        { id: 'smartphone', name: 'Điện thoại di động', cat: 'tech', pack: 'lucide', keywords: 'smartphone phone mobile iphone android' },
-        { id: 'server', name: 'Máy chủ Server', cat: 'tech', pack: 'lucide', keywords: 'server cloud host hosting rack database' },
-        { id: 'database', name: 'Cơ sở dữ liệu', cat: 'tech', pack: 'lucide', keywords: 'database sql storage data data' },
-        { id: 'cpu', name: 'Vi xử lý CPU', cat: 'tech', pack: 'lucide', keywords: 'cpu chip processor hardware hardware' },
-        { id: 'code', name: 'Mã nguồn / Lập trình', cat: 'tech', pack: 'lucide', keywords: 'code programming html dev software' },
+        { id: 'globe', name: 'Quả địa cầu / Website', cat: 'tech', pack: 'lucide', keywords: 'globe web internet world domain online website' },
+        { id: 'monitor', name: 'Màn hình máy tính', cat: 'tech', pack: 'lucide', keywords: 'monitor screen desktop display computer man hinh' },
+        { id: 'laptop', name: 'Máy tính xách tay', cat: 'tech', pack: 'lucide', keywords: 'laptop computer macbook pc notebook may tinh' },
+        { id: 'smartphone', name: 'Điện thoại di động', cat: 'tech', pack: 'lucide', keywords: 'smartphone phone mobile iphone android di dong' },
+        { id: 'server', name: 'Máy chủ Server', cat: 'tech', pack: 'lucide', keywords: 'server cloud host hosting rack database may chu' },
+        { id: 'database', name: 'Cơ sở dữ liệu', cat: 'tech', pack: 'lucide', keywords: 'database sql storage data du lieu' },
+        { id: 'cpu', name: 'Vi xử lý CPU', cat: 'tech', pack: 'lucide', keywords: 'cpu chip processor hardware vi xu ly' },
+        { id: 'code', name: 'Mã nguồn / Lập trình', cat: 'tech', pack: 'lucide', keywords: 'code programming html dev software lap trinh' },
         { id: 'terminal', name: 'Dòng lệnh Terminal', cat: 'tech', pack: 'lucide', keywords: 'terminal console command prompt cli' },
-        { id: 'wifi', name: 'Sóng WiFi mạng', cat: 'tech', pack: 'lucide', keywords: 'wifi internet connection wireless signal' },
-        { id: 'cloud', name: 'Điện toán đám mây', cat: 'tech', pack: 'lucide', keywords: 'cloud hosting storage drive sync' },
+        { id: 'wifi', name: 'Sóng WiFi mạng', cat: 'tech', pack: 'lucide', keywords: 'wifi internet connection wireless signal mang' },
+        { id: 'cloud', name: 'Điện toán đám mây', cat: 'tech', pack: 'lucide', keywords: 'cloud hosting storage drive sync dam may' },
         { id: 'cloud-lightning', name: 'Máy chủ tốc độ cao', cat: 'tech', pack: 'lucide', keywords: 'cloud lightning fast speed server' },
-        { id: 'activity', name: 'Hiệu năng nhịp tim', cat: 'tech', pack: 'lucide', keywords: 'activity pulse heart rate performance monitor' },
+        { id: 'activity', name: 'Hiệu năng nhịp tim', cat: 'tech', pack: 'lucide', keywords: 'activity pulse heart rate performance monitor hieu nang' },
 
         // Interface & General UI
-        { id: 'home', name: 'Trang chủ Home', cat: 'interface', pack: 'lucide', keywords: 'home house main page dashboard' },
-        { id: 'search', name: 'Kính lúp tìm kiếm', cat: 'interface', pack: 'lucide', keywords: 'search find magnifying glass' },
-        { id: 'settings', name: 'Bánh răng cài đặt', cat: 'interface', pack: 'lucide', keywords: 'settings gear options preferences tools' },
-        { id: 'menu', name: 'Menu điều hướng', cat: 'interface', pack: 'lucide', keywords: 'menu hamburger nav navigation list' },
-        { id: 'check', name: 'Dấu tích kiểm', cat: 'interface', pack: 'lucide', keywords: 'check tick ok yes approve' },
-        { id: 'x', name: 'Dấu đóng / Xóa', cat: 'interface', pack: 'lucide', keywords: 'x close cancel delete remove' },
-        { id: 'plus', name: 'Dấu cộng thêm', cat: 'interface', pack: 'lucide', keywords: 'plus add new create' },
-        { id: 'minus', name: 'Dấu trừ', cat: 'interface', pack: 'lucide', keywords: 'minus remove subtract' },
-        { id: 'eye', name: 'Con mắt / Xem trước', cat: 'interface', pack: 'lucide', keywords: 'eye view preview watch visible' },
-        { id: 'eye-off', name: 'Ẩn nội dung', cat: 'interface', pack: 'lucide', keywords: 'eye off hide hidden invisible' },
-        { id: 'refresh-cw', name: 'Làm mới / Đồng bộ', cat: 'interface', pack: 'lucide', keywords: 'refresh sync reload update rotate' },
-        { id: 'download', name: 'Tải xuống', cat: 'interface', pack: 'lucide', keywords: 'download save get export' },
-        { id: 'upload', name: 'Tải lên', cat: 'interface', pack: 'lucide', keywords: 'upload send import file' },
-        { id: 'trash-2', name: 'Thùng rác xóa', cat: 'interface', pack: 'lucide', keywords: 'trash delete remove bin' },
-        { id: 'edit-3', name: 'Chỉnh sửa bút', cat: 'interface', pack: 'lucide', keywords: 'edit pen write modify pencil' },
-        { id: 'file-text', name: 'Tài liệu văn bản', cat: 'interface', pack: 'lucide', keywords: 'file text document paper doc page' },
-        { id: 'folder', name: 'Thư mục tệp', cat: 'interface', pack: 'lucide', keywords: 'folder directory file storage' },
-        { id: 'link', name: 'Liên kết URL', cat: 'interface', pack: 'lucide', keywords: 'link url href anchor chain' },
-        { id: 'external-link', name: 'Mở liên kết ngoài', cat: 'interface', pack: 'lucide', keywords: 'external link open new window tab' },
-        { id: 'help-circle', name: 'Hỏi đáp hỗ trợ', cat: 'interface', pack: 'lucide', keywords: 'help question circle faq info' },
-        { id: 'alert-triangle', name: 'Cảnh báo tam giác', cat: 'interface', pack: 'lucide', keywords: 'alert warning caution triangle' },
-        { id: 'info', name: 'Thông tin chi tiết', cat: 'interface', pack: 'lucide', keywords: 'info information detail about' },
+        { id: 'home', name: 'Trang chủ Home', cat: 'interface', pack: 'lucide', keywords: 'home house main page dashboard trang chu' },
+        { id: 'search', name: 'Kính lúp tìm kiếm', cat: 'interface', pack: 'lucide', keywords: 'search find magnifying glass tim kiem' },
+        { id: 'settings', name: 'Bánh răng cài đặt', cat: 'interface', pack: 'lucide', keywords: 'settings gear options preferences tools cai dat' },
+        { id: 'menu', name: 'Menu điều hướng', cat: 'interface', pack: 'lucide', keywords: 'menu hamburger nav navigation list menu' },
+        { id: 'check', name: 'Dấu tích kiểm', cat: 'interface', pack: 'lucide', keywords: 'check tick ok yes approve tich' },
+        { id: 'x', name: 'Dấu đóng / Xóa', cat: 'interface', pack: 'lucide', keywords: 'x close cancel delete remove xoa' },
+        { id: 'plus', name: 'Dấu cộng thêm', cat: 'interface', pack: 'lucide', keywords: 'plus add new create cong' },
+        { id: 'minus', name: 'Dấu trừ', cat: 'interface', pack: 'lucide', keywords: 'minus remove subtract tru' },
+        { id: 'eye', name: 'Con mắt / Xem trước', cat: 'interface', pack: 'lucide', keywords: 'eye view preview watch visible xem' },
+        { id: 'eye-off', name: 'Ẩn nội dung', cat: 'interface', pack: 'lucide', keywords: 'eye off hide hidden invisible an' },
+        { id: 'refresh-cw', name: 'Làm mới / Đồng bộ', cat: 'interface', pack: 'lucide', keywords: 'refresh sync reload update rotate lam moi' },
+        { id: 'download', name: 'Tải xuống', cat: 'interface', pack: 'lucide', keywords: 'download save get export tai xuong' },
+        { id: 'upload', name: 'Tải lên', cat: 'interface', pack: 'lucide', keywords: 'upload send import file tai len' },
+        { id: 'trash-2', name: 'Thùng rác xóa', cat: 'interface', pack: 'lucide', keywords: 'trash delete remove bin thung rac' },
+        { id: 'edit-3', name: 'Chỉnh sửa bút', cat: 'interface', pack: 'lucide', keywords: 'edit pen write modify pencil sua' },
+        { id: 'file-text', name: 'Tài liệu văn bản', cat: 'interface', pack: 'lucide', keywords: 'file text document paper doc page tai lieu' },
+        { id: 'folder', name: 'Thư mục tệp', cat: 'interface', pack: 'lucide', keywords: 'folder directory file storage thu muc' },
+        { id: 'link', name: 'Liên kết URL', cat: 'interface', pack: 'lucide', keywords: 'link url href anchor chain lien ket' },
+        { id: 'external-link', name: 'Mở liên kết ngoài', cat: 'interface', pack: 'lucide', keywords: 'external link open new window tab lien ket ngoai' },
+        { id: 'help-circle', name: 'Hỏi đáp hỗ trợ', cat: 'interface', pack: 'lucide', keywords: 'help question circle faq info hoi dap' },
+        { id: 'alert-triangle', name: 'Cảnh báo tam giác', cat: 'interface', pack: 'lucide', keywords: 'alert warning caution triangle canh bao' },
+        { id: 'info', name: 'Thông tin chi tiết', cat: 'interface', pack: 'lucide', keywords: 'info information detail about thong tin' },
 
         // Arrows & Navigation
-        { id: 'arrow-right', name: 'Mũi tên sang phải', cat: 'arrows', pack: 'lucide', keywords: 'arrow right next forward direction' },
-        { id: 'arrow-left', name: 'Mũi tên sang trái', cat: 'arrows', pack: 'lucide', keywords: 'arrow left back previous direction' },
-        { id: 'arrow-up', name: 'Mũi tên lên trên', cat: 'arrows', pack: 'lucide', keywords: 'arrow up top direction' },
-        { id: 'arrow-down', name: 'Mũi tên xuống dưới', cat: 'arrows', pack: 'lucide', keywords: 'arrow down bottom direction' },
+        { id: 'arrow-right', name: 'Mũi tên sang phải', cat: 'arrows', pack: 'lucide', keywords: 'arrow right next forward direction mui ten phai' },
+        { id: 'arrow-left', name: 'Mũi tên sang trái', cat: 'arrows', pack: 'lucide', keywords: 'arrow left back previous direction mui ten trai' },
+        { id: 'arrow-up', name: 'Mũi tên lên trên', cat: 'arrows', pack: 'lucide', keywords: 'arrow up top direction mui ten len' },
+        { id: 'arrow-down', name: 'Mũi tên xuống dưới', cat: 'arrows', pack: 'lucide', keywords: 'arrow down bottom direction mui ten xuong' },
         { id: 'chevron-right', name: 'Dấu nhọn phải', cat: 'arrows', pack: 'lucide', keywords: 'chevron right angle next' },
         { id: 'chevron-left', name: 'Dấu nhọn trái', cat: 'arrows', pack: 'lucide', keywords: 'chevron left angle prev' },
         { id: 'chevron-down', name: 'Dấu nhọn xuống', cat: 'arrows', pack: 'lucide', keywords: 'chevron down angle dropdown' },
         { id: 'corner-down-right', name: 'Rẽ nhánh sang phải', cat: 'arrows', pack: 'lucide', keywords: 'corner down right sub reply' },
 
         // Social & Users
-        { id: 'user', name: 'Tài khoản người dùng', cat: 'social', pack: 'lucide', keywords: 'user account person profile avatar' },
-        { id: 'users', name: 'Đội ngũ / Nhóm khách hàng', cat: 'social', pack: 'lucide', keywords: 'users group team people community' },
+        { id: 'user', name: 'Tài khoản người dùng', cat: 'social', pack: 'lucide', keywords: 'user account person profile avatar nguoi dung' },
+        { id: 'users', name: 'Đội ngũ / Nhóm khách hàng', cat: 'social', pack: 'lucide', keywords: 'users group team people community doi ngu' },
         { id: 'user-check', name: 'Người dùng xác thực', cat: 'social', pack: 'lucide', keywords: 'user check verified member' },
-        { id: 'user-plus', name: 'Thêm thành viên', cat: 'social', pack: 'lucide', keywords: 'user plus add member register' },
-        { id: 'heart', name: 'Trái tim yêu thích', cat: 'social', pack: 'lucide', keywords: 'heart love like favorite health' },
-        { id: 'star', name: 'Ngôi sao đánh giá', cat: 'social', pack: 'lucide', keywords: 'star rating favorite review bookmark' },
-        { id: 'thumbs-up', name: 'Thích / Đánh giá tốt', cat: 'social', pack: 'lucide', keywords: 'thumbs up like good approve praise' },
-        { id: 'share-2', name: 'Chia sẻ liên kết', cat: 'social', pack: 'lucide', keywords: 'share link social network send' },
+        { id: 'user-plus', name: 'Thêm thành viên', cat: 'social', pack: 'lucide', keywords: 'user plus add member register them' },
+        { id: 'heart', name: 'Trái tim yêu thích', cat: 'social', pack: 'lucide', keywords: 'heart love like favorite health trai tim' },
+        { id: 'star', name: 'Ngôi sao đánh giá', cat: 'social', pack: 'lucide', keywords: 'star rating favorite review bookmark ngoi sao' },
+        { id: 'thumbs-up', name: 'Thích / Đánh giá tốt', cat: 'social', pack: 'lucide', keywords: 'thumbs up like good approve praise thich' },
+        { id: 'share-2', name: 'Chia sẻ liên kết', cat: 'social', pack: 'lucide', keywords: 'share link social network send chia se' },
 
         // Brands & Networks
         { id: 'fa-brands fa-facebook', name: 'Facebook Logo', cat: 'brands', pack: 'fontawesome', keywords: 'facebook social network meta' },
@@ -174,16 +174,28 @@
         // C. Renderer View cho Tab SVG Icon
         MediaFrameSelect.prototype.vbcRenderSvgIconTab = function(contentRegion) {
             var state = this.state();
+            if (this.$el) {
+                this.$el.removeClass('hide-toolbar');
+            }
             var browserView = new wp.media.view.VbcSvgIconBrowser({
                 controller: this,
                 model: state
             });
-            (contentRegion || this.content).set(browserView);
+
+            if (contentRegion) {
+                contentRegion.view = browserView;
+                if (typeof contentRegion.set === 'function') {
+                    try { contentRegion.set(browserView); } catch(e) {}
+                }
+            }
+            if (this.content && typeof this.content.set === 'function') {
+                try { this.content.set(browserView); } catch(e) {}
+            }
         };
 
         // D. Khởi tạo Backbone View cho giao diện kho Icon
         wp.media.view.VbcSvgIconBrowser = wp.media.View.extend({
-            className: 'vbc-svg-media-browser-container',
+            className: 'vbc-svg-media-browser-container media-core-ui',
             selectedIcon: null,
 
             events: {
@@ -193,7 +205,8 @@
                 'dblclick .vbc-icon-card': 'onIconCardDoubleClick'
             },
 
-            initialize: function() {
+            initialize: function(options) {
+                wp.media.View.prototype.initialize.apply(this, arguments);
                 this.currentCategory = 'all';
                 this.searchQuery = '';
             },
@@ -236,7 +249,7 @@
                 // Kích hoạt render Lucide icons
                 setTimeout(function() {
                     if (typeof lucide !== 'undefined') {
-                        lucide.createIcons();
+                        lucide.createIcons({ root: self.el });
                     }
                 }, 50);
 
@@ -321,21 +334,24 @@
             },
 
             onSearchChange: function(e) {
+                var self = this;
                 this.searchQuery = $(e.currentTarget).val();
                 this.$el.find('.vbc-svg-grid-inner').html(this.renderIconCardsHtml());
-                if (typeof lucide !== 'undefined') lucide.createIcons();
+                if (typeof lucide !== 'undefined') lucide.createIcons({ root: self.el });
             },
 
             onCategoryClick: function(e) {
+                var self = this;
                 var $btn = $(e.currentTarget);
                 this.$el.find('.vbc-category-tab').removeClass('active');
                 $btn.addClass('active');
                 this.currentCategory = $btn.data('cat');
                 this.$el.find('.vbc-svg-grid-inner').html(this.renderIconCardsHtml());
-                if (typeof lucide !== 'undefined') lucide.createIcons();
+                if (typeof lucide !== 'undefined') lucide.createIcons({ root: self.el });
             },
 
             onIconCardClick: function(e) {
+                var self = this;
                 var $card = $(e.currentTarget);
                 var iconId = $card.data('icon-id');
                 var pack = $card.data('pack');
@@ -347,7 +363,7 @@
                 $card.addClass('selected');
 
                 this.$el.find('.vbc-svg-sidebar-panel').html(this.renderSidebarHtml());
-                if (typeof lucide !== 'undefined') lucide.createIcons();
+                if (typeof lucide !== 'undefined') lucide.createIcons({ root: self.el });
 
                 // Tạo đối tượng Attachment Model tương thích WordPress Media Selection
                 var attachment = new wp.media.model.Attachment({
@@ -361,6 +377,11 @@
                         full: { url: 'icon:' + iconId }
                     }
                 });
+
+                // Đăng ký attachment vào cache của Attachment Model để tránh gọi AJAX thất bại
+                if (wp.media.model.Attachment && wp.media.model.Attachment.get) {
+                    wp.media.model.Attachment.get('icon:' + iconId, attachment);
+                }
 
                 // Cập nhật selection của Media Frame để bật nút Select ở góc dưới phải
                 this.controller.state().get('selection').reset([attachment]);

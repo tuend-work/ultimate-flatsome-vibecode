@@ -387,14 +387,15 @@ function stripHardcodedFontFamily(content) {
     return { content: result, fixes };
 }
 
-function fixInvalidHtmlComments(content) {
+function stripAllHtmlComments(content) {
     let fixes = 0;
-    const pattern = /<--\s*(.*?)\s*-->/g;
-    const result = content.replace(pattern, (match, text) => {
+    const pattern = /<!--[\s\S]*?-->|<--[\s\S]*?-->/g;
+    const result = content.replace(pattern, () => {
         fixes++;
-        return `<!-- ${text} -->`;
+        return '';
     });
-    return { content: result, fixes };
+    const cleaned = result.replace(/\n\s*\n\s*\n/g, '\n\n');
+    return { content: cleaned, fixes };
 }
 
 function fixImageShortcodes(content) {
@@ -570,7 +571,7 @@ function migrateTagsToContentAttribute(content) {
 function sanitizeShortcodeContent(content) {
     console.log('\n\x1b[35m[CLONE SANITIZER] Đang kiểm tra và chuẩn hóa cấu trúc VibeCode...\x1b[0m');
     
-    const commentResult = fixInvalidHtmlComments(content);
+    const commentResult = stripAllHtmlComments(content);
     const fontResult = stripHardcodedFontFamily(commentResult.content);
     const imgResult = fixImageShortcodes(fontResult.content);
     const linkResult = fixLinkShortcodes(imgResult.content);

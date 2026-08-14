@@ -148,16 +148,18 @@ function stripHardcodedFontFamily(content) {
 }
 
 /**
- * Tự động sửa các comment HTML bị viết sai cú pháp (như <-- ... --> thành <!-- ... -->).
+ * Tự động loại bỏ hoàn toàn tất cả comment HTML (<!-- ... --> hoặc <-- ... -->)
+ * để tránh việc WordPress wpautop tự động bọc thẻ <p> làm sinh ra các khối Text rác trong Flatsome UX Builder.
  */
-function fixInvalidHtmlComments(content) {
+function stripAllHtmlComments(content) {
     let fixes = 0;
-    const pattern = /<--\s*(.*?)\s*-->/g;
-    const result = content.replace(pattern, (match, text) => {
+    const pattern = /<!--[\s\S]*?-->|<--[\s\S]*?-->/g;
+    const result = content.replace(pattern, () => {
         fixes++;
-        return `<!-- ${text} -->`;
+        return '';
     });
-    return { content: result, fixes };
+    const cleaned = result.replace(/\n\s*\n\s*\n/g, '\n\n');
+    return { content: cleaned, fixes };
 }
 
 /**
@@ -366,10 +368,10 @@ function convertSpanWithIconToDiv(content) {
 function sanitizeShortcodeContent(content) {
     console.log('\n\x1b[35m[SANITIZER & LINTER] Đang kiểm tra và chuẩn hóa nội dung shortcode...\x1b[0m');
     
-    // Bước 1: Sửa các comment HTML sai cú pháp (<-- ... -->)
-    const commentResult = fixInvalidHtmlComments(content);
+    // Bước 1: Loại bỏ hoàn toàn tất cả comment HTML để tránh wpautop sinh thẻ <p>
+    const commentResult = stripAllHtmlComments(content);
     if (commentResult.fixes > 0) {
-        console.log(`  \x1b[32m✓ Tự động sửa ${commentResult.fixes} HTML comment sai cú pháp sang <!-- ... -->\x1b[0m`);
+        console.log(`  \x1b[32m✓ Tự động loại bỏ ${commentResult.fixes} HTML comment để chống sinh thẻ <p> rác\x1b[0m`);
     }
 
     // Bước 2: Loại bỏ font-family hardcoded để kế thừa trọn vẹn font Flatsome

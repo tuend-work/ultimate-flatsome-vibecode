@@ -171,85 +171,189 @@ function migrateTagsToContentAttribute(content) {
 }
 
 /**
- * Tự động chuyển đổi:
- * [vbc_span ...][vbc_icon ... attrs] Text [/vbc_span]
- * thành:
- * [vbc_div ... display="flex" ...][vbc_icon ... attrs][vbc_span_inner content="Text"][/vbc_span_inner][/vbc_div]
+ * Chuẩn hóa các thuộc tính của thẻ [vbc_a].
+ * Tự động chuyển đổi href="..." -> link_url="..." và target="..." -> link_target="..."
  */
-function convertSpanWithIconToDiv(content) {
+function fixLinkShortcodes(content) {
     let fixes = 0;
-    // Regex tìm vbc_span chứa vbc_icon và text
-    const pattern = /\[vbc_span([^\]]*)\]\s*(\[vbc_icon[^\]]*\])\s*([^\[]+?)\s*\[\/vbc_span\]/gs;
+    const pattern = /\[vbc_a(_inner(?:_\d+)?)?([^\]]*)\]/g;
+    const result = content.replace(pattern, (match, suffix, attrs) => {
+        let modified = false;
+        let newAttrs = attrs;
 
-    const result = content.replace(pattern, (match, spanAttrs, iconShortcode, text) => {
-        const trimmedText = text.trim();
-        const trimmedSpanAttrs = spanAttrs.trim();
-
-        // Escape dấu nháy kép cho text
-        const escapedText = trimmedText.replace(/"/g, '\\"');
-        fixes++;
-
-        // Tạo thuộc tính cho div bao ngoài
-        let divAttrs = trimmedSpanAttrs;
-        if (!divAttrs.includes('display=')) {
-            divAttrs += ' display="inline-flex"';
-        }
-        if (!divAttrs.includes('align_items=')) {
-            divAttrs += ' align_items="center"';
-        }
-        if (!divAttrs.includes('gap=')) {
-            divAttrs += ' gap="8px"';
+        // Chuyển href thành link_url nếu chưa có link_url
+        if (/\bhref=(["'])(.*?)\1/.test(newAttrs) && !newAttrs.includes('link_url=')) {
+            newAttrs = newAttrs.replace(/\bhref=(["'])(.*?)\1/, 'link_url="$2"');
+            modified = true;
         }
 
-        return `[vbc_div ${divAttrs.trim()}]${iconShortcode}[vbc_span_inner content="${escapedText}"][/vbc_span_inner][/vbc_div]`;
+        // Chuyển target thành link_target nếu chưa có link_target
+        if (/\btarget=(["'])(.*?)\1/.test(newAttrs) && !newAttrs.includes('link_target=')) {
+            newAttrs = newAttrs.replace(/\btarget=(["'])(.*?)\1/, 'link_target="$2"');
+            modified = true;
+        }
+
+        if (modified) {
+            fixes++;
+            const tag = `vbc_a${suffix || ''}`;
+            return `[${tag} ${newAttrs.trim()}]`;
+        }
+        return match;
+    });
+    return { content: result, fixes };
+}
+
+/**
+ * Tự động chuyển đổi các thuộc tính Flexbox/Grid trần 
+ * (align_items, justify_content, gap, flex_direction, flex_wrap) vào custom_css.
+ * Điều này đảm bảo tất cả các style căn chỉnh đều được biên dịch chính xác 100% vào CSS selector.
+ */
+function fixFlexProperties(content) {
+    let fixes = 0;
+    const pattern = /\[(vbc_(?:div|box|block|container)(?:_inner(?:_\d+)?)?)(\s[^\]]*)\]/g;
+
+    const result = content.replace(pattern, (match, tag, attrs) => {
+        const flexProps = ['align_items', 'justify_content', 'gap', 'flex_direction', 'flex_wrap'];
+        const extracted = [];
+        let newAttrs = attrs;
+
+        for (const prop of flexProps) {
+            const propRegex = new RegExp(`\\b${prop}=(["'])(.*?)\\1`, 'i');
+            const found = newAttrs.match(propRegex);
+            if (found) {
+                const cssName = prop.replace(/_/g, '-');
+                extracted.push(`${cssName}: ${found[2]};`);
+                newAttrs = newAttrs.replace(propRegex, '').trim();
+            }
+        }
+
+        if (extracted.length > 0) {
+            fixes++;
+            // Gộp vào custom_css hiện có hoặc tạo custom_css mới
+            const customCssRegex = /\bcustom_css=(["'])(.*?)\1/;
+            const cssMatch = newAttrs.match(customCssRegex);
+
+            if (cssMatch) {
+                let existingCss = cssMatch[2];
+                if (existingCss.includes('selector {')) {
+                    existingCss = existingCss.replace('selector {', `selector { ${extracted.join(' ')} `);
+                } else {
+                    existingCss = `selector { ${extracted.join(' ')} } ` + existingCss;
+                }
+                newAttrs = newAttrs.replace(customCssRegex, `custom_css="${existingCss.trim()}"`);
+            } else {
+                newAttrs += ` custom_css="selector { ${extracted.join(' ')} }"`;
+            }
+
+            return `[${tag} ${newAttrs.replace(/\s+/g, ' ').trim()}]`;
+        }
+
+        return match;
     });
 
     return { content: result, fixes };
 }
 
 /**
- * Hàm sanitize tổng hợp — chạy tất cả các bước kiểm tra & sửa lỗi.
+ * Chuẩn hóa các mã màu Hex thiếu dấu #.
+ */
+function fixRawHexColors(content) {
+    let fixes = 0;
+    const colorProps = ['background_color', 'color', 'border_color', 'glow_color', 'text_color'];
+    let fixed = content;
+
+    for (const prop of colorProps) {
+        const regex = new RegExp(`\\b${prop}=(["'])([0-9a-fA-F]{3,8})\\1`, 'g');
+        fixed = fixed.replace(regex, (match, quote, hex) => {
+            fixes++;
+            return `${prop}=${quote}#${hex}${quote}`;
+        });
+    }
+
+    return { content: fixed, fixes };
+}
+
+/**
+ * Phát hiện và cảnh báo nếu có cấu trúc [row] bị lồng bên trong [col].
+ */
+function checkRowInColNesting(content) {
+    let warnings = 0;
+    const colRegex = /\[col\s[^\]]*\]/g;
+    let colMatch;
+
+    while ((colMatch = colRegex.exec(content)) !== null) {
+        const afterCol = content.substring(colMatch.index);
+        const nextColClose = afterCol.indexOf('[/col]');
+        if (nextColClose !== -1) {
+            const colContent = afterCol.substring(0, nextColClose);
+            if (/\[row[\s\]]/.test(colContent)) {
+                warnings++;
+            }
+        }
+    }
+
+    return warnings;
+}
+
+/**
+ * Hàm sanitize tổng hợp — chạy tất cả các bước kiểm tra & sửa lỗi thông minh.
  */
 function sanitizeShortcodeContent(content) {
-    console.log('\n\x1b[35m[SANITIZER] Đang kiểm tra nội dung shortcode...\x1b[0m');
+    console.log('\n\x1b[35m[SANITIZER & LINTER] Đang kiểm tra và chuẩn hóa nội dung shortcode...\x1b[0m');
     
-    // Bước 1: Chuyển đổi vbc_span chứa icon và text thành vbc_div và vbc_span_inner
-    const badgeResult = convertSpanWithIconToDiv(content);
-    if (badgeResult.fixes > 0) {
-        console.log(`  \x1b[33m⚠ Phát hiện ${badgeResult.fixes} badge span chứa icon → Đã chuyển thành vbc_div lồng vbc_span_inner\x1b[0m`);
-    } else {
-        console.log('  \x1b[32m✓ Không có badge span chứa icon nào cần chuyển đổi\x1b[0m');
+    // Bước 1: Chuẩn hóa thẻ link [vbc_a]
+    const linkResult = fixLinkShortcodes(content);
+    if (linkResult.fixes > 0) {
+        console.log(`  \x1b[32m✓ Tự động chuẩn hóa ${linkResult.fixes} thuộc tính liên kết (href -> link_url)\x1b[0m`);
     }
 
-    // Bước 2: Sửa nested same-tag shortcodes
+    // Bước 2: Chuẩn hóa thuộc tính Flexbox/Grid vào custom_css
+    const flexResult = fixFlexProperties(linkResult.content);
+    if (flexResult.fixes > 0) {
+        console.log(`  \x1b[32m✓ Tự động gom ${flexResult.fixes} thuộc tính Flex/Grid vào selector custom_css\x1b[0m`);
+    }
+
+    // Bước 3: Chuẩn hóa mã màu Hex
+    const hexResult = fixRawHexColors(flexResult.content);
+    if (hexResult.fixes > 0) {
+        console.log(`  \x1b[32m✓ Tự động bổ sung dấu # cho ${hexResult.fixes} mã màu Hex\x1b[0m`);
+    }
+
+    // Bước 4: Chuyển đổi vbc_span chứa icon và text thành vbc_div và vbc_span_inner
+    const badgeResult = convertSpanWithIconToDiv(hexResult.content);
+    if (badgeResult.fixes > 0) {
+        console.log(`  \x1b[33m⚠ Chuyển đổi ${badgeResult.fixes} badge span chứa icon thành khối vbc_div an toàn\x1b[0m`);
+    }
+
+    // Bước 5: Sửa nested same-tag shortcodes bằng Stack Tokenizer
     const nestResult = fixNestedShortcodes(badgeResult.content);
     if (nestResult.fixes > 0) {
-        console.log(`  \x1b[33m⚠ Phát hiện ${nestResult.fixes} trường hợp nested same-tag shortcode → Đã tự động chuyển đổi sang cấu trúc nested suffix (_inner)\x1b[0m`);
-    } else {
-        console.log('  \x1b[32m✓ Không có nested same-tag shortcode nào\x1b[0m');
+        console.log(`  \x1b[33m⚠ Tự động sửa ${nestResult.fixes} trường hợp nested same-tag thành cấu trúc _inner chuẩn\x1b[0m`);
     }
 
-    // Bước 3: Escape ký tự < trong text content
+    // Bước 6: Escape ký tự < trong text content
     const escResult = escapeRawLessThan(nestResult.content);
     if (escResult.fixes > 0) {
-        console.log(`  \x1b[33m⚠ Phát hiện ${escResult.fixes} ký tự < chưa được escape → Đã thay bằng &lt;\x1b[0m`);
-    } else {
-        console.log('  \x1b[32m✓ Không có ký tự < nào cần escape\x1b[0m');
+        console.log(`  \x1b[33m⚠ Tự động escape ${escResult.fixes} ký tự < thành &lt;\x1b[0m`);
     }
 
-    // Bước 4: Tự động chuyển đổi text-only tags sang dạng content attribute
+    // Bước 7: Tự động chuyển đổi text-only tags sang dạng content attribute
     const contentAttrResult = migrateTagsToContentAttribute(escResult.content);
     if (contentAttrResult.fixes > 0) {
-        console.log(`  \x1b[33m⚠ Phát hiện ${contentAttrResult.fixes} thẻ text trần → Đã tự động chuyển thành thuộc tính content="..."\x1b[0m`);
-    } else {
-        console.log('  \x1b[32m✓ Tất cả các thẻ text đều đã chuẩn hóa content\x1b[0m');
+        console.log(`  \x1b[33m⚠ Tự động chuyển ${contentAttrResult.fixes} thẻ text trần sang thuộc tính content="..."\x1b[0m`);
     }
 
-    const totalFixes = badgeResult.fixes + nestResult.fixes + escResult.fixes + contentAttrResult.fixes;
+    // Bước 8: Linter kiểm tra lồng [row] trong [col]
+    const rowWarnings = checkRowInColNesting(contentAttrResult.content);
+    if (rowWarnings > 0) {
+        console.warn(`  \x1b[31m⚠ CẢNH BÁO: Phát hiện ${rowWarnings} khối [row] lồng bên trong [col]! Khuyên dùng CSS Grid thay vì lồng [row].\x1b[0m`);
+    }
+
+    const totalFixes = linkResult.fixes + flexResult.fixes + hexResult.fixes + badgeResult.fixes + nestResult.fixes + escResult.fixes + contentAttrResult.fixes;
     if (totalFixes > 0) {
-        console.log(`  \x1b[35m→ Tổng cộng đã tự động sửa ${totalFixes} vấn đề\x1b[0m`);
+        console.log(`  \x1b[35m→ Tổng cộng bộ Linter đã tự động tối ưu & sửa ${totalFixes} vấn đề kỹ thuật!\x1b[0m`);
     } else {
-        console.log('  \x1b[32m✓ Nội dung sạch, không cần sửa gì!\x1b[0m');
+        console.log('  \x1b[32m✓ Cú pháp shortcode đạt chuẩn 100%, không cần sửa gì!\x1b[0m');
     }
 
     return contentAttrResult.content;

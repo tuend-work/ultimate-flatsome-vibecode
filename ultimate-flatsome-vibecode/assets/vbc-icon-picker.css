@@ -22,29 +22,36 @@
 
 /* Header Toolbar: Tìm kiếm & Danh mục */
 .vbc-svg-toolbar {
-    padding: 16px 20px 12px 20px;
+    padding: 14px 20px 10px 20px;
     background: #ffffff;
     border-bottom: 1px solid #e2e8f0;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
+    gap: 10px;
+}
+
+.vbc-toolbar-top-row {
+    display: flex;
     gap: 12px;
+    align-items: center;
+    width: 100%;
 }
 
 .vbc-search-box {
     position: relative;
-    width: 100%;
+    flex: 1;
     max-width: 600px;
 }
 
 .vbc-search-input {
     width: 100% !important;
-    height: 40px !important;
+    height: 38px !important;
     padding: 0 16px 0 38px !important;
     background: #f1f5f9 !important;
     border: 1px solid #cbd5e1 !important;
     border-radius: 8px !important;
-    font-size: 14px !important;
+    font-size: 13px !important;
     color: #0f172a !important;
     box-shadow: none !important;
     transition: all 0.2s !important;
@@ -56,6 +63,31 @@
     border-color: #2563eb !important;
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
     outline: none !important;
+}
+
+.vbc-pack-selector-wrap {
+    min-width: 200px;
+}
+
+.vbc-pack-select {
+    width: 100% !important;
+    height: 38px !important;
+    padding: 0 12px !important;
+    background: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #1e293b !important;
+    cursor: pointer !important;
+    outline: none !important;
+    transition: all 0.2s !important;
+}
+
+.vbc-pack-select:focus,
+.vbc-pack-select:hover {
+    border-color: #2563eb !important;
+    background: #ffffff !important;
 }
 
 /* Category Filter Pills */

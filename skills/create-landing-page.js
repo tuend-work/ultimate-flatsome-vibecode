@@ -29,81 +29,73 @@ const VBC_NESTABLE_TAGS = [
  * Khi phát hiện tag lồng nhau, inner tag sẽ được thay bằng tag VBC cùng tên nhưng kèm suffix _inner hoặc _inner_1, _inner_2...
  * Điều này tránh việc trùng tên làm hỏng shortcode parser của WordPress, đồng thời vẫn giữ nguyên semantic tag name.
  */
+/**
+ * Phát hiện và sửa nested same-tag shortcodes bằng phương pháp Stack Tokenizer.
+ * Quét tuần tự toàn bộ token mở và đóng, thay thế chính xác cặp thẻ theo cấp độ sâu.
+ */
 function fixNestedShortcodes(content) {
     let fixed = content;
-
-    // Normalization Step: Strip any pre-existing suffixes (_inner, _inner_1...) from VBC nestable tags first
-    for (const tag of VBC_NESTABLE_TAGS) {
-        const normalizeRegex = new RegExp(`\\[(/?)${tag}_inner(?:_\\d+)?(\\s[^\\]]*)?\\]`, 'g');
-        fixed = fixed.replace(normalizeRegex, (match, closeSlash, attrs) => {
-            return `[${closeSlash || ''}${tag}${attrs || ''}]`;
-        });
-    }
-
     let totalFixes = 0;
 
     for (const tag of VBC_NESTABLE_TAGS) {
-        // Regex tìm opening tag: [tag_name ...attributes...]
-        const openRegex = new RegExp(`\\[${tag}(\\s[^\\]]*)?\\]`, 'g');
-        const closeTag = `[/${tag}]`;
-        let changesMade = true;
+        // Chuẩn hóa: Gỡ bỏ các hậu tố _inner trước đó để kiểm tra từ đầu
+        const normRegex = new RegExp(`\\[(/?)${tag}_inner(?:_\\d+)?(\\s[^\\]]*)?\\]`, 'g');
+        fixed = fixed.replace(normRegex, (match, slash, attrs) => `[${slash || ''}${tag}${attrs || ''}]`);
 
-        // Lặp cho tới khi không còn nesting nào
-        while (changesMade) {
-            changesMade = false;
-            const lines = fixed.split('\n');
-            let depth = 0;
+        // Tìm tất cả token của tag này
+        const tagRegex = new RegExp(`\\[(/?)${tag}(\\s[^\\]]*)?\\]`, 'g');
+        let match;
+        const tokens = [];
+        while ((match = tagRegex.exec(fixed)) !== null) {
+            tokens.push({
+                full: match[0],
+                isClose: match[1] === '/',
+                attrs: match[2] || '',
+                index: match.index,
+                length: match[0].length
+            });
+        }
 
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i];
+        if (tokens.length === 0) continue;
 
-                // Đếm số lần open tag xuất hiện trên dòng này
-                const opens = [...line.matchAll(openRegex)];
-                const closes = (line.match(new RegExp(`\\[/${tag}\\]`, 'g')) || []).length;
+        const stack = [];
+        const replacements = [];
 
-                for (const openMatch of opens) {
-                    depth++;
-                    if (depth > 1) {
-                        // Đây là nested tag → cần thay thế bằng tag có kèm suffix độ sâu
-                        const suffix = (depth === 2) ? '_inner' : `_inner_${depth - 2}`;
-                        const targetTag = `${tag}${suffix}`;
-                        const fullMatch = openMatch[0]; // e.g. [vbc_box display="flex" custom_css="..."]
-                        const attrs = openMatch[1] || '';
-                        const replacementOpen = `[${targetTag} ${attrs.trim()}]`.replace(/\s+\]$/, ']');
-                        
-                        lines[i] = lines[i].replace(fullMatch, replacementOpen);
-                        totalFixes++;
-                        changesMade = true;
-
-                        // Tìm closing tag tương ứng gần nhất để thay thế
-                        let innerDepth = 1;
-                        for (let j = i; j < lines.length; j++) {
-                            const searchLine = (j === i) 
-                                ? lines[j].substring(lines[j].indexOf(replacementOpen) + replacementOpen.length)
-                                : lines[j];
-                            
-                            const innerOpens = [...searchLine.matchAll(new RegExp(`\\[${tag}(\\s[^\\]]*)?\\]`, 'g'))].length;
-                            const innerCloses = (searchLine.match(new RegExp(`\\[/${tag}\\]`, 'g')) || []).length;
-                            
-                            innerDepth += innerOpens;
-                            innerDepth -= innerCloses;
-
-                            if (innerDepth <= 0) {
-                                // Thay closing tag đầu tiên trong dòng j bằng thẻ đóng mới
-                                lines[j] = lines[j].replace(closeTag, `[/${targetTag}]`);
-                                break;
-                            }
-                        }
-                        break; // Restart scan do content đã thay đổi
-                     }
+        for (const token of tokens) {
+            if (!token.isClose) {
+                const currentDepth = stack.length + 1;
+                if (currentDepth > 1) {
+                    const suffix = (currentDepth === 2) ? '_inner' : `_inner_${currentDepth - 2}`;
+                    const targetTag = `${tag}${suffix}`;
+                    const newOpen = `[${targetTag}${token.attrs}]`;
+                    replacements.push({
+                        start: token.index,
+                        end: token.index + token.length,
+                        newText: newOpen
+                    });
+                    stack.push(targetTag);
+                    totalFixes++;
+                } else {
+                    stack.push(tag);
                 }
-
-                if (changesMade) break;
-                depth -= closes;
-                if (depth < 0) depth = 0;
+            } else {
+                if (stack.length > 0) {
+                    const expectedTag = stack.pop();
+                    if (expectedTag !== tag) {
+                        replacements.push({
+                            start: token.index,
+                            end: token.index + token.length,
+                            newText: `[/${expectedTag}]`
+                        });
+                    }
+                }
             }
+        }
 
-            fixed = lines.join('\n');
+        // Áp dụng thay thế từ cuối lên đầu để không làm lệch index
+        replacements.sort((a, b) => b.start - a.start);
+        for (const r of replacements) {
+            fixed = fixed.substring(0, r.start) + r.newText + fixed.substring(r.end);
         }
     }
 

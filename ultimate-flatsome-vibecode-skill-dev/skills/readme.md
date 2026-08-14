@@ -38,6 +38,62 @@ Sử dụng từ khóa `selector` để định vị phần tử hiện tại.
 * **Tất cả các thuộc tính căn chỉnh nâng cao (`display: flex`, `align-items`, `justify-content`, `gap`, `grid-template-columns`, `border-radius`, `box-shadow`, `color`) BẮT BUỘC khai báo trong `custom_css="selector { ... }"`**.
 * Ví dụ: `custom_css="selector { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-radius: 12px; } selector:hover { transform: translateY(-3px); }"`
 
+### E. Thành Phần Danh Sách Bài Viết / Sản Phẩm Động (`[vbc_post]`)
+Cho phép truy vấn và xuất bản danh sách bài viết (`post`), sản phẩm (`product`), trang (`page`), hoặc Custom Post Type (`cpt`) bất kỳ. Hỗ trợ chọn chính xác các trường dữ liệu cần hiển thị, tùy biến độ rộng cột cho từng trường và sắp xếp vị trí linh hoạt.
+
+#### 1. Các Nhóm Thuộc Tính Chính:
+* **Nguồn dữ liệu (Query)**:
+  - `post_type`: `post` (mặc định), `product`, `page`, `any`, hoặc tên CPT (ví dụ: `du-an`, `dich-vu`).
+  - `ids`: Danh sách Post ID cụ thể (ví dụ: `ids="12,34,56"`).
+  - `taxonomy`: Tên phân loại để lọc (ví dụ: `category`, `product_cat`, `post_tag`, `linh-vuc`).
+  - `terms`: Slug hoặc ID chuyên mục (ví dụ: `terms="thiet-ke-web,hosting"` hoặc `terms="12,34"`).
+  - `operator`: `IN` (mặc định), `AND`, `NOT IN`.
+  - `posts_per_page`: Số bài hiển thị (mặc định `8`, `-1` để lấy tất cả).
+  - `orderby`: `date` (mới nhất), `title`, `menu_order`, `rand`, `post__in`, `modified`, `comment_count`, `meta_value_num`, `meta_value`, `ID`.
+  - `order`: `DESC` (giảm dần), `ASC` (tăng dần).
+  - `meta_key` & `meta_value`: Lọc bài viết theo trường Custom Field.
+
+* **Bố cục & Lưới (Layout)**:
+  - `layout`: `grid` (Dạng lưới thẻ Card), `list` (Dạng danh sách hàng ngang), `table` (Dạng bảng danh sách).
+  - `columns`: Số cột hiển thị Desktop (`1`, `2`, `3`, `4`, `5`, `6`).
+  - `columns__md`: Số cột trên Tablet (mặc định `2`).
+  - `columns__sm`: Số cột trên Mobile (mặc định `1`).
+  - `gap`: Khoảng cách giữa các bài (ví dụ `24px`).
+  - `pagination`: `none` hoặc `numeric` (Phân trang 1, 2, 3...).
+
+* **Cấu Hình Trường Xuất Ra & Độ Rộng Cột (`fields`)**:
+  Cấu hình danh sách các trường muốn hiển thị theo thứ tự, định dạng `field_name:width` (Ví dụ: `fields="thumbnail:100%, title:100%, price:50%, button:50%"`).
+  - `thumbnail`: Ảnh đại diện bài viết / sản phẩm (Kèm nhãn SALE nếu là sản phẩm khuyến mãi).
+  - `title`: Tiêu đề bài viết kèm liên kết (Hỗ trợ cấu hình `title_tag`, `title_size`, `title_color`, `title_lines`).
+  - `price`: Giá sản phẩm WooCommerce hoặc Custom Field giá (Hỗ trợ cấu hình `price_color`, `price_size`).
+  - `excerpt`: Tóm tắt nội dung (Cấu hình `excerpt_length`, `excerpt_color`).
+  - `date`: Ngày đăng bài kèm icon lịch.
+  - `author`: Tác giả bài viết kèm icon người dùng.
+  - `categories` / `terms`: Huy hiệu nhãn danh mục chuyên mục.
+  - `tags`: Huy hiệu thẻ bài viết / sản phẩm.
+  - `button`: Nút bấm hành động (Xem chi tiết / Mua ngay).
+  - `rating`: Đánh giá số sao (WooCommerce).
+  - `sku`: Mã SKU sản phẩm.
+  - `meta:meta_key`: Trường Custom Field tùy chỉnh (Ví dụ: `meta:dien_tich:50%:m²`).
+  - `acf:acf_key`: Trường ACF (Hỗ trợ text, số, ảnh, link).
+
+#### 2. Ví dụ Sử Dụng Thực Tế:
+
+* **Lưới Sản Phẩm WooCommerce Nổi Bật (Grid 4 Cột)**:
+  ```html
+  [vbc_post post_type="product" taxonomy="product_cat" terms="noi-bat" columns="4" columns__md="2" columns__sm="1" posts_per_page="8" fields="thumbnail:100%, categories:100%, title:100%, price:50%, button:50%" card_bg="#ffffff" card_radius="16px" card_shadow="0 10px 25px rgba(0,0,0,0.05)"]
+  ```
+
+* **Danh Sách Tin Tức / Dịch Vụ Theo IDs Nhập Vào (Grid 3 Cột)**:
+  ```html
+  [vbc_post post_type="post" ids="12,34,56" columns="3" fields="thumbnail:100%, categories:100%, title:100%, excerpt:100%, date:50%, button:50%" button_text="Xem Chi Tiết"]
+  ```
+
+* **Bảng Báo Giá / Thông Số Bất Động Sản (Table List kèm Custom Fields)**:
+  ```html
+  [vbc_post post_type="du-an" layout="table" posts_per_page="10" fields="thumbnail:80px, title:auto, meta:dia_chi:200px, meta:gia_ban:120px, button:140px"]
+  ```
+
 ---
 
 ## 2. Kết Hợp Các Phần Tử Mặc Định Của Flatsome (Khuyên Dùng)

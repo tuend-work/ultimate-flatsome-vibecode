@@ -3,7 +3,7 @@
  * Plugin Name: Ultimate Flatsome VibeCode Elements
  * Plugin URI: https://github.com/tuend-work/ultimate-flatsome-vibecode
  * Description: Thêm các phần tử HTML cơ bản tích hợp sâu với Flatsome UX Builder, hỗ trợ responsive hoàn hảo, chèn dữ liệu động (Post Meta, ACF) và chỉnh sửa CSS nâng cao.
- * Version: 1.7.4
+ * Version: 1.7.5
  * Author: Antigravity AI
  * Author URI: https://github.com/tuend-work
  * License: GPL2
@@ -2056,14 +2056,105 @@ function vbc_handle_export_project_request() {
         'working_hours' => isset($_POST['include_contact']) ? (!empty($_POST['brand_hours']) ? trim($_POST['brand_hours']) : (get_option('vbc_brand_hours') ?: '<none>')) : '<none>',
     );
 
+    // Toàn bộ cài đặt Flatsome (Customizer theme_mods + các options Flatsome trong wp_options)
+    $flatsome_settings = '<none>';
     $brand_styles = '<none>';
     if (isset($_POST['include_styles'])) {
+        global $wpdb;
         $theme_mods = get_theme_mods();
+
+        // 1. Trích xuất các trường cơ bản cho brand_styles
         $brand_styles = array(
             'primary_color' => isset($theme_mods['color_primary']) ? $theme_mods['color_primary'] : '#2563eb',
             'secondary_color' => isset($theme_mods['color_secondary']) ? $theme_mods['color_secondary'] : '#f8fafc',
+            'success_color' => isset($theme_mods['color_success']) ? $theme_mods['color_success'] : '#10b981',
+            'alert_color' => isset($theme_mods['color_alert']) ? $theme_mods['color_alert'] : '#ef4444',
             'font_heading' => isset($theme_mods['type_headings_font']) ? $theme_mods['type_headings_font'] : '<none>',
             'font_body' => isset($theme_mods['type_texts_font']) ? $theme_mods['type_texts_font'] : '<none>',
+            'font_nav' => isset($theme_mods['type_nav_font']) ? $theme_mods['type_nav_font'] : '<none>',
+            'font_alt' => isset($theme_mods['type_alt_font']) ? $theme_mods['type_alt_font'] : '<none>',
+        );
+
+        // 2. Lấy toàn bộ các option liên quan đến flatsome trong database wp_options
+        $db_options_raw = $wpdb->get_results("
+            SELECT option_name, option_value 
+            FROM {$wpdb->options} 
+            WHERE option_name LIKE 'flatsome%' 
+               OR option_name LIKE 'theme_mods_flatsome%'
+        ", ARRAY_A);
+
+        $flatsome_db_options = array();
+        if (!empty($db_options_raw)) {
+            foreach ($db_options_raw as $row) {
+                $opt_key = $row['option_name'];
+                $opt_val = maybe_unserialize($row['option_value']);
+                $flatsome_db_options[$opt_key] = $opt_val;
+            }
+        }
+
+        // 3. Làm sạch và chuẩn hóa theme_mods (loại bỏ các object không thể serialize)
+        $clean_theme_mods = array();
+        if (is_array($theme_mods)) {
+            foreach ($theme_mods as $k => $v) {
+                if (is_scalar($v) || is_array($v) || is_null($v)) {
+                    $clean_theme_mods[$k] = $v;
+                }
+            }
+        }
+
+        // 4. Tổ chức đối tượng flatsome_settings theo cấu trúc chuyên nghiệp
+        $flatsome_settings = array(
+            'colors' => array(
+                'primary' => isset($theme_mods['color_primary']) ? $theme_mods['color_primary'] : '<none>',
+                'secondary' => isset($theme_mods['color_secondary']) ? $theme_mods['color_secondary'] : '<none>',
+                'success' => isset($theme_mods['color_success']) ? $theme_mods['color_success'] : '<none>',
+                'alert' => isset($theme_mods['color_alert']) ? $theme_mods['color_alert'] : '<none>',
+                'links' => isset($theme_mods['color_links']) ? $theme_mods['color_links'] : '<none>',
+                'texts' => isset($theme_mods['color_texts']) ? $theme_mods['color_texts'] : '<none>',
+                'body_bg' => isset($theme_mods['body_bg']) ? $theme_mods['body_bg'] : '<none>',
+            ),
+            'typography' => array(
+                'font_headings' => isset($theme_mods['type_headings_font']) ? $theme_mods['type_headings_font'] : '<none>',
+                'font_body' => isset($theme_mods['type_texts_font']) ? $theme_mods['type_texts_font'] : '<none>',
+                'font_nav' => isset($theme_mods['type_nav_font']) ? $theme_mods['type_nav_font'] : '<none>',
+                'font_alt' => isset($theme_mods['type_alt_font']) ? $theme_mods['type_alt_font'] : '<none>',
+                'font_headings_weight' => isset($theme_mods['type_headings_weight']) ? $theme_mods['type_headings_weight'] : '<none>',
+                'font_body_weight' => isset($theme_mods['type_texts_weight']) ? $theme_mods['type_texts_weight'] : '<none>',
+            ),
+            'layout' => array(
+                'site_width' => isset($theme_mods['site_width']) ? $theme_mods['site_width'] : '<none>',
+                'layout' => isset($theme_mods['layout']) ? $theme_mods['layout'] : '<none>',
+                'box_shadow' => isset($theme_mods['box_shadow']) ? $theme_mods['box_shadow'] : '<none>',
+                'content_bg' => isset($theme_mods['content_bg']) ? $theme_mods['content_bg'] : '<none>',
+                'container_padding' => isset($theme_mods['container_padding']) ? $theme_mods['container_padding'] : '<none>',
+            ),
+            'header' => array(
+                'site_logo' => isset($theme_mods['site_logo']) ? (is_numeric($theme_mods['site_logo']) ? wp_get_attachment_url($theme_mods['site_logo']) : $theme_mods['site_logo']) : '<none>',
+                'site_logo_dark' => isset($theme_mods['site_logo_dark']) ? (is_numeric($theme_mods['site_logo_dark']) ? wp_get_attachment_url($theme_mods['site_logo_dark']) : $theme_mods['site_logo_dark']) : '<none>',
+                'header_height' => isset($theme_mods['header_height']) ? $theme_mods['header_height'] : '<none>',
+                'header_bg' => isset($theme_mods['header_bg']) ? $theme_mods['header_bg'] : '<none>',
+            ),
+            'footer' => array(
+                'footer_1_color' => isset($theme_mods['footer_1_color']) ? $theme_mods['footer_1_color'] : '<none>',
+                'footer_2_color' => isset($theme_mods['footer_2_color']) ? $theme_mods['footer_2_color'] : '<none>',
+                'footer_bottom_text' => isset($theme_mods['footer_bottom_text']) ? $theme_mods['footer_bottom_text'] : '<none>',
+            ),
+            'social_links' => array(
+                'facebook' => isset($theme_mods['facebook_url']) ? $theme_mods['facebook_url'] : '<none>',
+                'twitter' => isset($theme_mods['twitter_url']) ? $theme_mods['twitter_url'] : '<none>',
+                'instagram' => isset($theme_mods['instagram_url']) ? $theme_mods['instagram_url'] : '<none>',
+                'youtube' => isset($theme_mods['youtube_url']) ? $theme_mods['youtube_url'] : '<none>',
+                'zalo' => isset($theme_mods['zalo_url']) ? $theme_mods['zalo_url'] : (!empty($_POST['brand_zalo']) ? trim($_POST['brand_zalo']) : '<none>'),
+                'phone' => isset($theme_mods['phone_url']) ? $theme_mods['phone_url'] : (!empty($_POST['brand_phone']) ? trim($_POST['brand_phone']) : '<none>'),
+                'email' => isset($theme_mods['email_url']) ? $theme_mods['email_url'] : (!empty($_POST['brand_email']) ? trim($_POST['brand_email']) : '<none>'),
+            ),
+            'custom_css' => array(
+                'all' => isset($theme_mods['custom_css']) ? $theme_mods['custom_css'] : '<none>',
+                'tablet' => isset($theme_mods['custom_css_tablet']) ? $theme_mods['custom_css_tablet'] : '<none>',
+                'mobile' => isset($theme_mods['custom_css_mobile']) ? $theme_mods['custom_css_mobile'] : '<none>',
+            ),
+            'theme_mods' => !empty($clean_theme_mods) ? $clean_theme_mods : '<none>',
+            'db_options' => !empty($flatsome_db_options) ? $flatsome_db_options : '<none>',
         );
     }
 
@@ -2194,6 +2285,7 @@ function vbc_handle_export_project_request() {
             'timezone' => $timezone,
             'contact' => $contact,
             'brand_styles' => $brand_styles,
+            'flatsome_settings' => $flatsome_settings,
             'products' => $products_data,
             'services' => $services_data,
             'posts' => $posts_data,
@@ -2668,13 +2760,13 @@ function vbc_render_admin_settings_page() {
                         </div>
                     </div>
 
-                    <!-- Checkbox Styles -->
+                    <!-- Checkbox Styles & Flatsome Options -->
                     <div class="vbc-checkbox-item">
                         <input type="checkbox" name="include_styles" id="chk_styles" value="1" checked />
                         <div>
-                            <label for="chk_styles" class="vbc-chk-title"><?php _e('Bảng Màu & Cấu Hình Font Chữ Flatsome Theme', 'vibecode'); ?></label>
+                            <label for="chk_styles" class="vbc-chk-title"><?php _e('Toàn Bộ Cài Đặt Flatsome Theme (Customizer & wp_options)', 'vibecode'); ?></label>
                             <div class="vbc-chk-desc">
-                                Trích xuất màu chủ đạo Primary/Secondary và Typography cấu hình trong Flatsome Customizer.
+                                Trích xuất toàn bộ cấu hình Flatsome trong bảng <code>wp_options</code> và Customizer (Bảng màu Primary/Secondary/Success/Alert, Typography, Header, Footer, Site Width, Layout, Custom CSS, Social Links...). Antigravity AI sẽ đồng bộ 100% style của Landing Page với giao diện tổng thể website.
                             </div>
                         </div>
                     </div>

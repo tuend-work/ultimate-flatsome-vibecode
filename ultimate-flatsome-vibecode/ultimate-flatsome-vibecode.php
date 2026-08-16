@@ -3,7 +3,7 @@
  * Plugin Name: Ultimate Flatsome VibeCode Elements
  * Plugin URI: https://github.com/tuend-work/ultimate-flatsome-vibecode
  * Description: Thêm các phần tử HTML cơ bản tích hợp sâu với Flatsome UX Builder, hỗ trợ responsive hoàn hảo, chèn dữ liệu động (Post Meta, ACF) và chỉnh sửa CSS nâng cao.
- * Version: 1.8.8
+ * Version: 1.8.9
  * Author: Antigravity AI
  * Author URI: https://github.com/tuend-work
  * License: GPL2
@@ -4114,12 +4114,42 @@ function vbc_api_upload_handler($request) {
     );
 }
 
+/**
+ * Tự động sửa lỗi UTF-8 Double Encoding (Mojibake)
+ * Ví dụ: "MÃ¡y Chá»§ Váºt LÃ½" -> "Máy Chủ Vật Lý"
+ */
+function vbc_fix_utf8_mojibake($str) {
+    if (empty($str) || !is_string($str)) return $str;
+    
+    // Thử đảo ngược UTF-8 -> ISO-8859-1
+    $test1 = @iconv('UTF-8', 'ISO-8859-1//IGNORE', $str);
+    if ($test1 && $test1 !== $str && mb_check_encoding($test1, 'UTF-8')) {
+        if (preg_match('/[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]/u', $test1)) {
+            return $test1;
+        }
+    }
+    
+    // Thử đảo ngược UTF-8 -> Windows-1252
+    $test2 = @iconv('UTF-8', 'WINDOWS-1252//IGNORE', $str);
+    if ($test2 && $test2 !== $str && mb_check_encoding($test2, 'UTF-8')) {
+        if (preg_match('/[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]/u', $test2)) {
+            return $test2;
+        }
+    }
+    
+    return $str;
+}
+
 function vbc_api_page_handler($request) {
     $params = $request->get_params();
     $post_id = !empty($params['post_id']) ? intval($params['post_id']) : 0;
     $action_type = !empty($params['action_type']) ? sanitize_key($params['action_type']) : '';
     $title = !empty($params['title']) ? sanitize_text_field($params['title']) : '';
+    $title = vbc_fix_utf8_mojibake($title);
+    
     $content = !empty($params['content']) ? $params['content'] : ''; 
+    $content = vbc_fix_utf8_mojibake($content);
+    
     $status = !empty($params['status']) ? sanitize_key($params['status']) : 'publish';
     $slug = !empty($params['slug']) ? sanitize_title($params['slug']) : '';
     $post_type = !empty($params['post_type']) ? sanitize_key($params['post_type']) : 'page';

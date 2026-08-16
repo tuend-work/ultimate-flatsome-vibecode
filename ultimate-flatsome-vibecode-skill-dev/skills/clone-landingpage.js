@@ -198,7 +198,7 @@ async function publishPageToWordPress(payload, config) {
         path: urlObj.pathname + urlObj.search,
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json; charset=utf-8',
             'Content-Length': Buffer.byteLength(bodyStr, 'utf8'),
             'X-VBC-Token': token
         }
@@ -223,7 +223,7 @@ async function publishPageToWordPress(payload, config) {
             });
         });
         req.on('error', reject);
-        req.write(bodyStr);
+        req.write(Buffer.from(bodyStr, 'utf8'));
         req.end();
     });
 }

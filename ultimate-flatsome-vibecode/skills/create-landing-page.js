@@ -602,7 +602,7 @@ async function main() {
         const pageRes = await fetch(`${apiUrl.replace(/\/$/, '')}/vbc/v1/page`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json; charset=utf-8',
                 'X-VBC-Token': token
             },
             body: JSON.stringify(postData)

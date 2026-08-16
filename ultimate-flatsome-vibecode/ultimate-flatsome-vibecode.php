@@ -3,7 +3,7 @@
  * Plugin Name: Ultimate Flatsome VibeCode Elements
  * Plugin URI: https://github.com/tuend-work/ultimate-flatsome-vibecode
  * Description: Thêm các phần tử HTML cơ bản tích hợp sâu với Flatsome UX Builder, hỗ trợ responsive hoàn hảo, chèn dữ liệu động (Post Meta, ACF) và chỉnh sửa CSS nâng cao.
- * Version: 1.9.0
+ * Version: 1.9.3
  * Author: Antigravity AI
  * Author URI: https://github.com/tuend-work
  * License: GPL2
@@ -4190,11 +4190,7 @@ function vbc_api_page_handler($request) {
         }
         
         $target_template = !empty($params['template']) ? sanitize_text_field($params['template']) : 'page-blank.php';
-        $current_template = get_post_meta($post_id, '_wp_page_template', true);
-        $valid_templates = array_keys(wp_get_theme()->get_page_templates());
-        if ($current_template && !in_array($current_template, $valid_templates) && $current_template !== 'default') {
-            update_post_meta($post_id, '_wp_page_template', 'default');
-        }
+        update_post_meta($post_id, '_wp_page_template', $target_template);
 
         $post_data = array(
             'ID' => $post_id,
@@ -4832,19 +4828,30 @@ function vbc_inject_accordion_faq_styles() {
     }
     .accordion.vbc-accordion-faq .accordion-title,
     .vbc-accordion .accordion-title {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
         padding: 18px 22px !important;
         font-size: 15px !important;
         font-weight: 700 !important;
         color: #0f172a !important;
-        display: flex !important;
-        flex-direction: row-reverse !important;
-        justify-content: space-between !important;
-        align-items: center !important;
+        text-align: left !important;
         text-decoration: none !important;
         background: #ffffff !important;
         border: none !important;
         cursor: pointer !important;
         transition: all 0.2s ease !important;
+    }
+    .accordion.vbc-accordion-faq .accordion-title > span,
+    .accordion.vbc-accordion-faq .accordion-title span,
+    .vbc-accordion .accordion-title > span,
+    .vbc-accordion .accordion-title span {
+        order: 1 !important;
+        flex: 1 1 auto !important;
+        text-align: left !important;
+        margin: 0 !important;
+        display: block !important;
     }
     .accordion.vbc-accordion-faq .accordion-title:hover,
     .vbc-accordion .accordion-title:hover {
@@ -4856,16 +4863,37 @@ function vbc_inject_accordion_faq_styles() {
         background: #f8fafc !important;
         border-bottom: 1px solid #f1f5f9 !important;
     }
+    .accordion.vbc-accordion-faq .accordion-title > .toggle,
+    .accordion.vbc-accordion-faq .accordion-title > button,
     .accordion.vbc-accordion-faq .accordion-title .toggle,
+    .vbc-accordion .accordion-title > .toggle,
+    .vbc-accordion .accordion-title > button,
     .vbc-accordion .accordion-title .toggle {
-        margin: 0 !important;
+        order: 2 !important;
+        position: static !important;
+        float: none !important;
+        margin: 0 0 0 16px !important;
         color: #64748b !important;
         font-size: 14px !important;
-        transition: transform 0.25s ease !important;
+        transition: transform 0.25s ease, color 0.25s ease !important;
         background: transparent !important;
         border: none !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 24px !important;
+        height: 24px !important;
+        padding: 0 !important;
+        cursor: pointer !important;
+        top: auto !important;
+        right: auto !important;
+        transform: none !important;
     }
+    .accordion.vbc-accordion-faq .accordion-title.active > .toggle,
+    .accordion.vbc-accordion-faq .accordion-title.active > button,
     .accordion.vbc-accordion-faq .accordion-title.active .toggle,
+    .vbc-accordion .accordion-title.active > .toggle,
+    .vbc-accordion .accordion-title.active > button,
     .vbc-accordion .accordion-title.active .toggle {
         transform: rotate(180deg) !important;
         color: #2563eb !important;
@@ -4878,6 +4906,7 @@ function vbc_inject_accordion_faq_styles() {
         color: #475569 !important;
         background: #ffffff !important;
         border-top: none !important;
+        text-align: left !important;
     }
     </style>
     <?php

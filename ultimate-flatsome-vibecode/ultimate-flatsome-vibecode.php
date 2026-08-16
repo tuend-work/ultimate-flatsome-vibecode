@@ -3,7 +3,7 @@
  * Plugin Name: Ultimate Flatsome VibeCode Elements
  * Plugin URI: https://github.com/tuend-work/ultimate-flatsome-vibecode
  * Description: Thêm các phần tử HTML cơ bản tích hợp sâu với Flatsome UX Builder, hỗ trợ responsive hoàn hảo, chèn dữ liệu động (Post Meta, ACF) và chỉnh sửa CSS nâng cao.
- * Version: 1.9.4
+ * Version: 1.9.5
  * Author: Antigravity AI
  * Author URI: https://github.com/tuend-work
  * License: GPL2
@@ -157,6 +157,7 @@ function vbc_get_common_options($tag_type) {
                     'type' => 'textfield',
                     'heading' => 'Post Meta Key',
                     'default' => '',
+                    'description' => 'Hỗ trợ Custom Field hoặc các trường WP mặc định: post_title, post_excerpt, post_date, post_author, permalink, ID...',
                     'conditions' => 'content_source === "post_meta"',
                 ),
                 'acf_key' => array(
@@ -1554,6 +1555,12 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
     // Xử lý dữ liệu động
     $dynamic_content = '';
     $current_post_id = get_the_ID();
+    if (!$current_post_id && isset($_GET['post'])) {
+        $current_post_id = intval($_GET['post']);
+    }
+    if (!$current_post_id && isset($GLOBALS['post']->ID)) {
+        $current_post_id = $GLOBALS['post']->ID;
+    }
 
     if ($atts['content_source'] === 'post_title' || $atts['content_source'] === 'title') {
         $dynamic_content = get_the_title($current_post_id);
@@ -1566,12 +1573,33 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
     } elseif ($atts['content_source'] === 'manual') {
         $dynamic_content = $atts['content_manual'];
     } elseif ($atts['content_source'] === 'post_meta') {
-        $meta_key = $atts['meta_key'];
+        $meta_key = trim($atts['meta_key']);
         if (!empty($meta_key)) {
-            $dynamic_content = get_post_meta($current_post_id, $meta_key, true);
+            $meta_key_lower = strtolower($meta_key);
+            if ($meta_key_lower === 'post_title' || $meta_key_lower === 'title') {
+                $dynamic_content = get_the_title($current_post_id);
+            } elseif ($meta_key_lower === 'post_excerpt' || $meta_key_lower === 'excerpt') {
+                $dynamic_content = get_the_excerpt($current_post_id);
+            } elseif ($meta_key_lower === 'post_date' || $meta_key_lower === 'date') {
+                $dynamic_content = get_the_date('', $current_post_id);
+            } elseif ($meta_key_lower === 'post_author' || $meta_key_lower === 'author') {
+                $dynamic_content = get_the_author();
+            } elseif ($meta_key_lower === 'post_url' || $meta_key_lower === 'permalink') {
+                $dynamic_content = get_permalink($current_post_id);
+            } elseif ($meta_key_lower === 'id' || $meta_key_lower === 'post_id') {
+                $dynamic_content = $current_post_id;
+            } else {
+                $dynamic_content = get_post_meta($current_post_id, $meta_key, true);
+                if (($dynamic_content === '' || $dynamic_content === false || $dynamic_content === null) && $current_post_id > 0) {
+                    $p_obj = get_post($current_post_id);
+                    if ($p_obj && isset($p_obj->$meta_key)) {
+                        $dynamic_content = $p_obj->$meta_key;
+                    }
+                }
+            }
         }
     } elseif ($atts['content_source'] === 'acf') {
-        $acf_key = $atts['acf_key'];
+        $acf_key = trim($atts['acf_key']);
         if (!empty($acf_key)) {
             if (function_exists('get_field')) {
                 $dynamic_content = get_field($acf_key, $current_post_id);

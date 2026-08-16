@@ -3,7 +3,7 @@
  * Plugin Name: Ultimate Flatsome VibeCode Elements
  * Plugin URI: https://github.com/tuend-work/ultimate-flatsome-vibecode
  * Description: Thêm các phần tử HTML cơ bản tích hợp sâu với Flatsome UX Builder, hỗ trợ responsive hoàn hảo, chèn dữ liệu động (Post Meta, ACF) và chỉnh sửa CSS nâng cao.
- * Version: 1.9.3
+ * Version: 1.9.4
  * Author: Antigravity AI
  * Author URI: https://github.com/tuend-work
  * License: GPL2
@@ -134,13 +134,17 @@ function vbc_get_common_options($tag_type) {
             'options' => array(
                 'content_source' => array(
                     'type' => 'select',
-                    'heading' => 'Nguồn nội dung',
+                    'heading' => 'Nguồn nội dung (Dynamic Data)',
                     'default' => 'default',
                     'options' => array(
-                        'default' => 'Mặc định (Dùng các phần tử con)',
+                        'default' => 'Mặc định (Nhập chữ hoặc dùng {{post_title}})',
+                        'post_title' => 'Tiêu đề bài viết (Post Title)',
+                        'post_excerpt' => 'Mô tả ngắn (Post Excerpt)',
+                        'post_date' => 'Ngày đăng (Post Date)',
+                        'post_author' => 'Tác giả (Author)',
                         'manual' => 'Nhập thủ công',
-                        'post_meta' => 'WP Post Meta',
-                        'acf' => 'ACF Field',
+                        'post_meta' => 'WP Post Meta Key',
+                        'acf' => 'ACF Field Key',
                     ),
                 ),
                 'content_manual' => array(
@@ -1549,20 +1553,30 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
     // 4. Render các thẻ Container
     // Xử lý dữ liệu động
     $dynamic_content = '';
-    if ($atts['content_source'] === 'manual') {
+    $current_post_id = get_the_ID();
+
+    if ($atts['content_source'] === 'post_title' || $atts['content_source'] === 'title') {
+        $dynamic_content = get_the_title($current_post_id);
+    } elseif ($atts['content_source'] === 'post_excerpt' || $atts['content_source'] === 'excerpt') {
+        $dynamic_content = get_the_excerpt($current_post_id);
+    } elseif ($atts['content_source'] === 'post_date' || $atts['content_source'] === 'date') {
+        $dynamic_content = get_the_date('', $current_post_id);
+    } elseif ($atts['content_source'] === 'post_author' || $atts['content_source'] === 'author') {
+        $dynamic_content = get_the_author();
+    } elseif ($atts['content_source'] === 'manual') {
         $dynamic_content = $atts['content_manual'];
     } elseif ($atts['content_source'] === 'post_meta') {
         $meta_key = $atts['meta_key'];
         if (!empty($meta_key)) {
-            $dynamic_content = get_post_meta(get_the_ID(), $meta_key, true);
+            $dynamic_content = get_post_meta($current_post_id, $meta_key, true);
         }
     } elseif ($atts['content_source'] === 'acf') {
         $acf_key = $atts['acf_key'];
         if (!empty($acf_key)) {
             if (function_exists('get_field')) {
-                $dynamic_content = get_field($acf_key);
+                $dynamic_content = get_field($acf_key, $current_post_id);
             } else {
-                $dynamic_content = get_post_meta(get_the_ID(), $acf_key, true);
+                $dynamic_content = get_post_meta($current_post_id, $acf_key, true);
             }
         }
     }
@@ -1575,6 +1589,42 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
 
     $inner_content_to_render = !empty($atts['content']) ? $atts['content'] : $content;
     $inner_content_to_render = vbc_clean_inner_content($inner_content_to_render);
+
+    // Tự động thay thế placeholders động nếu có: {{post_title}}, {{title}}, {{post_excerpt}}, {{date}}, {{permalink}}, {{meta:key}}, {{acf:key}}
+    if (!empty($inner_content_to_render) && strpos($inner_content_to_render, '{{') !== false) {
+        $inner_content_to_render = preg_replace_callback('/\{\{([a-zA-Z0-9_\-:]+)\}\}/', function($matches) use ($current_post_id) {
+            $tag = strtolower(trim($matches[1]));
+            if ($tag === 'post_title' || $tag === 'title') {
+                return get_the_title($current_post_id);
+            }
+            if ($tag === 'post_excerpt' || $tag === 'excerpt') {
+                return get_the_excerpt($current_post_id);
+            }
+            if ($tag === 'post_date' || $tag === 'date') {
+                return get_the_date('', $current_post_id);
+            }
+            if ($tag === 'post_author' || $tag === 'author') {
+                return get_the_author();
+            }
+            if ($tag === 'post_url' || $tag === 'permalink') {
+                return get_permalink($current_post_id);
+            }
+            if (strpos($tag, 'meta:') === 0) {
+                $meta_key = substr($tag, 5);
+                return get_post_meta($current_post_id, $meta_key, true);
+            }
+            if (strpos($tag, 'acf:') === 0) {
+                $acf_key = substr($tag, 4);
+                if (function_exists('get_field')) {
+                    $val = get_field($acf_key, $current_post_id);
+                    return is_array($val) ? json_encode($val) : strval($val);
+                }
+                return get_post_meta($current_post_id, $acf_key, true);
+            }
+            return $matches[0];
+        }, $inner_content_to_render);
+    }
+
     $children = do_shortcode($inner_content_to_render);
 
     if ($atts['content_source'] === 'default') {

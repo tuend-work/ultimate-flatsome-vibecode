@@ -3,7 +3,7 @@
  * Plugin Name: Ultimate Flatsome VibeCode Elements
  * Plugin URI: https://github.com/tuend-work/ultimate-flatsome-vibecode
  * Description: Thêm các phần tử HTML cơ bản tích hợp sâu với Flatsome UX Builder, hỗ trợ responsive hoàn hảo, chèn dữ liệu động (Post Meta, ACF) và chỉnh sửa CSS nâng cao.
- * Version: 1.8.9
+ * Version: 1.9.0
  * Author: Antigravity AI
  * Author URI: https://github.com/tuend-work
  * License: GPL2
@@ -4798,3 +4798,88 @@ function vbc_clean_shortcode_html($content) {
     return strtr($content, $array);
 }
 add_filter('the_content', 'vbc_clean_shortcode_html', 100);
+
+/**
+ * 8. INJECT ACCORDION FAQ CARD STYLES
+ * Đồng bộ phong cách Card FAQ hiện đại, bo góc 12px, hover mượt mà 99% theo web gốc
+ */
+function vbc_inject_accordion_faq_styles() {
+    ?>
+    <style id="vbc-accordion-faq-custom-css">
+    .accordion.vbc-accordion-faq,
+    .vbc-accordion {
+        border: none !important;
+        background: transparent !important;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        margin-top: 24px;
+    }
+    .accordion.vbc-accordion-faq .accordion-item,
+    .vbc-accordion .accordion-item {
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 12px !important;
+        background: #ffffff !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02) !important;
+        overflow: hidden !important;
+        margin-bottom: 0 !important;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+    .accordion.vbc-accordion-faq .accordion-item:hover,
+    .vbc-accordion .accordion-item:hover {
+        border-color: #cbd5e1 !important;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06) !important;
+    }
+    .accordion.vbc-accordion-faq .accordion-title,
+    .vbc-accordion .accordion-title {
+        padding: 18px 22px !important;
+        font-size: 15px !important;
+        font-weight: 700 !important;
+        color: #0f172a !important;
+        display: flex !important;
+        flex-direction: row-reverse !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        text-decoration: none !important;
+        background: #ffffff !important;
+        border: none !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+    }
+    .accordion.vbc-accordion-faq .accordion-title:hover,
+    .vbc-accordion .accordion-title:hover {
+        color: #2563eb !important;
+    }
+    .accordion.vbc-accordion-faq .accordion-title.active,
+    .vbc-accordion .accordion-title.active {
+        color: #2563eb !important;
+        background: #f8fafc !important;
+        border-bottom: 1px solid #f1f5f9 !important;
+    }
+    .accordion.vbc-accordion-faq .accordion-title .toggle,
+    .vbc-accordion .accordion-title .toggle {
+        margin: 0 !important;
+        color: #64748b !important;
+        font-size: 14px !important;
+        transition: transform 0.25s ease !important;
+        background: transparent !important;
+        border: none !important;
+    }
+    .accordion.vbc-accordion-faq .accordion-title.active .toggle,
+    .vbc-accordion .accordion-title.active .toggle {
+        transform: rotate(180deg) !important;
+        color: #2563eb !important;
+    }
+    .accordion.vbc-accordion-faq .accordion-inner,
+    .vbc-accordion .accordion-inner {
+        padding: 20px 22px !important;
+        font-size: 14px !important;
+        line-height: 1.75 !important;
+        color: #475569 !important;
+        background: #ffffff !important;
+        border-top: none !important;
+    }
+    </style>
+    <?php
+}
+add_action('wp_head', 'vbc_inject_accordion_faq_styles', 99);

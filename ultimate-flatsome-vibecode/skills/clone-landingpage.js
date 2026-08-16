@@ -232,11 +232,51 @@ async function publishPageToWordPress(payload, config) {
 // 3. ASSET CRAWLER & WP MEDIA PIPELINE
 // ============================================================
 
+function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 /**
- * Quét toàn bộ hình ảnh và SVG từ HTML của trang nguồn, tải về máy và upload lên WordPress Media Library
+ * Tải nội dung text (như tệp CSS) từ URL
+ */
+async function fetchText(urlStr) {
+    const urlObj = new URL(urlStr);
+    const client = urlObj.protocol === 'https:' ? https : http;
+    const options = {
+        hostname: urlObj.hostname,
+        port: urlObj.port || (urlObj.protocol === 'https:' ? 443 : 80),
+        path: urlObj.pathname + urlObj.search,
+        method: 'GET',
+        headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/css,*/*;q=0.1'
+        },
+        timeout: 10000
+    };
+    return new Promise((resolve, reject) => {
+        const req = client.request(options, (res) => {
+            if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+                const nextUrl = new URL(res.headers.location, urlStr).href;
+                return resolve(fetchText(nextUrl));
+            }
+            if (res.statusCode < 200 || res.statusCode >= 300) {
+                return reject(new Error(`HTTP ${res.statusCode}`));
+            }
+            let data = '';
+            res.on('data', chunk => data += chunk);
+            res.on('end', () => resolve(data));
+        });
+        req.on('error', reject);
+        req.on('timeout', () => { req.destroy(); reject(new Error('Request timeout')); });
+        req.end();
+    });
+}
+
+/**
+ * Quét toàn bộ hình ảnh, banner, background-image từ HTML và tất cả tệp CSS external, tải về và upload lên WordPress Media Library
  */
 async function crawlAndUploadAssets(baseUrl, htmlContent, config) {
-    console.log('\n\x1b[36m[ASSET CRAWLER] Đang quét tất cả tài nguyên ảnh, banner và SVG từ trang nguồn...\x1b[0m');
+    console.log('\n\x1b[36m[ASSET CRAWLER] Đang quét tất cả tài nguyên ảnh, banner và CSS background-image từ trang nguồn...\x1b[0m');
     const cacheDir = path.join(__dirname, '.cache_media');
     if (!fs.existsSync(cacheDir)) {
         fs.mkdirSync(cacheDir, { recursive: true });
@@ -244,8 +284,8 @@ async function crawlAndUploadAssets(baseUrl, htmlContent, config) {
 
     const assetUrls = new Set();
 
-    // 1. Quét src trong thẻ <img> (hỗ trợ cả có nháy và không nháy cho minified HTML)
-    const imgRegex = /<img\b[^>]*?\bsrc=(?:["']([^"']+)["']|([^\s>]+))/gi;
+    // 1. Quét src và lazy-load trong thẻ <img>
+    const imgRegex = /<img\b[^>]*?\b(?:src|data-src|data-lazy-src)=(?:["']([^"']+)["']|([^\s>]+))/gi;
     let match;
     while ((match = imgRegex.exec(htmlContent)) !== null) {
         const rawSrc = match[1] || match[2];
@@ -254,11 +294,12 @@ async function crawlAndUploadAssets(baseUrl, htmlContent, config) {
         }
     }
 
-    // 2. Quét background-image trong style
+    // 2. Quét background-image trong inline style và khối <style>
     const bgRegex = /background(?:-image)?\s*:\s*url\((['"]?)(.*?)\1\)/gi;
     while ((match = bgRegex.exec(htmlContent)) !== null) {
-        if (match[2] && !match[2].startsWith('data:')) {
-            assetUrls.add(match[2]);
+        const rawBg = match[2];
+        if (rawBg && !rawBg.startsWith('data:') && !rawBg.match(/\.(woff2?|ttf|eot|otf)($|\?)/i)) {
+            assetUrls.add(rawBg);
         }
     }
 
@@ -269,9 +310,47 @@ async function crawlAndUploadAssets(baseUrl, htmlContent, config) {
         if (rawSrc) assetUrls.add(rawSrc);
     }
 
-    console.log(`  ✓ Tìm thấy ${assetUrls.size} tài nguyên media liên quan.`);
+    // 4. QUÉT TOÀN DIỆN CÁC TỆP CSS EXTERNAL (<link rel="stylesheet">)
+    const cssLinkRegex = /<link\b[^>]*?\brel=["']stylesheet["'][^>]*?\bhref=(?:["']([^"']+)["']|([^\s>]+))/gi;
+    const externalCssUrls = [];
+    while ((match = cssLinkRegex.exec(htmlContent)) !== null) {
+        const rawCssHref = match[1] || match[2];
+        if (rawCssHref) {
+            try {
+                const absCss = new URL(rawCssHref, baseUrl).href;
+                externalCssUrls.push(absCss);
+            } catch(e) {}
+        }
+    }
+
+    if (externalCssUrls.length > 0) {
+        console.log(`  ✓ Tìm thấy ${externalCssUrls.length} tệp CSS external. Đang phân tích CSS background-image...`);
+        for (const cssUrl of externalCssUrls) {
+            try {
+                const cssContent = await fetchText(cssUrl);
+                let cssBgMatch;
+                const cssBgRegex = /url\((['"]?)([^'"\)]+\.(?:png|jpg|jpeg|webp|svg|gif)[^'"\)]*)\1\)/gi;
+                while ((cssBgMatch = cssBgRegex.exec(cssContent)) !== null) {
+                    const rawBg = cssBgMatch[2];
+                    if (rawBg && !rawBg.startsWith('data:')) {
+                        try {
+                            const absBg = new URL(rawBg, cssUrl).href;
+                            assetUrls.add(absBg);
+                        } catch(e) {
+                            assetUrls.add(rawBg);
+                        }
+                    }
+                }
+            } catch (err) {
+                // Bỏ qua lỗi kết nối tới tệp CSS phụ
+            }
+        }
+    }
+
+    console.log(`  ✓ Tổng cộng tìm thấy ${assetUrls.size} tài nguyên media liên quan.`);
 
     const urlMapping = new Map(); // originUrl -> wpUploadedUrl
+    const idMapping = new Map();  // originUrl -> wpAttachmentId
 
     let index = 0;
     for (const rawUrl of assetUrls) {
@@ -290,19 +369,28 @@ async function crawlAndUploadAssets(baseUrl, htmlContent, config) {
             console.log(`  [${index}/${assetUrls.size}] Đang tải: ${fileName}...`);
             await downloadBinary(absoluteUrl, localPath);
             const uploadRes = await uploadImageToWordPress(localPath, config);
-            urlMapping.set(rawUrl, uploadRes.url);
-            urlMapping.set(absoluteUrl, uploadRes.url);
+            const uploadedUrl = uploadRes.url;
+            const attachmentId = uploadRes.id || uploadRes.attachment_id;
+
+            urlMapping.set(rawUrl, uploadedUrl);
+            urlMapping.set(absoluteUrl, uploadedUrl);
+            if (attachmentId) {
+                idMapping.set(rawUrl, attachmentId);
+                idMapping.set(absoluteUrl, attachmentId);
+            }
+
             try {
                 const pathname = new URL(absoluteUrl).pathname;
-                urlMapping.set(pathname, uploadRes.url);
+                urlMapping.set(pathname, uploadedUrl);
+                if (attachmentId) idMapping.set(pathname, attachmentId);
             } catch(e) {}
-            console.log(`    → Đã tải lên WP Media: ID ${uploadRes.id || uploadRes.attachment_id} (${uploadRes.url})`);
+            console.log(`    → Đã tải lên WP Media: ID ${attachmentId} (${uploadedUrl})`);
         } catch (err) {
             console.warn(`    ⚠ Bỏ qua ${fileName}: ${err.message}`);
         }
     }
 
-    return urlMapping;
+    return { urlMapping, idMapping };
 }
 
 // ============================================================
@@ -665,9 +753,9 @@ async function main() {
             console.log(`  ✓ Tải thành công ${Buffer.byteLength(fetchedHtml)} bytes HTML từ trang gốc.`);
 
             // Tự động quét và tải toàn bộ ảnh nếu không bị tắt bởi --no-crawl
-            let urlMapping = new Map();
+            let assetData = { urlMapping: new Map(), idMapping: new Map() };
             if (!args['no-crawl']) {
-                urlMapping = await crawlAndUploadAssets(args.url, fetchedHtml, config);
+                assetData = await crawlAndUploadAssets(args.url, fetchedHtml, config);
             }
 
             // Nếu người dùng truyền kèm file shortcode mẫu đã tối ưu hóa bố cục
@@ -679,9 +767,20 @@ async function main() {
                 rawContent = fetchedHtml;
             }
 
-            // Thay thế URL ảnh gốc thành URL ảnh WordPress Media vừa tải lên
-            if (urlMapping.size > 0) {
-                console.log(`\n\x1b[32m[URL MAPPER] Đang ánh xạ ${urlMapping.size} liên kết media sang WP Media Library...\x1b[0m`);
+            // Thay thế URL ảnh gốc thành URL ảnh WordPress Media và Attachment ID cho [section bg="..."]
+            const urlMapping = assetData.urlMapping || new Map();
+            const idMapping = assetData.idMapping || new Map();
+
+            if (urlMapping.size > 0 || idMapping.size > 0) {
+                console.log(`\n\x1b[32m[URL MAPPER] Đang ánh xạ ${urlMapping.size} liên kết media và ${idMapping.size} background ID sang WP Media...\x1b[0m`);
+                
+                // 1. Thay thế background ID cho shortcode [section bg="..."]
+                for (const [origin, attId] of idMapping.entries()) {
+                    const bgRegex = new RegExp(`(\\[section[^\\]]*?\\bbg=["'])${escapeRegExp(origin)}(["'])`, 'gi');
+                    rawContent = rawContent.replace(bgRegex, `$1${attId}$2`);
+                }
+
+                // 2. Thay thế toàn bộ URL ảnh gốc sang WP Media URL
                 for (const [origin, uploaded] of urlMapping.entries()) {
                     rawContent = rawContent.split(origin).join(uploaded);
                 }

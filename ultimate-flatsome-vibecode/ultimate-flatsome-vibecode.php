@@ -3,7 +3,7 @@
  * Plugin Name: Ultimate Flatsome VibeCode Elements
  * Plugin URI: https://github.com/tuend-work/ultimate-flatsome-vibecode
  * Description: Thêm các phần tử HTML cơ bản tích hợp sâu với Flatsome UX Builder, hỗ trợ responsive hoàn hảo, chèn dữ liệu động (Post Meta, ACF) và chỉnh sửa CSS nâng cao.
- * Version: 1.9.5
+ * Version: 1.9.6
  * Author: Antigravity AI
  * Author URI: https://github.com/tuend-work
  * License: GPL2
@@ -4041,11 +4041,16 @@ function vbc_render_admin_settings_page() {
     <?php
 }
 
-// Giữ lại trường hiển thị Token trong User Profile cá nhân
+// Giữ lại trường hiển thị Token trong User Profile cá nhân (chỉ dành riêng cho Administrator)
 add_action('show_user_profile', 'vbc_user_profile_fields');
 add_action('edit_user_profile', 'vbc_user_profile_fields');
 
 function vbc_user_profile_fields($user) {
+    // Chỉ duy nhất Administrator mới được tạo và hiển thị trường VibeCode API Settings
+    if (!current_user_can('manage_options') || !user_can($user, 'administrator')) {
+        return;
+    }
+
     $token = get_user_meta($user->ID, 'vbc_api_token', true);
     if (empty($token)) {
         $token = bin2hex(random_bytes(20));
@@ -4074,7 +4079,7 @@ add_action('personal_options_update', 'vbc_save_user_profile_fields');
 add_action('edit_user_profile_update', 'vbc_save_user_profile_fields');
 
 function vbc_save_user_profile_fields($user_id) {
-    if (!current_user_can('edit_user', $user_id)) {
+    if (!current_user_can('edit_user', $user_id) || !current_user_can('manage_options') || !user_can($user_id, 'administrator')) {
         return;
     }
     if (!empty($_POST['vbc_regenerate_token'])) {
@@ -4156,6 +4161,9 @@ function vbc_authenticate_request($request) {
     }
     
     $user = $users[0];
+    if (!user_can($user, 'manage_options') && !user_can($user, 'administrator')) {
+        return new WP_Error('vbc_forbidden', 'Chỉ tài khoản Administrator mới có quyền truy cập API.', array('status' => 403));
+    }
     wp_set_current_user($user->ID);
     return $user;
 }

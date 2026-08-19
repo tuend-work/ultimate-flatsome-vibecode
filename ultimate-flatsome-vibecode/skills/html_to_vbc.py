@@ -4,15 +4,19 @@
 ULTIMATE FLATSOME VIBECODE - HTML TO VBC ELEMENTS COMPILER
 ===============================================================================
 File: html_to_vbc.py
-Tuân thủ 100% tài liệu hướng dẫn và Anti-Patterns Matrix trong skills/readme.md:
-  1. 4-Tier Container Hierarchy: vbc_div -> vbc_box -> vbc_block -> vbc_container -> _inner
-  2. Tuyệt đối không lồng thẻ trùng tên gây vỡ cú pháp WordPress parser.
-  3. Void tags tự đóng (vbc_img, vbc_icon, vbc_hr, vbc_br) không có thẻ đóng và không có _inner.
-  4. Chuyển đổi toàn bộ Emoji Unicode thô sang [vbc_icon] chuẩn Lucide/FontAwesome.
-  5. Chuyển đổi inline style sang custom_css="selector { ... }" chuẩn VibeCode.
-  6. Loại bỏ font-family hardcode để kế thừa font toàn cục Flatsome.
-  7. Làm sạch dấu ngoặc kép thô trong văn bản sang HTML entities.
-  8. Tích hợp Contact Form 7 shortcode [contact-form-7 id="..." title="..."].
+Description:
+  1. Tự động biên dịch và đưa CSS vào từng phần tử dưới dạng custom_css="selector { ... }".
+  2. Hỗ trợ toàn diện:
+     - Root class rules: selector { ... }
+     - Pseudo selectors (:hover, :focus, ::after, ::before): selector:hover { ... }
+     - Descendant selectors (.class tag, .class .sub): selector tag { ... }
+     - Media Queries (@media (max-width: ...)): @media (...) { selector { ... } }
+  3. Phân biệt rõ ràng Container Width:
+     - Section ngoài cùng (Hero, Header, Footer, Banner bar): Full-width 100% màn hình.
+     - Container con (bọc nội dung căn giữa): [vbc_box class="container"] đồng bộ chuẩn Flatsome theme width.
+     - Grid / Flex / Card / Typography: mang custom_css riêng của từng phần tử.
+  4. Xóa 100% comment HTML <!-- ... --> và không để CSS thô trong post_content.
+  5. Tự động chuyển đổi Emoji sang [vbc_icon] và Form sang [contact-form-7].
 ===============================================================================
 """
 
@@ -26,7 +30,7 @@ if sys.platform == 'win32':
     except AttributeError:
         pass
 
-# Bản đồ ánh xạ Emoji Unicode thô sang Vector Icon Lucide chuẩn
+# Bản đồ ánh xạ Emoji Unicode sang [vbc_icon]
 EMOJI_ICON_MAP = {
     '📍': '[vbc_icon icon_type="lucide" name="map-pin" size="16px"]',
     '📞': '[vbc_icon icon_type="lucide" name="phone" size="16px"]',
@@ -54,35 +58,96 @@ EMOJI_ICON_MAP = {
 }
 
 
-def sanitize_css_rules(style_str, is_container=False):
-    """Làm sạch CSS inline: loại bỏ font-family hardcode và max-width cố định trên container để kế thừa Flatsome"""
-    if not style_str:
-        return ""
-    # 1. Loại bỏ font-family hardcode để kế thừa font toàn cục Flatsome
-    cleaned = re.sub(r'font-family\s*:\s*[^;]+;?', '', style_str, flags=re.IGNORECASE)
+def parse_css_into_class_map(css_text):
+    """Trích xuất tất cả quy tắc CSS (kèm pseudo, sub-elements, media query) theo từng class"""
+    if not css_text:
+        return {}
 
-    # 2. Nếu là container, loại bỏ max-width cố định (ví dụ: max-width: 1200px, 1240px, 1170px, 1080px) để kế thừa theme Flatsome
-    if is_container:
-        cleaned = re.sub(r'max-width\s*:\s*(?:1[0-3]\d{2}px|1080px|1170px|1200px|1240px)\s*;?', '', cleaned, flags=re.IGNORECASE)
+    class_rules = {}
 
-    cleaned = cleaned.strip().rstrip(';')
-    if not cleaned:
+    # 1. Trích xuất Media Queries trước
+    media_blocks = []
+    def _save_media(m):
+        media_header = m.group(1).strip()
+        media_body = m.group(2).strip()
+        media_blocks.append((media_header, media_body))
         return ""
-    # Nén khoảng trắng
+    
+    clean_css = re.sub(r'(@media[^{]+)\{([\s\S]*?\})\s*\}', _save_media, css_text)
+
+    # 2. Xử lý các quy tắc thông thường
+    matches = re.findall(r'([^{]+)\{([^}]+)\}', clean_css)
+    for sel_str, body in matches:
+        sel_str = sel_str.strip()
+        body = ' '.join(body.strip().split()).rstrip(';')
+        body = re.sub(r'font-family\s*:\s*[^;]+;?', '', body, flags=re.IGNORECASE).strip().rstrip(';')
+        if not body:
+            continue
+
+        selectors = [s.strip() for s in sel_str.split(',')]
+        for sel in selectors:
+            m = re.match(r'^\.([a-zA-Z0-9_\-]+)(.*)$', sel)
+            if m:
+                root_class = m.group(1)
+                remainder = m.group(2).strip()
+                if root_class not in class_rules:
+                    class_rules[root_class] = []
+                
+                if not remainder:
+                    class_rules[root_class].append(f'selector {{ {body}; }}')
+                elif remainder.startswith(':'):
+                    class_rules[root_class].append(f'selector{remainder} {{ {body}; }}')
+                else:
+                    class_rules[root_class].append(f'selector {remainder} {{ {body}; }}')
+
+    # 3. Gắn Media Queries vào class tương ứng
+    for media_header, media_body in media_blocks:
+        sub_matches = re.findall(r'([^{]+)\{([^}]+)\}', media_body)
+        for sel_str, body in sub_matches:
+            sel_str = sel_str.strip()
+            body = ' '.join(body.strip().split()).rstrip(';')
+            body = re.sub(r'font-family\s*:\s*[^;]+;?', '', body, flags=re.IGNORECASE).strip().rstrip(';')
+            if not body:
+                continue
+
+            selectors = [s.strip() for s in sel_str.split(',')]
+            for sel in selectors:
+                m = re.match(r'^\.([a-zA-Z0-9_\-]+)(.*)$', sel)
+                if m:
+                    root_class = m.group(1)
+                    remainder = m.group(2).strip()
+                    if root_class not in class_rules:
+                        class_rules[root_class] = []
+                    
+                    if not remainder:
+                        class_rules[root_class].append(f'{media_header} {{ selector {{ {body}; }} }}')
+                    elif remainder.startswith(':'):
+                        class_rules[root_class].append(f'{media_header} {{ selector{remainder} {{ {body}; }} }}')
+                    else:
+                        class_rules[root_class].append(f'{media_header} {{ selector {remainder} {{ {body}; }} }}')
+
+    return {k: ' '.join(v) for k, v in class_rules.items()}
+
+
+def clean_custom_css_for_attr(css_str):
+    """Đảm bảo custom_css an toàn với dấu ngoặc kép của shortcode WordPress"""
+    if not css_str:
+        return ""
+    cleaned = css_str.replace('"', "'")
     cleaned = ' '.join(cleaned.split())
-    return f'selector {{ {cleaned}; }}'
+    return cleaned.strip()
 
 
-class VBCStandardCompiler(HTMLParser):
-    def __init__(self):
+class VBCPerElementCompiler(HTMLParser):
+    def __init__(self, class_css_map=None):
         super().__init__(convert_charrefs=False)
         self.output = []
         self.container_stack = []
-        # Hệ thống 4-Tier Aliases + Suffix Levels tuân thủ skills/readme.md
+        self.class_css_map = class_css_map or {}
         self.CONTAINER_TAGS = [
-            'vbc_div',             # Cấp 1: Section ngoài cùng
-            'vbc_box',             # Cấp 2: Container (Kế thừa kích thước theme Flatsome)
-            'vbc_block',           # Cấp 3: Cột / Grid / Row
+            'vbc_div',             # Cấp 1: Full-width Section
+            'vbc_box',             # Cấp 2: Theme Container (đồng bộ Flatsome)
+            'vbc_block',           # Cấp 3: Grid / Row / Sub-wrap
             'vbc_container',       # Cấp 4: Card item / Badge
             'vbc_container_inner', # Cấp 5: Khối sâu
             'vbc_container_inner_1',
@@ -92,21 +157,46 @@ class VBCStandardCompiler(HTMLParser):
             'vbc_container_inner_5'
         ]
 
+    def get_element_custom_css(self, cls, raw_style, is_container=False):
+        """Tổng hợp CSS từ class và inline style thành custom_css='selector { ... }'"""
+        rules = []
+
+        # 1. Lấy CSS từ class map
+        if cls:
+            for c in cls.split():
+                if c in self.class_css_map:
+                    rule = self.class_css_map[c]
+                    if is_container:
+                        rule = re.sub(r'max-width\s*:\s*(?:1[0-3]\d{2}px|1080px|1170px|1200px|1240px)\s*;?', '', rule, flags=re.IGNORECASE)
+                    rules.append(rule)
+
+        # 2. Lấy CSS từ inline style
+        if raw_style:
+            inline = raw_style.strip().rstrip(';')
+            inline = re.sub(r'font-family\s*:\s*[^;]+;?', '', inline, flags=re.IGNORECASE)
+            if is_container:
+                inline = re.sub(r'max-width\s*:\s*(?:1[0-3]\d{2}px|1080px|1170px|1200px|1240px)\s*;?', '', inline, flags=re.IGNORECASE)
+            inline = inline.strip().rstrip(';')
+            if inline:
+                rules.append(f'selector {{ {inline}; }}')
+
+        combined = ' '.join(rules).strip()
+        return clean_custom_css_for_attr(combined)
+
     def handle_starttag(self, tag, attrs):
         attr_dict = dict(attrs)
         cls = attr_dict.get('class', '').strip()
         raw_style = attr_dict.get('style', '').strip()
-        custom_css = sanitize_css_rules(raw_style)
 
-        # 1. Thẻ Style
+        # 1. Thẻ Style - bỏ qua
         if tag == 'style':
-            self.output.append('<style>')
             return
 
-        # 2. Void Tag: <img> -> [vbc_img] (Không có thẻ đóng, không có _inner)
+        # 2. Void Tag: IMG -> [vbc_img]
         if tag == 'img':
             src = attr_dict.get('src', '')
             alt = attr_dict.get('alt', '')
+            custom_css = self.get_element_custom_css(cls, raw_style)
             attrs_str = []
             if src:
                 attrs_str.append(f'img_url="{src}"')
@@ -119,17 +209,25 @@ class VBCStandardCompiler(HTMLParser):
             self.output.append(f'[vbc_img {" ".join(attrs_str)}]')
             return
 
-        # 3. Void Tags: <br>, <hr>
+        # 3. Void Tags: BR, HR
         if tag == 'br':
             self.output.append('<br>')
             return
         if tag == 'hr':
-            self.output.append(f'[vbc_hr class="{cls}"]' if cls else '[vbc_hr]')
+            custom_css = self.get_element_custom_css(cls, raw_style)
+            attrs_str = []
+            if cls:
+                attrs_str.append(f'class="{cls}"')
+            if custom_css:
+                attrs_str.append(f'custom_css="{custom_css}"')
+            attr_part = (' ' + ' '.join(attrs_str)) if attrs_str else ''
+            self.output.append(f'[vbc_hr{attr_part}]')
             return
 
         # 4. Typography Tags (h1-h6, p, span, strong, b, em, i)
         if tag in ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span', 'strong', 'b', 'em', 'i']:
             vbc_tag = f'vbc_{tag}'
+            custom_css = self.get_element_custom_css(cls, raw_style)
             attrs_str = []
             if cls:
                 attrs_str.append(f'class="{cls}"')
@@ -140,10 +238,11 @@ class VBCStandardCompiler(HTMLParser):
             self.container_stack.append(('leaf', vbc_tag))
             return
 
-        # 5. Link Tag: <a> -> [vbc_a link_url="..." link_target="..."]
+        # 5. Link Tag: A -> [vbc_a]
         if tag == 'a':
             href = attr_dict.get('href', '#')
             target = attr_dict.get('target', '_self')
+            custom_css = self.get_element_custom_css(cls, raw_style)
             attrs_str = [f'link_url="{href}"']
             if target and target != '_self':
                 attrs_str.append(f'link_target="{target}"')
@@ -155,9 +254,10 @@ class VBCStandardCompiler(HTMLParser):
             self.container_stack.append(('leaf', 'vbc_a'))
             return
 
-        # 6. List Tags: <ul>, <ol>, <li>
+        # 6. List Tags: UL, OL, LI
         if tag in ['ul', 'ol', 'li']:
             vbc_tag = f'vbc_{tag}'
+            custom_css = self.get_element_custom_css(cls, raw_style)
             attrs_str = []
             if cls:
                 attrs_str.append(f'class="{cls}"')
@@ -168,8 +268,9 @@ class VBCStandardCompiler(HTMLParser):
             self.container_stack.append(('leaf', vbc_tag))
             return
 
-        # 7. Button Tag -> [vbc_span class="..."]
+        # 7. Button Tag -> [vbc_span]
         if tag == 'button':
+            custom_css = self.get_element_custom_css(cls, raw_style)
             attrs_str = []
             if cls:
                 attrs_str.append(f'class="{cls}"')
@@ -182,18 +283,21 @@ class VBCStandardCompiler(HTMLParser):
 
         # 8. Container Tags (div, header, section, footer, nav, main, article, aside)
         if tag in ['div', 'header', 'section', 'footer', 'nav', 'main', 'article', 'aside']:
-            # Tính toán phân cấp độ sâu container trong stack
             container_depth = sum(1 for kind, _ in self.container_stack if kind == 'container')
             if container_depth < len(self.CONTAINER_TAGS):
                 vbc_tag = self.CONTAINER_TAGS[container_depth]
             else:
                 vbc_tag = self.CONTAINER_TAGS[-1]
 
-            is_container = (vbc_tag == 'vbc_box') or any(k in cls.lower() for k in ['container', 'wrap', 'wrapper'])
-            custom_css = sanitize_css_rules(raw_style, is_container=is_container)
+            # Section ngoài cùng (Cấp 1): Full Width (width: 100%)
+            is_full_width_section = (container_depth == 0) or tag in ['header', 'section', 'footer', 'nav']
+            # Container bọc nội dung (Cấp 2): Đồng bộ với Theme Flatsome
+            is_theme_container = (vbc_tag == 'vbc_box') or any(k in cls.lower() for k in ['container', 'wrap', 'wrapper'])
 
-            # Tự động đồng bộ và bổ sung class 'container' chuẩn của Flatsome cho vbc_box
-            if vbc_tag == 'vbc_box':
+            custom_css = self.get_element_custom_css(cls, raw_style, is_container=is_theme_container)
+
+            # Tự động gán class 'container' chuẩn Flatsome cho các khối container con
+            if is_theme_container and not is_full_width_section:
                 classes = cls.split()
                 if 'container' not in classes and 'container-fluid' not in classes:
                     classes.insert(0, 'container')
@@ -215,7 +319,6 @@ class VBCStandardCompiler(HTMLParser):
 
     def handle_endtag(self, tag):
         if tag == 'style':
-            self.output.append('</style>')
             return
         if tag in ['img', 'br', 'hr']:
             return
@@ -230,7 +333,6 @@ class VBCStandardCompiler(HTMLParser):
             self.output.append(f'</{tag}>')
 
     def handle_data(self, data):
-        # Tự động thay thế Emoji Unicode thô sang [vbc_icon]
         processed = data
         for emoji, icon_sc in EMOJI_ICON_MAP.items():
             if emoji in processed:
@@ -238,36 +340,33 @@ class VBCStandardCompiler(HTMLParser):
         self.output.append(processed)
 
     def handle_comment(self, data):
-        # Loại bỏ hoàn toàn các comment HTML <!-- ... --> để post_content luôn sạch sẽ
         pass
 
 
 def compile_html_to_vbc(html_content, return_css=False):
-    """Chuyển đổi cây HTML sang VBC Shortcodes chuẩn UX Builder theo skills/readme.md (Đã loại bỏ comment & tách CSS)"""
+    """Chuyển đổi toàn diện HTML sang VBC Shortcodes với CSS tích hợp trực tiếp vào từng phần tử"""
     if not html_content:
         return ("", "") if return_css else ""
 
     content = html_content
 
-    # 1. Trích xuất toàn bộ các khối <style>...</style>
-    style_blocks = []
-    def _save_style(m):
-        raw_css = m.group(1) if len(m.groups()) > 0 else m.group(0)
-        # Bỏ thẻ <style> và </style>
-        raw_css = re.sub(r'<\/?style\b[^>]*>', '', raw_css, flags=re.IGNORECASE)
-        style_blocks.append(raw_css.strip())
-        return "" # Loại bỏ style ra khỏi content
-    content = re.sub(r'<style\b[^>]*>(.*?)<\/style>', _save_style, content, flags=re.DOTALL | re.IGNORECASE)
+    # 1. Trích xuất toàn bộ CSS từ thẻ <style>
+    style_matches = re.findall(r'<style\b[^>]*>(.*?)<\/style>', content, flags=re.DOTALL | re.IGNORECASE)
+    all_css_text = ' '.join(style_matches)
+    class_css_map = parse_css_into_class_map(all_css_text)
 
-    # 2. Bảo vệ các shortcode [contact-form-7 ...] và [vbc_icon ...] sẵn có
+    # 2. Xóa toàn bộ thẻ <style> khỏi content
+    content = re.sub(r'<style\b[^>]*>(.*?)<\/style>', '', content, flags=re.DOTALL | re.IGNORECASE)
+
+    # 3. Bảo vệ các shortcode [contact-form-7 ...] và [vbc_icon ...]
     protected_shortcodes = []
     def _save_shortcodes(m):
         protected_shortcodes.append(m.group(0))
         return f"__VBC_PROTECTED_SC_{len(protected_shortcodes)-1}__"
     content = re.sub(r'\[(?:contact-form-7|vbc_icon|vbc_post|accordion|row|col)\b[^\]]*\](?:[\s\S]*?\[\/(?:accordion|row|col)\])?', _save_shortcodes, content, flags=re.IGNORECASE)
 
-    # 3. Dùng HTML Parser để chuyển đổi cây DOM sang VBC Elements
-    parser = VBCStandardCompiler()
+    # 4. Biên dịch cây DOM sang VBC Elements với CSS nhúng trực tiếp
+    parser = VBCPerElementCompiler(class_css_map=class_css_map)
     try:
         parser.feed(content)
         compiled = ''.join(parser.output)
@@ -275,21 +374,17 @@ def compile_html_to_vbc(html_content, return_css=False):
         print(f"[CẢNH BÁO] HTML Parser fallback: {e}")
         compiled = content
 
-    # 4. Khôi phục Protected Shortcodes
+    # 5. Khôi phục Protected Shortcodes
     for idx, sc in enumerate(protected_shortcodes):
         compiled = compiled.replace(f"__VBC_PROTECTED_SC_{idx}__", sc)
 
-    # 5. Xóa triệt để tất cả HTML comments <!-- ... -->
+    # 6. Xóa triệt để tất cả HTML comments <!-- ... -->
     compiled = re.sub(r'<!--[\s\S]*?-->', '', compiled)
-    
-    # 6. Dọn dẹp các dòng trống liên tiếp
+
+    # 7. Dọn dẹp dòng trống
     compiled = re.sub(r'\n{3,}', '\n\n', compiled).strip()
 
-    extracted_css = ' '.join(style_blocks).strip()
-    # Minify CSS
-    extracted_css = ' '.join(extracted_css.split())
-
     if return_css:
-        return compiled, extracted_css
+        return compiled, all_css_text
 
     return compiled

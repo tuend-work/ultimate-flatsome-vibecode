@@ -46,10 +46,14 @@ Các shortcode của VibeCode bắt đầu bằng tiền tố `vbc_`. Chúng h�
     [vbc_icon icon_type="image" image_id="120" size="40px"]
     ```
 
-### D. Thuộc tính CSS Tự Do (`custom_css`) & Quy Tắc Flexbox/Grid
-Sử dụng từ khóa `selector` để định vị phần tử hiện tại.
-* **Tất cả các thuộc tính căn chỉnh nâng cao (`display: flex`, `align-items`, `justify-content`, `gap`, `grid-template-columns`, `border-radius`, `box-shadow`, `color`) BẮT BUỘC khai báo trong `custom_css="selector { ... }"`**.
-* Ví dụ: `custom_css="selector { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-radius: 12px; } selector:hover { transform: translateY(-3px); }"`
+### D. Thuộc tính CSS Tự Do (`custom_css="selector { ... }"`) Cho Từng Element
+Sử dụng từ khóa `selector` để định vị chính xác phần tử hiện tại. VibeCode sẽ tự động biên dịch sang class duy nhất trong UX Builder và Frontend.
+* **Mọi thuộc tính giao diện, căn chỉnh, màu sắc, khoảng cách, hiệu ứng BẮT BUỘC đưa trực tiếp vào `custom_css` của từng phần tử**:
+  - CSS trực tiếp: `custom_css="selector { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-radius: 12px; }"`
+  - Hiệu ứng Hover / Focus: `custom_css="selector { transition: transform 0.2s; } selector:hover { transform: translateY(-3px); }"`
+  - Pseudo-elements: `custom_css="selector::after { content: ''; width: 60px; height: 3px; background: #b20000; }"`
+  - Descendant selectors: `custom_css="selector h2 { font-size: 28px; font-weight: 900; }"`
+  - Responsive Media Queries: `custom_css="selector { grid-template-columns: 1fr 1fr; } @media(max-width: 768px){ selector { grid-template-columns: 1fr; } }"`
 
 ### E. Thành Phần Danh Sách Bài Viết / Sản Phẩm Động (`[vbc_post]`)
 Cho phép truy vấn và xuất bản danh sách bài viết (`post`), sản phẩm (`product`), trang (`page`), hoặc Custom Post Type (`cpt`) bất kỳ. Hỗ trợ chọn chính xác các trường dữ liệu cần hiển thị, tùy biến độ rộng cột cho từng trường và sắp xếp vị trí linh hoạt.
@@ -123,7 +127,7 @@ Cho phép truy vấn và xuất bản danh sách bài viết (`post`), sản ph�
 ### B. Khối Thẻ Liên Kết (`[vbc_a]`)
 * Thuộc tính chuẩn: `link_url="https://..."` và `link_target="_blank|_self"`.
 * Ví dụ nút bấm:
-  `[vbc_a link_url="https://zalo.me/..." link_target="_blank" custom_css="selector { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 28px; background: #2563eb; color: #ffffff !important; border-radius: 8px; text-decoration: none; font-weight: 700; } selector:hover { background: #1d4ed8; } selector span { color: #ffffff !important; }"] [vbc_icon pack="lucide" name="zap" color="#ffffff" size="18px"] [vbc_span]Yêu Cầu Ngay[/vbc_span] [/vbc_a]`
+  `[vbc_a link_url="https://zalo.me/..." link_target="_blank" custom_css="selector { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 28px; background: #2563eb; color: #ffffff !important; border-radius: 8px; text-decoration: none; font-weight: 700; } selector:hover { background: #1d4ed8; }"] [vbc_icon pack="lucide" name="zap" color="#ffffff" size="18px"] [vbc_span]Yêu Cầu Ngay[/vbc_span] [/vbc_a]`
 
 ### C. Khối Hỏi Đáp (`[accordion]`)
 * Rất tốt cho SEO nhờ hỗ trợ Schema FAQ trực tiếp của Flatsome.
@@ -137,17 +141,25 @@ Cho phép truy vấn và xuất bản danh sách bài viết (`post`), sản ph�
 
 ---
 
-## 3. Quy Tắc Lồng Ghép Thẻ Div (Nesting Best Practice)
+## 3. Quy Tắc Lồng Ghép Thẻ Div & Linh Hoạt Chiều Rộng Container (Container Width Rules)
 
 > [!WARNING]
 > Bộ phân tích cú pháp WordPress shortcode **không hỗ trợ** lồng hai thẻ trùng tên nhau (ví dụ: `[vbc_div] ... [vbc_div] ... [/vbc_div] ... [/vbc_div]` sẽ làm lộ thẻ đóng).
 
-**Quy tắc đúng khi cần lồng các khối Div**:
-Sử dụng tuần tự các thẻ bí danh theo cấp bậc:
-1. Cấp 1 (Ngoài cùng - Section): `[vbc_div]`
-2. Cấp 2 (Container 1200px): `[vbc_box]`
-3. Cấp 3 (Cột / Khối nội dung): `[vbc_block]`
-4. Cấp 4 (Phần tử con / Badge / Card item): `[vbc_container]`
+**Quy tắc phân cấp thẻ & điều phối Container Width chuẩn UX Builder**:
+1. **Cấp 1: Section ngoài cùng (`[vbc_div]`) - FULL WIDTH (100%)**:
+   - Dành cho các khối bao phủ toàn màn hình (Hero banner tràn viền, Header bar, Footer, Background dải màu).
+   - Mang thuộc tính: `custom_css="selector { width: 100%; position: relative; background: ...; }"` (KHÔNG gán class `container`).
+2. **Cấp 2: Khối Container bọc nội dung (`[vbc_box]`) - THEME CONTAINER WIDTH**:
+   - Dùng gán class chuẩn Flatsome: `[vbc_box class="container"]`.
+   - Tự động kế thừa và đồng bộ chính xác theo chiều rộng website cấu hình trong **Flatsome Theme Options -> Layout -> Site Width** (`1200px`, `1170px`, `1080px`...). Tự động căn giữa `margin: 0 auto` và có đệm viền `padding: 0 15px`.
+3. **Cấp 3: Lưới / Hàng / Khối chức năng (`[vbc_block]`)**:
+   - Dành cho Grid, Flex row, hoặc khung bao bọc nhóm card.
+   - Ví dụ: `[vbc_block custom_css="selector { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }"]`
+4. **Cấp 4: Thẻ Card item / Badge (`[vbc_container]`)**:
+   - Dành cho từng thẻ card riêng lẻ với viền, đổ bóng, hiệu ứng hover.
+   - Ví dụ: `[vbc_container custom_css="selector { background: #ffffff; border-radius: 12px; padding: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); } selector:hover { transform: translateY(-3px); }"]`
+5. **Cấp 5+: Khối lồng sâu hơn**: `[vbc_container_inner]`, `[vbc_container_inner_1]`...
 
 ---
 

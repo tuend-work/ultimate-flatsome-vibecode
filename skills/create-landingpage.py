@@ -91,10 +91,65 @@ class LandingPageCreator:
         # Nếu không có nội dung truyền vào, tạo mẫu landing page chuẩn
         return self.build_default_template()
 
+    def convert_forms_to_cf7(self, html):
+        """Tự động chuyển đổi các thẻ <form> hoặc cụm input sang Contact Form 7 shortcode"""
+        from skills.cf7_converter import convert_html_form_to_cf7_markup, create_cf7_form_via_api
+
+        form_matches = list(re.finditer(r'<form\b[^>]*>(.*?)</form>', html, re.DOTALL | re.IGNORECASE))
+        if not form_matches:
+            return html
+
+        print(f"-> Phát hiện {len(form_matches)} form biểu mẫu cần chuyển đổi sang Contact Form 7...")
+        processed_html = html
+        for idx, match in enumerate(form_matches, 1):
+            full_form = match.group(0)
+            inner_form = match.group(1)
+
+            cf7_markup = convert_html_form_to_cf7_markup(inner_form)
+            form_title = f"Form Tạo Mới #{idx} - {self.title}"
+
+            cf7_shortcode, cf7_id = create_cf7_form_via_api(self.api_url, self.token, form_title, cf7_markup)
+            if cf7_shortcode:
+                print(f"   [Form #{idx}] ✓ Đã tạo CF7 ID {cf7_id}: {cf7_shortcode}")
+                processed_html = processed_html.replace(full_form, cf7_shortcode)
+            else:
+                print(f"   [Form #{idx}] ⚠ Không thể tạo CF7 qua API, giữ nguyên form.")
+
+        return processed_html
+
+    def create_cf7_booking_form(self, form_title=None):
+        """Tạo sẵn một form Contact Form 7 chuyên nghiệp cho trang"""
+        from skills.cf7_converter import create_cf7_form_via_api
+
+        title = form_title or f"Form Đăng Ký - {self.title}"
+        cf7_markup = """<div class="vbc-cf7-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+  <div>
+    <label style="font-weight: 700; font-size: 13.5px; color: #0f172a; display: block; margin-bottom: 6px;">Họ và tên *</label>
+    [text* your-name placeholder "Nhập họ và tên..."]
+  </div>
+  <div>
+    <label style="font-weight: 700; font-size: 13.5px; color: #0f172a; display: block; margin-bottom: 6px;">Số điện thoại *</label>
+    [tel* your-phone placeholder "Nhập số điện thoại..."]
+  </div>
+  <div>
+    <label style="font-weight: 700; font-size: 13.5px; color: #0f172a; display: block; margin-bottom: 6px;">Dịch vụ yêu cầu</label>
+    [select your-service "Tư vấn báo giá" "Đặt lịch hẹn" "Dịch vụ theo yêu cầu" "Khác"]
+  </div>
+</div>
+<div style="margin-bottom: 15px;">
+  <label style="font-weight: 700; font-size: 13.5px; color: #0f172a; display: block; margin-bottom: 6px;">Ghi chú thêm</label>
+  [textarea your-message placeholder "Nội dung cần hỗ trợ thêm..."]
+</div>
+<div style="text-align: center;">
+  [submit class:vbc-lp-btn "🚀 GỬI YÊU CẦU TƯ VẤN NGAY"]
+</div>"""
+
+        cf7_shortcode, cf7_id = create_cf7_form_via_api(self.api_url, self.token, title, cf7_markup)
+        return cf7_shortcode or '<p>Form đăng ký</p>'
+
     def build_from_spec(self, spec):
-        """Tự động dựng cấu trúc HTML từ spec các section"""
+        """Tự động dựng cấu trúc HTML từ spec các section và nhúng Contact Form 7 shortcode"""
         theme_color = spec.get('theme_color', '#b20000')
-        sections_html = []
 
         # CSS Base
         css_block = f"""<style>
@@ -110,6 +165,10 @@ class LandingPageCreator:
 .vbc-lp-card {{ background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; padding: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); }}
 .vbc-lp-card h3 {{ font-size: 20px; font-weight: 700; color: #0f172a; margin: 0 0 10px; }}
 .vbc-lp-card p {{ font-size: 15px; color: #64748b; line-height: 1.6; margin: 0; }}
+.vbc-lp-form-sec {{ background: #f8fafc; padding: 60px 0; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; }}
+.vbc-lp-form-box {{ max-width: 850px; margin: 0 auto; background: #ffffff; padding: 35px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; }}
+.vbc-lp-form-box input, .vbc-lp-form-box select, .vbc-lp-form-box textarea {{ width: 100%; padding: 12px 14px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 15px; color: #1e293b; outline: none; }}
+.vbc-lp-form-box input:focus, .vbc-lp-form-box select:focus, .vbc-lp-form-box textarea:focus {{ border-color: {theme_color}; }}
 </style>"""
 
         # Hero
@@ -125,6 +184,23 @@ class LandingPageCreator:
       <h1>{hero_title}</h1>
       <p>{hero_desc}</p>
       <a href="tel:{hero_phone}" class="vbc-lp-btn">📞 {hero_cta}: {hero_phone}</a>
+    </div>
+  </section>
+"""
+
+        # Contact Form 7 Section
+        cf7_shortcode = self.create_cf7_booking_form()
+        form_sec_html = f"""
+  <!-- SECTION CONTACT FORM 7 -->
+  <section class="vbc-lp-form-sec">
+    <div class="vbc-lp-container">
+      <div style="text-align: center; margin-bottom: 25px;">
+        <h2 style="font-size: 28px; font-weight: 800; color: #0f172a; margin: 0 0 10px;">ĐĂNG KÝ NHẬN TƯ VẤN & BÁO GIÁ</h2>
+        <p style="font-size: 15.5px; color: #64748b; margin: 0;">Vui lòng điền thông tin bên dưới, chúng tôi sẽ liên hệ lại trong vòng 5 phút.</p>
+      </div>
+      <div class="vbc-lp-form-box">
+        {cf7_shortcode}
+      </div>
     </div>
   </section>
 """
@@ -154,7 +230,7 @@ class LandingPageCreator:
   </section>
 </div>
 """
-        return css_block + hero_html + cards_html
+        return css_block + hero_html + form_sec_html + cards_html
 
     def build_default_template(self):
         """Mẫu landing page mặc định sang trọng và chuẩn UI/UX"""
@@ -194,6 +270,7 @@ class LandingPageCreator:
         print(f"-------------------------------------------------------")
 
         content = self.load_content()
+        content = self.convert_forms_to_cf7(content)
         sanitized_content = self.sanitize_for_wp(content)
 
         page_endpoint = f"{self.api_url}/vbc/v1/page"

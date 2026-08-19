@@ -276,52 +276,7 @@ page_html = f"""
         <button type="button" class="hlhv-tab-btn active">Đặt Vé Xe Khách</button>
         <button type="button" class="hlhv-tab-btn">Cho Thuê Xe &amp; Gửi Hàng</button>
       </div>
-      <form onsubmit="event.preventDefault(); window.location.href='tel:0968866855';">
-        <div class="hlhv-form-grid">
-          <div class="hlhv-input-group">
-            <label>📍 Điểm đi</label>
-            <select>
-              <option>Hà Nội (Bến xe Nước Ngầm)</option>
-              <option>Hải Phòng</option>
-              <option>Nam Định / Ninh Bình</option>
-              <option>Thanh Hóa / Nghệ An</option>
-              <option>Đà Nẵng / Huế</option>
-              <option>TP. Hồ Chí Minh</option>
-            </select>
-          </div>
-          <div class="hlhv-input-group">
-            <label>📍 Điểm đến</label>
-            <select>
-              <option>TP. Hồ Chí Minh (BX Miền Đông)</option>
-              <option>Bình Dương / Đồng Nai</option>
-              <option>Nha Trang / Phan Thiết</option>
-              <option>Đà Nẵng / Quảng Nam</option>
-              <option>Nghệ An / Hà Tĩnh</option>
-              <option>Hà Nội</option>
-            </select>
-          </div>
-          <div class="hlhv-input-group">
-            <label>📅 Ngày đi</label>
-            <input type="date" value="2026-08-20" />
-          </div>
-          <div class="hlhv-input-group">
-            <label>🚌 Loại dịch vụ / Dòng xe</label>
-            <select>
-              <option>Xe Giường Nằm Cao Cấp</option>
-              <option>Xe Limousine VIP</option>
-              <option>Thuê Xe Du Lịch 16 - 45 Chỗ</option>
-              <option>Gửi Hàng Nhanh Bắc Nam</option>
-            </select>
-          </div>
-          <div class="hlhv-input-group">
-            <label>📞 Số điện thoại</label>
-            <input type="tel" placeholder="Nhập SĐT để nhận vé &amp; giá" required />
-          </div>
-        </div>
-        <button type="submit" class="hlhv-btn-submit">
-          🔍 TÌM CHUYẾN XE &amp; ĐẶT VÉ NHANH
-        </button>
-      </form>
+      [contact-form-7 id="492" title="Form Đặt Vé &amp; Thuê Xe Hoàng Long Hải Vân"]
     </div>
   </div>
 

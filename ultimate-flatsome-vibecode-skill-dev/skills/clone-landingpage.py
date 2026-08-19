@@ -200,17 +200,46 @@ class LandingPageCloner:
         html = re.sub(r'>\s*\n+\s*<', '><', html)
         return html.strip()
 
+    def convert_forms_to_cf7(self, html):
+        """Tự động chuyển đổi các thẻ <form> hoặc cụm input sang Contact Form 7 shortcode"""
+        from skills.cf7_converter import convert_html_form_to_cf7_markup, create_cf7_form_via_api
+
+        form_matches = list(re.finditer(r'<form\b[^>]*>(.*?)</form>', html, re.DOTALL | re.IGNORECASE))
+        if not form_matches:
+            return html
+
+        print(f"-> Phát hiện {len(form_matches)} form biểu mẫu cần chuyển đổi sang Contact Form 7...")
+        processed_html = html
+        for idx, match in enumerate(form_matches, 1):
+            full_form = match.group(0)
+            inner_form = match.group(1)
+
+            cf7_markup = convert_html_form_to_cf7_markup(inner_form)
+            form_title = f"Form Clone #{idx} - {self.title}"
+
+            cf7_shortcode, cf7_id = create_cf7_form_via_api(self.api_url, self.token, form_title, cf7_markup)
+            if cf7_shortcode:
+                print(f"   [Form #{idx}] ✓ Đã tạo CF7 ID {cf7_id}: {cf7_shortcode}")
+                processed_html = processed_html.replace(full_form, cf7_shortcode)
+            else:
+                print(f"   [Form #{idx}] ⚠ Không thể tạo CF7 qua API, giữ nguyên form.")
+
+        return processed_html
+
     def build_page_html(self, raw_html):
-        """Xây dựng mã HTML hoàn chỉnh chuẩn SEO, Responsive và thay thế toàn bộ URL ảnh"""
-        print(f"\n[3/5] Đang tái tạo cấu trúc giao diện và áp dụng màu sắc, layout...")
+        """Xây dựng mã HTML hoàn chỉnh chuẩn SEO, Responsive và thay thế toàn bộ URL ảnh & Form sang CF7"""
+        print(f"\n[3/5] Đang tái tạo cấu trúc giao diện, đồng bộ ảnh và chuyển đổi Form sang CF7...")
         
-        # Thay thế các URL ảnh nguồn sang link WordPress Media
+        # 1. Thay thế các URL ảnh nguồn sang link WordPress Media
         processed_html = raw_html
         for src_url, media_info in self.media_map.items():
             wp_img_url = media_info['url']
             processed_html = processed_html.replace(src_url, wp_img_url)
 
-        # Thêm loading="eager" và decoding="sync" cho tất cả các thẻ <img>
+        # 2. Chuyển đổi toàn bộ thẻ <form> và input sang Contact Form 7 shortcode
+        processed_html = self.convert_forms_to_cf7(processed_html)
+
+        # 3. Thêm loading="eager" và decoding="sync" cho tất cả các thẻ <img>
         processed_html = re.sub(r'<img\b(?![^>]*\bloading=)', '<img loading="eager" decoding="sync"', processed_html)
 
         return self.sanitize_for_wp(processed_html)

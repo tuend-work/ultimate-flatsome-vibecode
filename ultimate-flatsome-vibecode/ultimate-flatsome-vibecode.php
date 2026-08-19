@@ -3,7 +3,7 @@
  * Plugin Name: Ultimate Flatsome VibeCode Elements
  * Plugin URI: https://github.com/tuend-work/ultimate-flatsome-vibecode
  * Description: Thêm các phần tử HTML cơ bản tích hợp sâu với Flatsome UX Builder, hỗ trợ responsive hoàn hảo, chèn dữ liệu động (Post Meta, ACF) và chỉnh sửa CSS nâng cao.
- * Version: 1.9.9
+ * Version: 2.0.0
  * Author: Antigravity AI
  * Author URI: https://github.com/tuend-work
  * License: GPL2
@@ -4167,6 +4167,19 @@ function vbc_register_rest_routes() {
             }
         )
     ));
+
+    // Endpoint tạo & quản lý Contact Form 7
+    register_rest_route('vbc/v1', '/cf7', array(
+        'methods' => 'POST',
+        'callback' => 'vbc_api_cf7_handler',
+        'permission_callback' => function($request) {
+            $user = vbc_authenticate_request($request);
+            if (is_wp_error($user)) {
+                return $user;
+            }
+            return user_can($user, 'edit_posts') || user_can($user, 'manage_options');
+        }
+    ));
 }
 
 function vbc_authenticate_request($request) {
@@ -4410,6 +4423,184 @@ function vbc_api_get_page_handler($request) {
         'status' => $post->post_status,
         'post_type' => $post->post_type,
     );
+}
+
+/**
+ * REST API Handler cho Contact Form 7 (/vbc/v1/cf7)
+ */
+function vbc_api_cf7_handler($request) {
+    $params = $request->get_params();
+    $title = !empty($params['title']) ? sanitize_text_field($params['title']) : 'Form Liên Hệ ' . date('Y-m-d H:i');
+    $title = vbc_fix_utf8_mojibake($title);
+    
+    $form_content = !empty($params['form']) ? $params['form'] : '';
+    $form_content = vbc_fix_utf8_mojibake($form_content);
+    
+    $mail_recipient = !empty($params['mail_recipient']) ? sanitize_email($params['mail_recipient']) : get_option('admin_email');
+    $mail_subject = !empty($params['mail_subject']) ? sanitize_text_field($params['mail_subject']) : '[' . get_bloginfo('name') . '] Liên hệ mới từ ' . $title;
+    
+    $post_id = !empty($params['id']) ? intval($params['id']) : 0;
+    
+    $post_data = array(
+        'post_title' => $title,
+        'post_content' => $form_content,
+        'post_status' => 'publish',
+        'post_type' => 'wpcf7_contact_form',
+    );
+    
+    if ($post_id > 0) {
+        $post_data['ID'] = $post_id;
+        $saved_id = wp_update_post($post_data, true);
+    } else {
+        $saved_id = wp_insert_post($post_data, true);
+    }
+    
+    if (is_wp_error($saved_id)) {
+        return new WP_Error('vbc_cf7_save_failed', $saved_id->get_error_message(), array('status' => 500));
+    }
+    
+    // Lưu metadata chuẩn Contact Form 7
+    update_post_meta($saved_id, '_form', $form_content);
+    
+    $mail_meta = array(
+        'active' => true,
+        'subject' => $mail_subject,
+        'sender' => '[_site_title] <wordpress@' . (isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : 'localhost') . '>',
+        'recipient' => $mail_recipient,
+        'body' => "Từ: [your-name] <[your-email]>\nSố điện thoại: [your-phone]\nTiêu đề: [your-subject]\n\nNội dung:\n[your-message]\n\n--\nThư này được gửi từ form liên hệ trên " . get_bloginfo('name') . " (" . home_url() . ")",
+        'additional_headers' => "Reply-To: [your-email]",
+        'attachments' => "",
+        'use_html' => false,
+        'exclude_empty' => false,
+    );
+    update_post_meta($saved_id, '_mail', $mail_meta);
+    
+    $messages_meta = array(
+        'mail_sent_ok' => 'Cảm ơn bạn. Yêu cầu của bạn đã được gửi thành công.',
+        'mail_sent_ng' => 'Có lỗi xảy ra khi gửi yêu cầu. Vui lòng thử lại sau.',
+        'validation_error' => 'Một hoặc nhiều trường có lỗi. Vui lòng kiểm tra lại.',
+        'spam' => 'Có lỗi xảy ra khi gửi yêu cầu. Vui lòng thử lại sau.',
+        'accept_terms' => 'Bạn phải chấp nhận các điều khoản trước khi gửi tin nhắn.',
+        'invalid_required' => 'Trường này là bắt buộc.',
+        'invalid_too_long' => 'Trường quá dài.',
+        'invalid_too_short' => 'Trường quá ngắn.',
+    );
+    update_post_meta($saved_id, '_messages', $messages_meta);
+    
+    $shortcode = '[contact-form-7 id="' . $saved_id . '" title="' . esc_attr($title) . '"]';
+    
+    return array(
+        'success' => true,
+        'id' => $saved_id,
+        'title' => $title,
+        'shortcode' => $shortcode,
+        'form' => $form_content,
+    );
+}
+
+/**
+ * Fallback Shortcode Renderer cho [contact-form-7] khi plugin CF7 chưa được kích hoạt
+ */
+if (!shortcode_exists('contact-form-7')) {
+    add_shortcode('contact-form-7', 'vbc_cf7_fallback_renderer');
+}
+
+function vbc_cf7_fallback_renderer($atts) {
+    $atts = shortcode_atts(array(
+        'id' => 0,
+        'title' => '',
+        'html_class' => '',
+    ), $atts, 'contact-form-7');
+    
+    $form_id = intval($atts['id']);
+    if ($form_id <= 0) return '';
+    
+    $form_post = get_post($form_id);
+    if (!$form_post) return '';
+    
+    $raw_form = get_post_meta($form_id, '_form', true);
+    if (empty($raw_form)) {
+        $raw_form = $form_post->post_content;
+    }
+    
+    // Parse các tag cơ bản của Contact Form 7 thành HTML
+    $html = $raw_form;
+    
+    // [text* your-name placeholder "..."]
+    $html = preg_replace_callback('/\[text(\*?)\s+([a-zA-Z0-9_\-]+)([^\]]*)\]/', function($m) {
+        $req = !empty($m[1]) ? ' required' : '';
+        $name = esc_attr($m[2]);
+        $extra = $m[3];
+        $placeholder = '';
+        if (preg_match('/placeholder\s+[\'"]([^\'"]+)[\'"]/', $extra, $pm)) {
+            $placeholder = ' placeholder="' . esc_attr($pm[1]) . '"';
+        }
+        return '<input type="text" name="' . $name . '"' . $placeholder . $req . ' class="wpcf7-form-control wpcf7-text" />';
+    }, $html);
+    
+    // [tel* your-phone placeholder "..."]
+    $html = preg_replace_callback('/\[tel(\*?)\s+([a-zA-Z0-9_\-]+)([^\]]*)\]/', function($m) {
+        $req = !empty($m[1]) ? ' required' : '';
+        $name = esc_attr($m[2]);
+        $extra = $m[3];
+        $placeholder = '';
+        if (preg_match('/placeholder\s+[\'"]([^\'"]+)[\'"]/', $extra, $pm)) {
+            $placeholder = ' placeholder="' . esc_attr($pm[1]) . '"';
+        }
+        return '<input type="tel" name="' . $name . '"' . $placeholder . $req . ' class="wpcf7-form-control wpcf7-tel" />';
+    }, $html);
+
+    // [email* your-email placeholder "..."]
+    $html = preg_replace_callback('/\[email(\*?)\s+([a-zA-Z0-9_\-]+)([^\]]*)\]/', function($m) {
+        $req = !empty($m[1]) ? ' required' : '';
+        $name = esc_attr($m[2]);
+        $extra = $m[3];
+        $placeholder = '';
+        if (preg_match('/placeholder\s+[\'"]([^\'"]+)[\'"]/', $extra, $pm)) {
+            $placeholder = ' placeholder="' . esc_attr($pm[1]) . '"';
+        }
+        return '<input type="email" name="' . $name . '"' . $placeholder . $req . ' class="wpcf7-form-control wpcf7-email" />';
+    }, $html);
+
+    // [date departure-date]
+    $html = preg_replace_callback('/\[date(\*?)\s+([a-zA-Z0-9_\-]+)([^\]]*)\]/', function($m) {
+        $req = !empty($m[1]) ? ' required' : '';
+        $name = esc_attr($m[2]);
+        return '<input type="date" name="' . $name . '"' . $req . ' class="wpcf7-form-control wpcf7-date" />';
+    }, $html);
+
+    // [select your-select "Option 1" "Option 2"]
+    $html = preg_replace_callback('/\[select(\*?)\s+([a-zA-Z0-9_\-]+)\s+([^\]]+)\]/', function($m) {
+        $name = esc_attr($m[2]);
+        $options_raw = $m[3];
+        $options_html = '';
+        if (preg_match_all('/[\'"]([^\'"]+)[\'"]/', $options_raw, $om)) {
+            foreach ($om[1] as $opt) {
+                $options_html .= '<option value="' . esc_attr($opt) . '">' . esc_html($opt) . '</option>';
+            }
+        }
+        return '<select name="' . $name . '" class="wpcf7-form-control wpcf7-select">' . $options_html . '</select>';
+    }, $html);
+
+    // [textarea your-message placeholder "..."]
+    $html = preg_replace_callback('/\[textarea(\*?)\s+([a-zA-Z0-9_\-]+)([^\]]*)\]/', function($m) {
+        $name = esc_attr($m[2]);
+        $extra = $m[3];
+        $placeholder = '';
+        if (preg_match('/placeholder\s+[\'"]([^\'"]+)[\'"]/', $extra, $pm)) {
+            $placeholder = ' placeholder="' . esc_attr($pm[1]) . '"';
+        }
+        return '<textarea name="' . $name . '"' . $placeholder . ' class="wpcf7-form-control wpcf7-textarea"></textarea>';
+    }, $html);
+
+    // [submit class:my-class "Button Text"]
+    $html = preg_replace_callback('/\[submit(?:\s+class:([^\s\]]+))?\s+[\'"]([^\'"]+)[\'"]\]/', function($m) {
+        $cls = !empty($m[1]) ? ' ' . esc_attr($m[1]) : '';
+        $text = esc_html($m[2]);
+        return '<button type="submit" class="wpcf7-form-control wpcf7-submit' . $cls . '">' . $text . '</button>';
+    }, $html);
+
+    return '<div class="wpcf7 js" id="wpcf7-f' . $form_id . '-p0-o1" lang="vi" dir="ltr"><form action="#" method="post" class="wpcf7-form init ' . esc_attr($atts['html_class']) . '">' . $html . '</form></div>';
 }
 
 /**

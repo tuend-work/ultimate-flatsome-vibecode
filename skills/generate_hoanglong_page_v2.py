@@ -640,10 +640,15 @@ def sanitize_for_wp(html):
     html = re.sub(r'>\s*\n+\s*<', '><', html)
     return html.strip()
 
-page_content = sanitize_for_wp(page_html)
+import sys
+sys.path.insert(0, os.path.dirname(__file__))
+from html_to_vbc import compile_html_to_vbc
+print("Compiling page HTML to native VBC elements [vbc_*]...")
+vbc_compiled_html = compile_html_to_vbc(page_html)
+page_content = sanitize_for_wp(vbc_compiled_html)
 
 # Publishing to WordPress REST API
-print("\nPublishing to WordPress REST API...")
+print("\nPublishing to WordPress REST API with native VBC Elements...")
 api_url = config.get('api-url', 'https://ultimateflatsomevibecode.s172d211.wpcloud.vn/wp-json').rstrip('/')
 token = config['token']
 

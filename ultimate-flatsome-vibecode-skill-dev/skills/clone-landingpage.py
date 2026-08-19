@@ -239,8 +239,19 @@ class LandingPageCloner:
         # 2. Chuyển đổi toàn bộ thẻ <form> và input sang Contact Form 7 shortcode
         processed_html = self.convert_forms_to_cf7(processed_html)
 
-        # 3. Thêm loading="eager" và decoding="sync" cho tất cả các thẻ <img>
-        processed_html = re.sub(r'<img\b(?![^>]*\bloading=)', '<img loading="eager" decoding="sync"', processed_html)
+        # 3. Chuyển đổi HTML sang hệ thống phần tử VBC Elements [vbc_*]
+        try:
+            from skills.html_to_vbc import compile_html_to_vbc
+        except ImportError:
+            import importlib.util
+            vbc_compiler_file = os.path.join(os.path.dirname(__file__), 'html_to_vbc.py')
+            spec = importlib.util.spec_from_file_location("vbc_compiler_module", vbc_compiler_file)
+            vbc_compiler_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(vbc_compiler_module)
+            compile_html_to_vbc = vbc_compiler_module.compile_html_to_vbc
+
+        print(f"-> Đang biên dịch cấu trúc DOM sang các phần tử VBC Elements...")
+        processed_html = compile_html_to_vbc(processed_html)
 
         return self.sanitize_for_wp(processed_html)
 

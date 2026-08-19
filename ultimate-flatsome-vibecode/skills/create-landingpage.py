@@ -271,6 +271,21 @@ class LandingPageCreator:
 
         content = self.load_content()
         content = self.convert_forms_to_cf7(content)
+
+        # Chuyển đổi HTML sang hệ thống phần tử VBC Elements [vbc_*]
+        try:
+            from skills.html_to_vbc import compile_html_to_vbc
+        except ImportError:
+            import importlib.util
+            vbc_compiler_file = os.path.join(os.path.dirname(__file__), 'html_to_vbc.py')
+            spec = importlib.util.spec_from_file_location("vbc_compiler_module", vbc_compiler_file)
+            vbc_compiler_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(vbc_compiler_module)
+            compile_html_to_vbc = vbc_compiler_module.compile_html_to_vbc
+
+        print(f"-> Đang biên dịch cấu trúc DOM sang các phần tử VBC Elements...")
+        content = compile_html_to_vbc(content)
+
         sanitized_content = self.sanitize_for_wp(content)
 
         page_endpoint = f"{self.api_url}/vbc/v1/page"

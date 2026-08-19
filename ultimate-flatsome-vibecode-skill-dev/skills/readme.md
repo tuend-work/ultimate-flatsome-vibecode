@@ -253,6 +253,13 @@ Công cụ mạnh mẽ hỗ trợ chuyển đổi mọi nguồn giao diện (URL
 
 ---
 
+### C. Quy Tắc Chụp Ảnh Xác Thực Trực Quan (Fast 1-Shot Visual Verification)
+* **Tuyệt đối không chụp ảnh từng phần nhỏ, không cuộn chụp nhiều lần gây mất thời gian**.
+* **Luôn chụp 1 lần duy nhất toàn bộ trang (Single Full-Page Screenshot)** bằng cách bật `CaptureBeyondViewport: true` trong Browser tool.
+* Sau khi chụp, hiển thị ảnh chụp toàn trang hoàn chỉnh cho người dùng đối soát ngay.
+
+---
+
 ## 7. Quy Trình Tạo Landing Page Qua Skill (Interactive 2-Step Workflow)
 
 ### **Bước 1: Phân Tích Ngành Nghề & Đề Xuất Design System Box**

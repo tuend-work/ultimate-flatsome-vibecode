@@ -1,0 +1,586 @@
+/*
+Theme Name: Flatsome Child
+Description: This is a child theme for Flatsome Theme
+Author: UX Themes
+Template: flatsome
+Version: 3.0
+*/
+
+/*************** ADD CUSTOM CSS HERE.   ***************/
+
+/* TITLE */
+.banner-bus h1 {
+  font-size: 46px;
+  line-height: 1.2;
+  margin-bottom: 10px;
+  color: #b20000;
+  text-transform: uppercase;
+}
+
+.banner-bus h1 span {
+  color: #0c4a89;
+}
+
+/* SLOGAN */
+.banner-slogan {
+  font-size: 28px;
+  color: #b20000;
+  font-style: italic;
+  margin-bottom: 20px;
+  font-family: cursive;
+}
+
+/* LIST */
+.banner-list {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 25px;
+}
+
+.banner-list li {
+  position: relative;
+  padding-left: 35px;
+  margin-bottom: 10px;
+  font-weight: 600;
+  color: #000;
+}
+
+.banner-list li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 22px;
+  height: 22px;
+  background: #b20000;
+  color: #fff;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 22px;
+  font-size: 13px;
+}
+
+
+.banner-actions {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+
+.banner-actions a {
+  padding: 12px 20px;
+  font-weight: 700;
+  border-radius: 6px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+}
+
+
+.banner-actions i {
+  font-size: 20px;
+}
+
+
+.btn-call {
+  background: linear-gradient(135deg, #ff2b2b, #b20000);
+  color: #fff;
+  position: relative;
+  z-index: 1;
+  overflow: visible; 
+}
+
+
+.btn-call i {
+  animation: ring 1.2s infinite;
+}
+
+
+.btn-call::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.5);
+  animation: pulse 2s infinite;
+  z-index: -1; /* không che nội dung */
+}
+
+
+.btn-call:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 10px 25px rgba(255, 0, 0, 0.6);
+  color: #fff;
+}
+.btn-call:hover::after {
+  animation: none;
+}
+
+.btn-zalo {
+  background: #fff;
+  border: 1px solid #ddd;
+  color: #000 !important;
+}
+
+.btn-zalo img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+.btn-zalo:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+}
+
+@keyframes ring {
+  0% { transform: rotate(0); }
+  10% { transform: rotate(20deg); }
+  20% { transform: rotate(-15deg); }
+  30% { transform: rotate(20deg); }
+  40% { transform: rotate(-10deg); }
+  50% { transform: rotate(10deg); }
+  60% { transform: rotate(0); }
+  100% { transform: rotate(0); }
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 14px rgba(255, 0, 0, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
+  }
+}
+
+@media (max-width: 768px) {
+  .banner-bus h1 {
+    font-size: 26px;
+  }
+  .banner-slogan {
+    font-size: 20px;
+  }
+	.banner-actions {
+		display: none;
+	}
+}
+
+/* Heading */
+.heading-ct {
+  margin-bottom: 30px;
+}
+
+.heading-ct h2 {
+  position: relative;
+  display: inline-block;
+  font-size: 30px;
+  text-transform: uppercase;
+  color: #000;
+  margin: 0;
+  padding-bottom: 10px;
+}
+
+/* gạch đỏ */
+.heading-ct h2::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: #b20000;
+  border-radius: 2px;
+}
+.sec-dv h4 {
+    text-transform: uppercase;
+}
+.box-shadow-1 {
+    box-shadow: 0px 1px 5px #e9e9e9;
+    border-radius: 5px;
+}
+.btn-sec {
+    border-radius: 5px !important;
+    font-size: 13px;
+}
+.sec-dv .box-text {
+	padding-top: 20px;
+}
+.sec-dv .box-image {
+    border-radius: 5px 5px 0 0;
+}
+.sec-dv .box-text-inner p {
+    padding: 10px 0;
+}
+.sec-qt, .sec-hl {
+    background: linear-gradient(45deg, #b20000, #870000);
+}
+.sec-qt .heading-ct h2::after {
+    background: #fff;
+}
+.box-blog-post .is-divider {
+    display: none;
+}
+.box-blog-post .box-text .post-title a {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.home .box-blog-post .box-text {
+    border-radius: 0 0 5px 5px;
+}
+.home .box-blog-post .box-text-inner {
+    display: flex;
+    flex-direction: column-reverse;
+}
+.home .box-blog-post .box-image {
+    border-radius: 5px 5px 0 0;
+}
+.contact-info{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  color:#333;
+}
+
+.contact-item{
+  display:flex;
+  align-items:flex-start;
+  gap:5px;
+  line-height:1.5;
+}
+.contact-item i {
+    font-size: 18px;
+    color: #b20000;
+    margin-top: 3px;
+}
+
+.contact-item strong{
+  font-weight:700;
+  color:#222;
+}
+.contact-item p {
+    margin-bottom: 0;
+}
+.sec-hl .icon-box-text h3 {
+    margin-bottom: 0 !important;
+}
+.sec-hl .icon-box-text {
+    display: flex;
+    align-items: center;
+}
+.copyright-footer {
+    color: #fff;
+}
+.sec-ft {
+    padding-bottom: 0 !important;
+}
+.sec-ft h3 {
+    text-transform: capitalize;
+}
+.nav-tabs li a {
+  justify-content: center;
+  width: 100px;
+}
+
+.row-td .col.post-item {
+    padding-bottom: 10px;
+}
+.row-td .box-text {
+    padding: 0;
+    padding-left: 15px;
+}
+.row-td .post-title {
+    font-weight: 500;
+}
+@media only screen and (max-width: 48em) {
+/*************** ADD MOBILE ONLY CSS HERE  ***************/
+.banner-list {
+  display: none;
+}
+	.heading-ct h2 {
+		font-size: 26px;
+	}
+}
+
+
+.booking-form-row.two-col {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  background: #fff;
+  padding: 18px;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.booking-form-row.two-col .booking-field {
+  width: calc(50% - 8px);
+  position: relative;
+  padding: 0 18px 12px 45px;
+  border-bottom: 1px solid #e5e5e5;
+  box-sizing: border-box;
+}
+
+.booking-form-row.two-col .booking-field i {
+  position: absolute;
+  left: 15px;
+  top: 14px;
+  font-size: 22px;
+  color: #222;
+}
+
+.booking-form-row.two-col .booking-field label {
+  display: block;
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 700;
+  color: #222;
+  margin: 0 0 3px;
+}
+
+/* Select và input thông thường */
+.booking-form-row.two-col .booking-field input:not([type="date"]),
+.booking-form-row.two-col .booking-field select {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: 34px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  color: #777;
+  font-size: 16px;
+  line-height: 34px;
+}
+
+/* Fix riêng trường ngày trên iPhone/Safari */
+.booking-form-row.two-col .booking-field input[type="date"] {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  margin: 0 !important;
+  padding: 0 4px 0 0 !important;
+
+  border: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+
+  color: #777 !important;
+  font-size: 16px !important;
+  line-height: 38px !important;
+  opacity: 1 !important;
+
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Phần chữ ngày trên Safari */
+.booking-form-row.two-col
+.booking-field
+input[type="date"]::-webkit-date-and-time-value {
+  display: block;
+  min-height: 38px;
+  line-height: 38px;
+  text-align: left;
+  color: #777;
+}
+
+/* Giữ vùng bấm mở lịch */
+.booking-form-row.two-col
+.booking-field
+input[type="date"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Không để wrapper Contact Form 7 làm sai kích thước */
+.booking-form-row.two-col .wpcf7-form-control-wrap {
+  display: block;
+  width: 100%;
+}
+
+.booking-form-row.two-col .booking-field input:focus,
+.booking-form-row.two-col .booking-field select:focus {
+  outline: none !important;
+}
+
+/* Placeholder */
+.booking-form-row.two-col .booking-field input::placeholder {
+  color: #999;
+  opacity: 1;
+}
+
+.booking-form-row.two-col .full-width {
+  width: 100%;
+}
+
+.booking-form-row.two-col .booking-field.full-width {
+  padding-left: 45px !important;
+}
+
+.booking-form-row.two-col .booking-submit {
+  width: 100%;
+  padding: 0;
+  border-bottom: 0;
+}
+
+.booking-form-row.two-col .booking-submit input {
+  width: 100%;
+  margin: 0 !important;
+  padding: 16px 24px !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: #c90000 !important;
+  color: #fff !important;
+  font-size: 14px;
+  font-weight: 700 !important;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.booking-form-row.two-col .booking-submit input:hover {
+  background: #a80000 !important;
+  transform: translateY(-2px);
+}
+
+.wpcf7-spinner {
+  margin: 0 !important;
+}
+
+@media (max-width: 768px) {
+  .booking-form-row.two-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 15px;
+  }
+
+  .booking-form-row.two-col .booking-field {
+    width: 100%;
+    min-height: 84px;
+    padding: 14px 0 12px 48px;
+  }
+
+  .booking-form-row.two-col .booking-field i {
+    left: 10px;
+    top: 28px;
+    font-size: 22px;
+  }
+
+  .booking-form-row.two-col .booking-field label {
+    font-size: 15px;
+  }
+
+  .booking-form-row.two-col .booking-field input:not([type="date"]),
+  .booking-form-row.two-col .booking-field select,
+  .booking-form-row.two-col .booking-field input[type="date"] {
+    width: 100% !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    font-size: 16px !important;
+  }
+
+  .booking-form-row.two-col .booking-field.full-width {
+    padding-left: 48px !important;
+  }
+
+  .booking-form-row.two-col .booking-submit {
+    min-height: auto;
+    padding: 15px 0 0 !important;
+  }
+
+  .booking-form-row.two-col .booking-submit input {
+    min-height: 56px;
+    font-size: 15px;
+  }
+}
+
+/* Fix ngày đi trên Safari iPhone */
+.booking-date-field {
+  position: relative;
+}
+
+.booking-date-field .wpcf7-form-control-wrap {
+  display: block;
+  position: relative;
+  width: 100%;
+}
+
+.booking-date-field input[type="date"] {
+  display: block !important;
+  width: 100% !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+
+  border: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+
+  color: #777 !important;
+  font-size: 16px !important;
+  line-height: 38px !important;
+  opacity: 1 !important;
+
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+
+/* Hiện chữ gợi ý khi chưa chọn ngày */
+.booking-date-field .wpcf7-form-control-wrap::before {
+  content: "Chọn ngày đi";
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 38px;
+  line-height: 38px;
+  color: #999;
+  font-size: 16px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Khi đã chọn ngày thì ẩn chữ gợi ý */
+.booking-date-field:has(input[type="date"]:valid)
+.wpcf7-form-control-wrap::before {
+  display: none;
+}
+
+/* Cho toàn bộ vùng input có thể bấm mở lịch */
+.booking-date-field input[type="date"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Căn chữ ngày sang trái trên Safari */
+.booking-date-field input[type="date"]::-webkit-date-and-time-value {
+  min-height: 38px;
+  line-height: 38px;
+  text-align: left;
+}

@@ -242,26 +242,19 @@ node skills/create-landing-page.js --title "Tiêu đề trang" --slug "duong-dan
 
 ---
 
-### B. Skill 2: Clone Giao Diện Đa Nguồn Về Flatsome VibeCode (`clone-landingpage.js`)
-Công cụ mạnh mẽ hỗ trợ chuyển đổi mọi nguồn giao diện (URL trực tiếp, HTML, ZIP, Screenshot) thành cấu trúc VibeCode chuẩn Flatsome:
+### B. Skill 2: Clone Landing Page Chuẩn Xác 100% (`clone-landingpage.py`)
+Quy trình clone 5 bước đảm bảo 100% nội dung thật không bịa đặt và đồng bộ media chuẩn xác:
 
-1. **Clone từ URL trang web trực tiếp**:
-   ```bash
-   node skills/clone-landingpage.js --url "https://example.com/landing-mau" --title "Trang Mẫu Clone" --slug "trang-mau-clone"
-   ```
-2. **Clone từ file HTML cục bộ**:
-   ```bash
-   node skills/clone-landingpage.js --html "templates/saas-dark.html" --title "SaaS Dark Template" --slug "saas-dark-template"
-   ```
-3. **Clone từ gói ZIP template**:
-   ```bash
-   node skills/clone-landingpage.js --zip "downloads/agency-theme.zip" --title "Agency Landing" --slug "agency-landing"
-   ```
-4. **Chế độ kiểm tra xem trước không xuất bản (Dry Run)**:
-   ```bash
-   node skills/clone-landingpage.js --url "https://example.com" --dry-run
-   ```
-*(Tự động trích xuất CSS inline, tải và upload toàn bộ ảnh lên WordPress Media Library, tự động gom thuộc tính Flex/Grid, chuẩn hóa nesting `_inner` và tự động verify 0 unparsed shortcodes trên frontend)*
+1. **Bóc tách cây nội dung DOM**: Quét toàn bộ Text theo cấu trúc Semantic Tree (`h1`, `h2`, `p`, `a`, `ul/li`...), lưu ra `tmp/{slug}_content_tree.json` và `.md`.
+2. **Tải toàn bộ tài nguyên ảnh về `tmp/`**: Quét Network, `<img>`, `background-image`, SVG và tải toàn bộ về thư mục `tmp/{slug}/` của dự án.
+3. **Đẩy ảnh lên WordPress Media**: Đẩy ảnh sử dụng lên Media Library qua `/vbc/v1/upload` để lấy `id` (attachment_id) và `url` gắn vào shortcode VBC (`[vbc_img img_attachment="ID"]`).
+4. **Tự động chuyển đổi Form sang CF7**: Phát hiện form và tạo shortcode `[contact-form-7]` qua `/vbc/v1/cf7`.
+5. **Xuất bản & Nghiệm thu QA**: Đăng trang qua `/vbc/v1/page` và tự động chạy `recheck-url.py` kiểm định 100% chất lượng.
+
+```bash
+# Thực thi lệnh clone chuẩn:
+python skills/clone-landingpage.py --url "https://example.com/landing-mau" --title "Trang Mẫu Clone" --slug "trang-mau-clone"
+```
 
 ---
 

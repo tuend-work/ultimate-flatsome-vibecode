@@ -11,11 +11,11 @@ Description:
      Lưu cây nội dung ra file JSON/Markdown trong tmp/{slug}/ để đảm bảo 100% trung thực.
   2. Quét Network & Media, tải toàn bộ ảnh về thư mục tmp/{slug}/ của dự án.
   3. Đẩy các ảnh sử dụng lên WordPress Media Library qua REST API (/vbc/v1/upload)
-     để lấy ID (attachment_id) và URL nội bộ gắn vào shortcode ([vbc_img img_attachment="ID"]).
+     để lấy ID (attachment_id) và URL nội bộ chèn vào thẻ <img> chuẩn responsive.
   4. Tự động chuyển đổi Form sang Contact Form 7 qua REST API (/vbc/v1/cf7).
   5. Biên dịch ra hệ thống phần tử VBC Elements ([vbc_div], [vbc_box], [vbc_block], [vbc_container], [vbc_icon]...)
-     theo cấu trúc phân cấp chuẩn, đảm bảo 0 unparsed shortcodes.
-  6. Xuất bản lên WordPress qua /vbc/v1/page và tự động chạy recheck-url.py nghiệm thu 100%.
+     theo cấu trúc phân cấp chuẩn, đảm bảo 0 unparsed shortcodes và 100% ảnh hiển thị.
+  6. Xuất bản lên WordPress qua /vbc/v1/page và tự động chạy recheck-url.py nghiệm thu đối chiếu với web gốc.
 ===============================================================================
 """
 
@@ -384,19 +384,29 @@ class LandingPageCloner:
         TEXT_MUTED = "#6b7280"
         GOLD = "#f59e0b"
 
-        # Lấy media IDs
-        logo_url, logo_id = self.get_wp_media('NHM-Logo', 'https://nihaoma-mandarin.com/wp-content/uploads/2023/08/cropped-NHM-Logo.png')
-        banner_url, banner_id = self.get_wp_media('Banner-Web', 'https://nihaoma-mandarin.com/wp-content/uploads/2025/03/Banner-Web.png')
-        t1_url, t1_id = self.get_wp_media('hinh-giao-vien-1.png', 'https://nihaoma-mandarin.com/wp-content/uploads/2024/11/hinh-giao-vien-1.png')
-        t2_url, t2_id = self.get_wp_media('hinh-giao-vien-2.png', 'https://nihaoma-mandarin.com/wp-content/uploads/2024/11/hinh-giao-vien-2.png')
-        t3_url, t3_id = self.get_wp_media('hinh-giao-vien-4.png', 'https://nihaoma-mandarin.com/wp-content/uploads/2024/11/hinh-giao-vien-4.png')
-        t4_url, t4_id = self.get_wp_media('hinh-giao-vien-5.png', 'https://nihaoma-mandarin.com/wp-content/uploads/2024/11/hinh-giao-vien-5.png')
-        curr_url, curr_id = self.get_wp_media('Curriculum', 'https://nihaoma-mandarin.com/wp-content/uploads/2024/01/Curriculum-Nihaoma.png')
-        age_url, age_id = self.get_wp_media('Age-group', 'https://nihaoma-mandarin.com/wp-content/uploads/2024/01/Age-group-Nihaoma.png')
-        why_url, why_id = self.get_wp_media('Modern-Nihaoma', 'https://nihaoma-mandarin.com/wp-content/uploads/2024/01/Modern-Nihaoma.png')
-        about_url, about_id = self.get_wp_media('About-Us', 'https://nihaoma-mandarin.com/wp-content/uploads/2024/01/About-Us-Nihaoma.jpg')
+        # Lấy media IDs & URLs
+        logo_url, logo_id = self.get_wp_media('NHM-Logo', 'https://ultimateflatsomevibecode.s172d211.wpcloud.vn/wp-content/uploads/2026/08/cropped-cropped-NHM-Logo.png')
+        banner_url, banner_id = self.get_wp_media('Banner-Web', 'https://ultimateflatsomevibecode.s172d211.wpcloud.vn/wp-content/uploads/2026/08/Banner-Web-1.png')
+        t1_url, t1_id = self.get_wp_media('hinh-giao-vien-1.png', 'https://ultimateflatsomevibecode.s172d211.wpcloud.vn/wp-content/uploads/2026/08/hinh-giao-vien-1-2.png')
+        t2_url, t2_id = self.get_wp_media('hinh-giao-vien-2.png', 'https://ultimateflatsomevibecode.s172d211.wpcloud.vn/wp-content/uploads/2026/08/hinh-giao-vien-2-1.png')
+        t3_url, t3_id = self.get_wp_media('hinh-giao-vien-4.png', 'https://ultimateflatsomevibecode.s172d211.wpcloud.vn/wp-content/uploads/2026/08/hinh-giao-vien-4-1.png')
+        t4_url, t4_id = self.get_wp_media('hinh-giao-vien-5.png', 'https://ultimateflatsomevibecode.s172d211.wpcloud.vn/wp-content/uploads/2026/08/hinh-giao-vien-5-1.png')
+        curr_url, curr_id = self.get_wp_media('Curriculum', 'https://ultimateflatsomevibecode.s172d211.wpcloud.vn/wp-content/uploads/2026/08/Curriculum-Nihaoma-1.png')
+        age_url, age_id = self.get_wp_media('Age-group', 'https://ultimateflatsomevibecode.s172d211.wpcloud.vn/wp-content/uploads/2026/08/Age-group-Nihaoma-1.png')
+        why_url, why_id = self.get_wp_media('Modern-Nihaoma', 'https://ultimateflatsomevibecode.s172d211.wpcloud.vn/wp-content/uploads/2026/08/Modern-Nihaoma-1.png')
+        about_url, about_id = self.get_wp_media('About-Us', 'https://ultimateflatsomevibecode.s172d211.wpcloud.vn/wp-content/uploads/2026/08/About-Us-Nihaoma-1.jpg')
 
         vbc_sections = []
+
+        # Custom CSS ẩn header/footer mặc định của Theme Flatsome
+        vbc_sections.append("""
+<style>
+#header, #footer, .header-wrapper, #wrapper > footer { display: none !important; }
+body { padding-top: 0 !important; margin: 0 !important; background: #ffffff !important; }
+#main { padding-top: 0 !important; padding-bottom: 0 !important; }
+img { max-width: 100%; height: auto; }
+</style>
+""")
 
         # 1. Top bar & Header
         vbc_sections.append(f"""
@@ -436,7 +446,7 @@ class LandingPageCloner:
 [vbc_div_inner custom_css="selector {{ width: 100%; background: #ffffff; box-shadow: 0 4px 20px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 999; padding: 12px 0; }}"]
     [vbc_box_inner class="container" custom_css="selector {{ margin: 0 auto; max-width: 1200px; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }}"]
         [vbc_a link_url="#" custom_css="selector {{ display: flex; align-items: center; text-decoration: none; gap: 12px; }}"]
-            [vbc_img img_source="manual" img_attachment="{logo_id}" alt="{self.title}" custom_css="selector {{ height: 52px; width: auto; object-fit: contain; }}" src="{logo_url}"]
+            <img src="{logo_url}" alt="{self.title}" loading="eager" decoding="sync" style="height: 52px; width: auto; object-fit: contain;" />
         [/vbc_a]
         <div style="display: flex; align-items: center; gap: 24px;">
             [vbc_a link_url="#khoa-hoc" custom_css="selector {{ color: {TEXT_DARK}; text-decoration: none; font-weight: 600; font-size: 15px; }} selector:hover {{ color: {RED}; }}"][vbc_span]Khóa Học[/vbc_span][/vbc_a]
@@ -496,7 +506,7 @@ class LandingPageCloner:
                 </div>
             [/vbc_container]
             [vbc_container_inner custom_css="selector {{ position: relative; text-align: center; }}"]
-                [vbc_img img_source="manual" img_attachment="{banner_id}" alt="{self.title}" custom_css="selector {{ width: 100%; max-width: 540px; height: auto; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); display: inline-block; }}" src="{banner_url}"]
+                <img src="{banner_url}" alt="{self.title}" loading="eager" decoding="sync" style="width: 100%; max-width: 540px; height: auto; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); display: inline-block;" />
             [/vbc_container_inner]
         [/vbc_block]
     [/vbc_box]
@@ -560,7 +570,7 @@ class LandingPageCloner:
 
         [vbc_block_inner custom_css="selector {{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }} @media(max-width: 1024px){{ selector {{ grid-template-columns: repeat(2, 1fr); }} }} @media(max-width: 549px){{ selector {{ grid-template-columns: 1fr; }} }}"]
             [vbc_container custom_css="selector {{ background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.06); transition: all 0.3s; text-align: center; }} selector:hover {{ transform: translateY(-6px); box-shadow: 0 16px 36px rgba(230,57,70,0.15); }}"]
-                [vbc_img img_source="manual" img_attachment="{t1_id}" alt="Cô Lin" custom_css="selector {{ width: 100%; height: 260px; object-fit: cover; }}" src="{t1_url}"]
+                <img src="{t1_url}" alt="Cô Lin" loading="eager" decoding="sync" style="width: 100%; height: 260px; object-fit: cover; border-top-left-radius: 20px; border-top-right-radius: 20px;" />
                 <div style="padding: 22px 18px;">
                     [vbc_h4 custom_css="selector {{ font-size: 18px; font-weight: 800; color: {DARK_NAVY}; margin: 0 0 6px 0; }}"]Cô Lin (Đài Loan)[/vbc_h4]
                     [vbc_p custom_css="selector {{ font-size: 13px; color: {RED}; font-weight: 700; margin: 0 0 10px 0; }}"]Thạc Sĩ Ngôn Ngữ &bull; Chứng Chỉ TCSL[/vbc_p]
@@ -576,7 +586,7 @@ class LandingPageCloner:
             [/vbc_container]
 
             [vbc_container_inner custom_css="selector {{ background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.06); transition: all 0.3s; text-align: center; }} selector:hover {{ transform: translateY(-6px); box-shadow: 0 16px 36px rgba(230,57,70,0.15); }}"]
-                [vbc_img img_source="manual" img_attachment="{t2_id}" alt="Cô Chen" custom_css="selector {{ width: 100%; height: 260px; object-fit: cover; }}" src="{t2_url}"]
+                <img src="{t2_url}" alt="Cô Chen" loading="eager" decoding="sync" style="width: 100%; height: 260px; object-fit: cover; border-top-left-radius: 20px; border-top-right-radius: 20px;" />
                 <div style="padding: 22px 18px;">
                     [vbc_h4 custom_css="selector {{ font-size: 18px; font-weight: 800; color: {DARK_NAVY}; margin: 0 0 6px 0; }}"]Cô Chen (Đài Loan)[/vbc_h4]
                     [vbc_p custom_css="selector {{ font-size: 13px; color: {RED}; font-weight: 700; margin: 0 0 10px 0; }}"]Chuyên Gia Luyện Thi HSK 4 - 6[/vbc_p]
@@ -592,7 +602,7 @@ class LandingPageCloner:
             [/vbc_container_inner]
 
             [vbc_container_inner_1 custom_css="selector {{ background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.06); transition: all 0.3s; text-align: center; }} selector:hover {{ transform: translateY(-6px); box-shadow: 0 16px 36px rgba(230,57,70,0.15); }}"]
-                [vbc_img img_source="manual" img_attachment="{t3_id}" alt="Thầy Wang" custom_css="selector {{ width: 100%; height: 260px; object-fit: cover; }}" src="{t3_url}"]
+                <img src="{t3_url}" alt="Thầy Wang" loading="eager" decoding="sync" style="width: 100%; height: 260px; object-fit: cover; border-top-left-radius: 20px; border-top-right-radius: 20px;" />
                 <div style="padding: 22px 18px;">
                     [vbc_h4 custom_css="selector {{ font-size: 18px; font-weight: 800; color: {DARK_NAVY}; margin: 0 0 6px 0; }}"]Thầy Wang (Đài Loan)[/vbc_h4]
                     [vbc_p custom_css="selector {{ font-size: 13px; color: {RED}; font-weight: 700; margin: 0 0 10px 0; }}"]Cố Vấn Học Thuật & Thương Mại[/vbc_p]
@@ -608,7 +618,7 @@ class LandingPageCloner:
             [/vbc_container_inner_1]
 
             [vbc_container_inner_2 custom_css="selector {{ background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.06); transition: all 0.3s; text-align: center; }} selector:hover {{ transform: translateY(-6px); box-shadow: 0 16px 36px rgba(230,57,70,0.15); }}"]
-                [vbc_img img_source="manual" img_attachment="{t4_id}" alt="Cô Huang" custom_css="selector {{ width: 100%; height: 260px; object-fit: cover; }}" src="{t4_url}"]
+                <img src="{t4_url}" alt="Cô Huang" loading="eager" decoding="sync" style="width: 100%; height: 260px; object-fit: cover; border-top-left-radius: 20px; border-top-right-radius: 20px;" />
                 <div style="padding: 22px 18px;">
                     [vbc_h4 custom_css="selector {{ font-size: 18px; font-weight: 800; color: {DARK_NAVY}; margin: 0 0 6px 0; }}"]Cô Huang (Đài Loan)[/vbc_h4]
                     [vbc_p custom_css="selector {{ font-size: 13px; color: {RED}; font-weight: 700; margin: 0 0 10px 0; }}"]Chuyên Gia Tiếng Trung Trẻ Em[/vbc_p]
@@ -636,7 +646,7 @@ class LandingPageCloner:
                 [vbc_h2 custom_css="selector {{ font-size: 34px; font-weight: 900; color: {DARK_NAVY}; margin-bottom: 24px; text-align: left; }} @media(max-width: 849px){{ selector {{ text-align: center; }} }}"]
                     Giáo Trình Đạt Chuẩn Quốc Tế
                 [/vbc_h2]
-                [vbc_img img_source="manual" img_attachment="{curr_id}" alt="Giáo trình" custom_css="selector {{ width: 100%; max-width: 420px; height: auto; border-radius: 20px; display: inline-block; }}" src="{curr_url}"]
+                <img src="{curr_url}" alt="Giáo trình" loading="eager" decoding="sync" style="width: 100%; max-width: 420px; height: auto; border-radius: 20px; display: inline-block;" />
             [/vbc_container]
 
             [vbc_container_inner]
@@ -683,7 +693,7 @@ class LandingPageCloner:
             [/vbc_container]
 
             [vbc_container_inner custom_css="selector {{ text-align: center; }}"]
-                [vbc_img img_source="manual" img_attachment="{age_id}" alt="Khóa học cho mọi người" custom_css="selector {{ width: 100%; max-width: 420px; height: auto; border-radius: 20px; display: inline-block; }}" src="{age_url}"]
+                <img src="{age_url}" alt="Khóa học cho mọi người" loading="eager" decoding="sync" style="width: 100%; max-width: 420px; height: auto; border-radius: 20px; display: inline-block;" />
             [/vbc_container_inner]
         [/vbc_block]
     [/vbc_box]
@@ -699,7 +709,7 @@ class LandingPageCloner:
                 [vbc_h2 custom_css="selector {{ font-size: 34px; font-weight: 900; color: {DARK_NAVY}; margin-bottom: 24px; text-align: left; }} @media(max-width: 849px){{ selector {{ text-align: center; }} }}"]
                     Tại Sao Chọn Chúng Tôi?
                 [/vbc_h2]
-                [vbc_img img_source="manual" img_attachment="{why_id}" alt="Tại sao chọn" custom_css="selector {{ width: 100%; max-width: 420px; height: auto; border-radius: 20px; display: inline-block; }}" src="{why_url}"]
+                <img src="{why_url}" alt="Tại sao chọn" loading="eager" decoding="sync" style="width: 100%; max-width: 420px; height: auto; border-radius: 20px; display: inline-block;" />
             [/vbc_container]
 
             [vbc_container_inner]
@@ -849,7 +859,7 @@ class LandingPageCloner:
             [/vbc_container]
 
             [vbc_container_inner custom_css="selector {{ text-align: center; }}"]
-                [vbc_img img_source="manual" img_attachment="{about_id}" alt="{self.title}" custom_css="selector {{ width: 100%; max-width: 520px; height: auto; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); display: inline-block; }}" src="{about_url}"]
+                <img src="{about_url}" alt="{self.title}" loading="eager" decoding="sync" style="width: 100%; max-width: 520px; height: auto; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); display: inline-block;" />
             [/vbc_container_inner]
         [/vbc_block]
     [/vbc_box]
@@ -950,7 +960,7 @@ class LandingPageCloner:
     [vbc_box class="container" custom_css="selector {{ margin: 0 auto; max-width: 1200px; padding: 0 20px; }}"]
         [vbc_block custom_css="selector {{ display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.2fr; gap: 36px; margin-bottom: 50px; }} @media(max-width: 1024px){{ selector {{ grid-template-columns: repeat(2, 1fr); }} }} @media(max-width: 549px){{ selector {{ grid-template-columns: 1fr; }} }}"]
             [vbc_container]
-                [vbc_img img_source="manual" img_attachment="{logo_id}" alt="{self.title}" custom_css="selector {{ height: 50px; width: auto; margin-bottom: 18px; filter: brightness(0) invert(1); }}" src="{logo_url}"]
+                <img src="{logo_url}" alt="{self.title}" loading="eager" decoding="sync" style="height: 50px; width: auto; margin-bottom: 18px; filter: brightness(0) invert(1);" />
                 [vbc_p custom_css="selector {{ font-size: 14px; color: #9ca3af; line-height: 1.8; margin-bottom: 20px; }}"]
                     {self.title} &mdash; Hệ thống trung tâm đào tạo tiếng Trung bản ngữ chuẩn quốc tế hàng đầu tại Việt Nam.
                 [/vbc_p]
@@ -1089,9 +1099,9 @@ class LandingPageCloner:
         # 5. Xuất bản lên WordPress
         pub_url, pub_id = self.publish_to_wordpress(vbc_content)
 
-        # 6. Tự động kiểm tra QA
+        # 6. Tự động kiểm tra QA đối chiếu web gốc
         if self.auto_recheck:
-            print(f"\n[QA Check] Đang kích hoạt kiểm tra chất lượng qua recheck-url.py...")
+            print(f"\n[QA Check] Đang kích hoạt kiểm tra chất lượng & đối chiếu web gốc qua recheck-url.py...")
             try:
                 from skills.recheck_url import LandingPageRechecker
             except ImportError:
@@ -1104,7 +1114,7 @@ class LandingPageCloner:
                 spec.loader.exec_module(recheck_module)
                 LandingPageRechecker = recheck_module.LandingPageRechecker
 
-            checker = LandingPageRechecker(target_url=pub_url, post_id=pub_id, source_url=self.source_url, max_retries=3)
+            checker = LandingPageRechecker(target_url=pub_url, post_id=pub_id, source_url=self.source_url, max_retries=3, tmp_dir=self.tmp_dir)
             checker.run_recheck()
 
         return pub_url, pub_id

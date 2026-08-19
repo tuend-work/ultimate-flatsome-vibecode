@@ -397,7 +397,49 @@ async function crawlAndUploadAssets(baseUrl, htmlContent, config) {
 // 4. SHORTCODE SANITIZER & LINTER PIPELINE
 // ============================================================
 
-const VBC_NESTABLE_TAGS = ['vbc_box', 'vbc_block', 'vbc_container', 'vbc_span', 'vbc_card', 'vbc_div', 'vbc_post'];
+const VBC_NESTABLE_TAGS = [
+    'vbc_box', 'vbc_block', 'vbc_container', 'vbc_span',
+    'vbc_card', 'vbc_div', 'vbc_post', 'vbc_p', 'vbc_a',
+    'vbc_h1', 'vbc_h2', 'vbc_h3', 'vbc_h4', 'vbc_h5', 'vbc_h6',
+    'vbc_li', 'vbc_ul', 'vbc_ol', 'vbc_table', 'vbc_tr', 'vbc_td', 'vbc_th',
+    'vbc_b', 'vbc_strong', 'vbc_em', 'vbc_u',
+    'vbc_testimonial', 'vbc_accordion', 'vbc_accordion_item',
+    'vbc_slider', 'vbc_slide', 'vbc_fullpage'
+];
+
+/**
+ * Tự động chuyển đổi các thẻ VBC không tồn tại (như [vbc_input], [vbc_textarea], [vbc_form])
+ * sang các thẻ HTML chuẩn để tránh hiển thị raw shortcode ra frontend.
+ */
+function fixUnsupportedVbcShortcodes(content) {
+    let fixes = 0;
+    
+    // vbc_input -> <input ... />
+    let result = content.replace(/\[vbc_input\s*([^\]]*)\]/g, (match, attrs) => {
+        fixes++;
+        return `<input ${attrs.trim()} />`;
+    });
+    
+    // vbc_textarea -> <textarea ...>...</textarea>
+    result = result.replace(/\[vbc_textarea\s*([^\]]*)\]([\s\S]*?)\[\/vbc_textarea\]/g, (match, attrs, body) => {
+        fixes++;
+        return `<textarea ${attrs.trim()}>${body}</textarea>`;
+    });
+
+    // vbc_select -> <select ...>...</select>
+    result = result.replace(/\[vbc_select\s*([^\]]*)\]([\s\S]*?)\[\/vbc_select\]/g, (match, attrs, body) => {
+        fixes++;
+        return `<select ${attrs.trim()}>${body}</select>`;
+    });
+
+    // vbc_form -> <form ...>...</form>
+    result = result.replace(/\[vbc_form\s*([^\]]*)\]([\s\S]*?)\[\/vbc_form\]/g, (match, attrs, body) => {
+        fixes++;
+        return `<form ${attrs.trim()}>${body}</form>`;
+    });
+
+    return { content: result, fixes };
+}
 
 function fixNestedShortcodes(content) {
     let fixed = content;
@@ -659,7 +701,8 @@ function migrateTagsToContentAttribute(content) {
 function sanitizeShortcodeContent(content) {
     console.log('\n\x1b[35m[CLONE SANITIZER] Đang kiểm tra và chuẩn hóa cấu trúc VibeCode...\x1b[0m');
     
-    const commentResult = stripAllHtmlComments(content);
+    const unsuppResult = fixUnsupportedVbcShortcodes(content);
+    const commentResult = stripAllHtmlComments(unsuppResult.content);
     const fontResult = stripHardcodedFontFamily(commentResult.content);
     const imgResult = fixImageShortcodes(fontResult.content);
     const linkResult = fixLinkShortcodes(imgResult.content);
@@ -670,10 +713,36 @@ function sanitizeShortcodeContent(content) {
     const escResult = escapeRawLessThan(nestResult.content);
     const contentAttrResult = migrateTagsToContentAttribute(escResult.content);
 
-    const totalFixes = commentResult.fixes + fontResult.fixes + imgResult.fixes + linkResult.fixes + flexResult.fixes + hexResult.fixes + badgeResult.fixes + nestResult.fixes + escResult.fixes + contentAttrResult.fixes;
+    const totalFixes = unsuppResult.fixes + commentResult.fixes + fontResult.fixes + imgResult.fixes + linkResult.fixes + flexResult.fixes + hexResult.fixes + badgeResult.fixes + nestResult.fixes + escResult.fixes + contentAttrResult.fixes;
     console.log(`  \x1b[32m✓ Đã tự động tối ưu & chuyển đổi thành công ${totalFixes} thành phần shortcode!\x1b[0m`);
 
     return contentAttrResult.content;
+}
+
+/**
+ * Tự động kiểm tra trang trực tiếp trên frontend xem có bất kỳ shortcode nào bị lộ không
+ */
+async function verifyLiveFrontend(pageUrl) {
+    if (!pageUrl) return;
+    try {
+        console.log(`\x1b[36m[VERIFICATION] Đang kiểm tra frontend live: ${pageUrl}\x1b[0m`);
+        const res = await fetch(pageUrl + '?vbc_verify=' + Date.now());
+        if (!res.ok) {
+            console.warn(`  \x1b[33m⚠ Không thể tải frontend để verify (HTTP ${res.status}).\x1b[0m`);
+            return;
+        }
+        const html = await res.text();
+        const unparsed = html.match(/\[\/?vbc_[a-zA-Z0-9_\-]+[^\]]*\]/g);
+        if (unparsed && unparsed.length > 0) {
+            console.error(`  \x1b[31m❌ PHÁT HIỆN ${unparsed.length} SHORTCODE BỊ LỘ RA FRONTEND:\x1b[0m`);
+            unparsed.slice(0, 10).forEach(s => console.error(`    - ${s}`));
+            console.error(`  \x1b[31m👉 Vui lòng kiểm tra lại cấu trúc đóng/mở thẻ và thẻ lồng nhau!\x1b[0m`);
+        } else {
+            console.log(`  \x1b[32m✓ HOÀN HẢO! 0 shortcode bị lộ ra frontend. Giao diện sạch sẽ 100%!\x1b[0m\n`);
+        }
+    } catch (e) {
+        console.warn(`  \x1b[33m⚠ Bỏ qua bước verify live frontend: ${e.message}\x1b[0m`);
+    }
 }
 
 // ============================================================
@@ -863,8 +932,12 @@ async function main() {
         console.log('==================================================');
         console.log(`ID bài viết: ${result.id || payload.post_id || 'N/A'}`);
         console.log(`Tiêu đề:     ${title}`);
-        console.log(`Đường link:  ${result.link || `${config['api-url'].replace('/wp-json', '')}/${slug}/`}`);
+        const publishedUrl = result.link || `${config['api-url'].replace('/wp-json', '')}/${slug}/`;
+        console.log(`Đường link:  ${publishedUrl}`);
         console.log('==================================================\n');
+
+        // Bắt buộc kiểm tra tự động live frontend
+        await verifyLiveFrontend(publishedUrl);
     } catch (err) {
         console.error('\n\x1b[31m[LỖI] Xuất bản bài viết thất bại:\x1b[0m', err.message);
         process.exit(1);

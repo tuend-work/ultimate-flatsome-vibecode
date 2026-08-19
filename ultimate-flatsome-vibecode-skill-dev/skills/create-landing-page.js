@@ -15,20 +15,54 @@ const path = require('path');
 // ============================================================
 
 /**
- * Danh sách các VBC shortcode tags có thể gây lỗi nesting.
- * WordPress regex parser KHÔNG thể xử lý cùng tag lồng nhau,
- * ví dụ: [vbc_box] bên trong [vbc_box] → parser bị break.
+ * Danh sách tất cả các VBC container shortcode tags có thể gây lỗi nesting.
+ * WordPress regex parser KHÔNG thể xử lý cùng tag lồng nhau nếu không có suffix _inner.
+ * TUYỆT ĐỐI KHÔNG đưa các thẻ void (tự đóng) như vbc_icon, vbc_img, vbc_hr, vbc_br vào đây.
  */
 const VBC_NESTABLE_TAGS = [
     'vbc_box', 'vbc_block', 'vbc_container', 'vbc_span',
-    'vbc_card', 'vbc_div', 'vbc_post'
+    'vbc_card', 'vbc_div', 'vbc_post', 'vbc_p', 'vbc_a',
+    'vbc_h1', 'vbc_h2', 'vbc_h3', 'vbc_h4', 'vbc_h5', 'vbc_h6',
+    'vbc_li', 'vbc_ul', 'vbc_ol', 'vbc_table', 'vbc_tr', 'vbc_td', 'vbc_th',
+    'vbc_b', 'vbc_strong', 'vbc_em', 'vbc_u',
+    'vbc_testimonial', 'vbc_accordion', 'vbc_accordion_item',
+    'vbc_slider', 'vbc_slide', 'vbc_fullpage'
 ];
 
 /**
- * Phát hiện và sửa nested same-tag shortcodes.
- * Khi phát hiện tag lồng nhau, inner tag sẽ được thay bằng tag VBC cùng tên nhưng kèm suffix _inner hoặc _inner_1, _inner_2...
- * Điều này tránh việc trùng tên làm hỏng shortcode parser của WordPress, đồng thời vẫn giữ nguyên semantic tag name.
+ * Tự động chuyển đổi các thẻ VBC không tồn tại (như [vbc_input], [vbc_textarea], [vbc_form])
+ * sang các thẻ HTML chuẩn để tránh hiển thị raw shortcode ra frontend.
  */
+function fixUnsupportedVbcShortcodes(content) {
+    let fixes = 0;
+    
+    // vbc_input -> <input ... />
+    let result = content.replace(/\[vbc_input\s*([^\]]*)\]/g, (match, attrs) => {
+        fixes++;
+        return `<input ${attrs.trim()} />`;
+    });
+    
+    // vbc_textarea -> <textarea ...>...</textarea>
+    result = result.replace(/\[vbc_textarea\s*([^\]]*)\]([\s\S]*?)\[\/vbc_textarea\]/g, (match, attrs, body) => {
+        fixes++;
+        return `<textarea ${attrs.trim()}>${body}</textarea>`;
+    });
+
+    // vbc_select -> <select ...>...</select>
+    result = result.replace(/\[vbc_select\s*([^\]]*)\]([\s\S]*?)\[\/vbc_select\]/g, (match, attrs, body) => {
+        fixes++;
+        return `<select ${attrs.trim()}>${body}</select>`;
+    });
+
+    // vbc_form -> <form ...>...</form>
+    result = result.replace(/\[vbc_form\s*([^\]]*)\]([\s\S]*?)\[\/vbc_form\]/g, (match, attrs, body) => {
+        fixes++;
+        return `<form ${attrs.trim()}>${body}</form>`;
+    });
+
+    return { content: result, fixes };
+}
+
 /**
  * Phát hiện và sửa nested same-tag shortcodes bằng phương pháp Stack Tokenizer.
  * Quét tuần tự toàn bộ token mở và đóng, thay thế chính xác cặp thẻ theo cấp độ sâu.
@@ -102,26 +136,17 @@ function fixNestedShortcodes(content) {
     return { content: fixed, fixes: totalFixes };
 }
 
-
 /**
  * Escape ký tự < trong nội dung text (không phải trong shortcode tags).
  * Ví dụ: "Tải Trang < 1.5s" → "Tải Trang &lt; 1.5s"
- * 
- * Quy tắc: Chỉ escape < khi nó KHÔNG phải là:
- * - Phần mở đầu của HTML tag (e.g. <div, </div, <img)
- * - Phần mở đầu của HTML entity (e.g. &lt;)
  */
 function escapeRawLessThan(content) {
     let fixes = 0;
-    // Match < that is NOT followed by a valid HTML tag name, / (closing tag), or ! (comment/doctype)
     const result = content.replace(/<(?!\/|[a-zA-Z!]|\s*$)/g, (match, offset) => {
-        // Kiểm tra xem < có nằm trong shortcode attribute hay không
-        // Tìm ngược lại xem có đang nằm trong [...] không
         const before = content.substring(Math.max(0, offset - 200), offset);
         const lastOpen = before.lastIndexOf('[');
         const lastClose = before.lastIndexOf(']');
         
-        // Nếu đang nằm bên trong shortcode attribute [...], bỏ qua
         if (lastOpen > lastClose) {
             return match;
         }
@@ -138,7 +163,6 @@ function escapeRawLessThan(content) {
  */
 function stripHardcodedFontFamily(content) {
     let fixes = 0;
-    // Tìm font-family trong custom_css
     const pattern = /font-family:\s*['"][^'"]+['"][^;}]*;?/gi;
     const result = content.replace(pattern, () => {
         fixes++;
@@ -165,30 +189,23 @@ function stripAllHtmlComments(content) {
 /**
  * Tự động chuyển đổi các thẻ text VBC (span, p, h1-h6, a) có nội dung trần 
  * sang dạng thuộc tính content="..." để tránh wpautop tự bọc thẻ <p>.
- * 
- * QUAN TRỌNG: Sử dụng &quot; thay vì \" vì bộ phân tích shortcode của WordPress
- * sẽ bị vỡ thuộc tính ngay khi gặp dấu ngoặc kép đầu tiên.
  */
 function migrateTagsToContentAttribute(content) {
     let fixes = 0;
-    // Hỗ trợ cả tag cơ bản và tag có suffix lồng nhau như _inner, _inner_1...
     const pattern = /\[vbc_(span|p|h1|h2|h3|h4|h5|h6|a)(_inner(?:_\d+)?)?([^\]]*)\]([^\[]*?)\[\/vbc_\1\2\]/gs;
 
     const result = content.replace(pattern, (match, tag, suffix, attrs, text) => {
         const trimmedText = text.trim();
         const trimmedAttrs = attrs.trim();
 
-        // Nếu nội dung trống, không cần convert
         if (!trimmedText) {
             return match;
         }
 
-        // Nếu đã có thuộc tính content, bỏ qua không convert đè
         if (trimmedAttrs.includes('content=')) {
             return match;
         }
 
-        // Escape các dấu nháy kép bên trong text thành &quot; an toàn cho shortcode WordPress
         const escapedText = trimmedText.replace(/"/g, '&quot;');
         fixes++;
 
@@ -214,13 +231,11 @@ function fixLinkShortcodes(content) {
         let modified = false;
         let newAttrs = attrs;
 
-        // Chuyển href thành link_url nếu chưa có link_url
         if (/\bhref=(["'])(.*?)\1/.test(newAttrs) && !newAttrs.includes('link_url=')) {
             newAttrs = newAttrs.replace(/\bhref=(["'])(.*?)\1/, 'link_url="$2"');
             modified = true;
         }
 
-        // Chuyển target thành link_target nếu chưa có link_target
         if (/\btarget=(["'])(.*?)\1/.test(newAttrs) && !newAttrs.includes('link_target=')) {
             newAttrs = newAttrs.replace(/\btarget=(["'])(.*?)\1/, 'link_target="$2"');
             modified = true;
@@ -239,7 +254,6 @@ function fixLinkShortcodes(content) {
 /**
  * Tự động chuyển đổi các thuộc tính Flexbox/Grid trần 
  * (align_items, justify_content, gap, flex_direction, flex_wrap) vào custom_css.
- * Điều này đảm bảo tất cả các style căn chỉnh đều được biên dịch chính xác 100% vào CSS selector.
  */
 function fixFlexProperties(content) {
     let fixes = 0;
@@ -262,7 +276,6 @@ function fixFlexProperties(content) {
 
         if (extracted.length > 0) {
             fixes++;
-            // Gộp vào custom_css hiện có hoặc tạo custom_css mới
             const customCssRegex = /\bcustom_css=(["'])(.*?)\1/;
             const cssMatch = newAttrs.match(customCssRegex);
 
@@ -368,67 +381,73 @@ function convertSpanWithIconToDiv(content) {
 function sanitizeShortcodeContent(content) {
     console.log('\n\x1b[35m[SANITIZER & LINTER] Đang kiểm tra và chuẩn hóa nội dung shortcode...\x1b[0m');
     
-    // Bước 1: Loại bỏ hoàn toàn tất cả comment HTML để tránh wpautop sinh thẻ <p>
-    const commentResult = stripAllHtmlComments(content);
+    // Bước 1: Chuyển đổi các thẻ VBC không tồn tại (vbc_input, vbc_textarea...) sang HTML chuẩn
+    const unsuppResult = fixUnsupportedVbcShortcodes(content);
+    if (unsuppResult.fixes > 0) {
+        console.log(`  \x1b[32m✓ Tự động chuyển đổi ${unsuppResult.fixes} thẻ form chưa đăng ký sang HTML tag chuẩn\x1b[0m`);
+    }
+
+    // Bước 2: Loại bỏ hoàn toàn tất cả comment HTML để tránh wpautop sinh thẻ <p>
+    const commentResult = stripAllHtmlComments(unsuppResult.content);
     if (commentResult.fixes > 0) {
         console.log(`  \x1b[32m✓ Tự động loại bỏ ${commentResult.fixes} HTML comment để chống sinh thẻ <p> rác\x1b[0m`);
     }
 
-    // Bước 2: Loại bỏ font-family hardcoded để kế thừa trọn vẹn font Flatsome
+    // Bước 3: Loại bỏ font-family hardcoded để kế thừa trọn vẹn font Flatsome
     const fontResult = stripHardcodedFontFamily(commentResult.content);
     if (fontResult.fixes > 0) {
         console.log(`  \x1b[32m✓ Tự động gỡ bỏ ${fontResult.fixes} khai báo font-family cứng để kế thừa font Flatsome\x1b[0m`);
     }
 
-    // Bước 3: Chuẩn hóa thẻ link [vbc_a]
+    // Bước 4: Chuẩn hóa thẻ link [vbc_a]
     const linkResult = fixLinkShortcodes(fontResult.content);
     if (linkResult.fixes > 0) {
         console.log(`  \x1b[32m✓ Tự động chuẩn hóa ${linkResult.fixes} thuộc tính liên kết (href -> link_url)\x1b[0m`);
     }
 
-    // Bước 4: Chuẩn hóa thuộc tính Flexbox/Grid vào custom_css
+    // Bước 5: Chuẩn hóa thuộc tính Flexbox/Grid vào custom_css
     const flexResult = fixFlexProperties(linkResult.content);
     if (flexResult.fixes > 0) {
         console.log(`  \x1b[32m✓ Tự động gom ${flexResult.fixes} thuộc tính Flex/Grid vào selector custom_css\x1b[0m`);
     }
 
-    // Bước 5: Chuẩn hóa mã màu Hex
+    // Bước 6: Chuẩn hóa mã màu Hex
     const hexResult = fixRawHexColors(flexResult.content);
     if (hexResult.fixes > 0) {
         console.log(`  \x1b[32m✓ Tự động bổ sung dấu # cho ${hexResult.fixes} mã màu Hex\x1b[0m`);
     }
 
-    // Bước 6: Chuyển đổi vbc_span chứa icon và text thành vbc_div và vbc_span_inner
+    // Bước 7: Chuyển đổi vbc_span chứa icon và text thành vbc_div và vbc_span_inner
     const badgeResult = convertSpanWithIconToDiv(hexResult.content);
     if (badgeResult.fixes > 0) {
         console.log(`  \x1b[33m⚠ Chuyển đổi ${badgeResult.fixes} badge span chứa icon thành khối vbc_div an toàn\x1b[0m`);
     }
 
-    // Bước 7: Sửa nested same-tag shortcodes bằng Stack Tokenizer
+    // Bước 8: Sửa nested same-tag shortcodes bằng Stack Tokenizer
     const nestResult = fixNestedShortcodes(badgeResult.content);
     if (nestResult.fixes > 0) {
         console.log(`  \x1b[33m⚠ Tự động sửa ${nestResult.fixes} trường hợp nested same-tag thành cấu trúc _inner chuẩn\x1b[0m`);
     }
 
-    // Bước 8: Escape ký tự < trong text content
+    // Bước 9: Escape ký tự < trong text content
     const escResult = escapeRawLessThan(nestResult.content);
     if (escResult.fixes > 0) {
         console.log(`  \x1b[33m⚠ Tự động escape ${escResult.fixes} ký tự < thành &lt;\x1b[0m`);
     }
 
-    // Bước 9: Tự động chuyển đổi text-only tags sang dạng content attribute
+    // Bước 10: Tự động chuyển đổi text-only tags sang dạng content attribute
     const contentAttrResult = migrateTagsToContentAttribute(escResult.content);
     if (contentAttrResult.fixes > 0) {
         console.log(`  \x1b[33m⚠ Tự động chuyển ${contentAttrResult.fixes} thẻ text trần sang thuộc tính content="..."\x1b[0m`);
     }
 
-    // Bước 10: Linter kiểm tra lồng [row] trong [col]
+    // Bước 11: Linter kiểm tra lồng [row] trong [col]
     const rowWarnings = checkRowInColNesting(contentAttrResult.content);
     if (rowWarnings > 0) {
         console.warn(`  \x1b[31m⚠ CẢNH BÁO: Phát hiện ${rowWarnings} khối [row] lồng bên trong [col]! Khuyên dùng CSS Grid thay vì lồng [row].\x1b[0m`);
     }
 
-    const totalFixes = commentResult.fixes + fontResult.fixes + linkResult.fixes + flexResult.fixes + hexResult.fixes + badgeResult.fixes + nestResult.fixes + escResult.fixes + contentAttrResult.fixes;
+    const totalFixes = unsuppResult.fixes + commentResult.fixes + fontResult.fixes + linkResult.fixes + flexResult.fixes + hexResult.fixes + badgeResult.fixes + nestResult.fixes + escResult.fixes + contentAttrResult.fixes;
     if (totalFixes > 0) {
         console.log(`  \x1b[35m→ Tổng cộng bộ Linter đã tự động tối ưu & sửa ${totalFixes} vấn đề kỹ thuật!\x1b[0m`);
     } else {
@@ -436,6 +455,32 @@ function sanitizeShortcodeContent(content) {
     }
 
     return contentAttrResult.content;
+}
+
+/**
+ * Tự động kiểm tra trang trực tiếp trên frontend xem có bất kỳ shortcode nào bị lộ không
+ */
+async function verifyLiveFrontend(pageUrl) {
+    if (!pageUrl) return;
+    try {
+        console.log(`\x1b[36m[VERIFICATION] Đang kiểm tra frontend live: ${pageUrl}\x1b[0m`);
+        const res = await fetch(pageUrl + '?vbc_verify=' + Date.now());
+        if (!res.ok) {
+            console.warn(`  \x1b[33m⚠ Không thể tải frontend để verify (HTTP ${res.status}).\x1b[0m`);
+            return;
+        }
+        const html = await res.text();
+        const unparsed = html.match(/\[\/?vbc_[a-zA-Z0-9_\-]+[^\]]*\]/g);
+        if (unparsed && unparsed.length > 0) {
+            console.error(`  \x1b[31m❌ PHÁT HIỆN ${unparsed.length} SHORTCODE BỊ LỘ RA FRONTEND:\x1b[0m`);
+            unparsed.slice(0, 10).forEach(s => console.error(`    - ${s}`));
+            console.error(`  \x1b[31m👉 Vui lòng kiểm tra lại cấu trúc đóng/mở thẻ và thẻ lồng nhau!\x1b[0m`);
+        } else {
+            console.log(`  \x1b[32m✓ HOÀN HẢO! 0 shortcode bị lộ ra frontend. Giao diện sạch sẽ 100%!\x1b[0m\n`);
+        }
+    } catch (e) {
+        console.warn(`  \x1b[33m⚠ Bỏ qua bước verify live frontend: ${e.message}\x1b[0m`);
+    }
 }
 
 // 1. Phân tích tham số dòng lệnh (CLI Arguments)
@@ -622,6 +667,9 @@ async function main() {
             console.log(`Hành động:   ${result.action === 'create' ? 'Tạo mới trang' : 'Cập nhật trang'}`);
             console.log(`Đường link:  \x1b[36m\x1b[4m${result.url}\x1b[0m`);
             console.log('\x1b[32m==================================================\x1b[0m\n');
+
+            // 6. Bắt buộc kiểm tra tự động live frontend
+            await verifyLiveFrontend(result.url);
         } else {
             throw new Error('Phản hồi từ máy chủ không thành công.');
         }

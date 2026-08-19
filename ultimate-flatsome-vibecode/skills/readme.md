@@ -208,9 +208,9 @@ Sử dụng tuần tự các thẻ bí danh theo cấp bậc:
 | ❌ **Dùng Emoji Unicode thô (🔥, ⚡, 🚨)** | WordPress core tự biến emoji thành thẻ ảnh SVG `s.w.org` xấu và làm chậm trang | Luôn dùng `[vbc_icon pack="..." name="..."]` |
 | ❌ **Lồng `[row]` bên trong `[col]`** | Flatsome shortcode parser bị vỡ cú pháp và lộ thẻ đóng ra ngoài | Dùng CSS Grid `display: grid; grid-template-columns: 1fr 1fr; gap: 16px;` |
 | ❌ **Thuộc tính Flex trần ngoài `custom_css`** | `align_items`, `gap`, `justify_content` trần không được PHP tự động render | Khai báo trực tiếp trong `custom_css="selector { display: flex; align-items: center; gap: 12px; }"` |
-| ❌ **Dùng `href="..."` thay vì `link_url="..."`** | Thẻ `[vbc_a]` sẽ bị thiếu link đích | Dùng đúng `[vbc_a link_url="..." link_target="_blank"]` |
-| ❌ **Viết sai cú pháp comment HTML (`<-- ... -->`)** | Làm lộ comment thô ra ngoài trang web | Luôn viết đúng chuẩn `<!-- ... -->` |
-| ❌ **Độ tương phản thấp (&lt; 4.5:1)** | Chữ xám nhạt trên nền trắng gây mỏi mắt và vi phạm chuẩn tiếp cận | Luôn dùng `#0f172a` cho heading và `#475569` cho body |
+| ❌ **Tự chế thẻ shortcode không tồn tại (`[vbc_input]`, `[vbc_textarea]`, `[vbc_form]`)** | Plugin chưa đăng ký shortcode này, làm chuỗi shortcode bị in thô nguyên văn ra frontend | Dùng trực tiếp thẻ HTML chuẩn: `<input ... />`, `<textarea ...></textarea>`, `<form ...></form>` hoặc bọc chúng trong `[vbc_div]` |
+| ❌ **Lồng các thẻ Container cùng tên mà không dùng alias hoặc `_inner`** | Bộ phân tích cú pháp WordPress shortcode sẽ đóng thẻ ngoài ngay khi gặp `[/tag]` đầu tiên, làm bung các thẻ đóng bên trong ra frontend | Dùng xen kẽ các bí danh `[vbc_div]` -> `[vbc_box]` -> `[vbc_block]` -> `[vbc_container]` hoặc dùng hậu tố `_inner`, `_inner_1` |
+| ❌ **Gán suffix `_inner` hoặc viết thẻ đóng cho thẻ tự đóng (`[vbc_icon]`, `[vbc_img]`)** | Thẻ void không có thẻ đóng `[/...]`, nếu gán `_inner` sai sẽ làm hỏng bộ phân tích | Giữ nguyên `[vbc_icon ...]` và `[vbc_img ...]`, không thêm thẻ đóng |
 
 ---
 
@@ -223,7 +223,7 @@ Sử dụng tuần tự các thẻ bí danh theo cấp bậc:
 ---
 
 ### A. Skill 1: Xuất Bản Landing Page Từ Shortcode (`create-landing-page.js`)
-Công cụ xuất bản nhanh từ file shortcode soạn sẵn kèm bộ linter & sanitizer tự động.
+Công cụ xuất bản nhanh từ file shortcode soạn sẵn kèm bộ linter & sanitizer tự động và tự động kiểm tra xác thực frontend live.
 ```bash
 node skills/create-landing-page.js --title "Tiêu đề trang" --slug "duong-dan-tinh" --file "duong-dan-file-shortcode.txt"
 ```
@@ -249,7 +249,7 @@ Công cụ mạnh mẽ hỗ trợ chuyển đổi mọi nguồn giao diện (URL
    ```bash
    node skills/clone-landingpage.js --url "https://example.com" --dry-run
    ```
-*(Tự động trích xuất CSS inline, tải và upload toàn bộ ảnh lên WordPress Media Library, tự động gom thuộc tính Flex/Grid và chuẩn hóa nesting `_inner`)*
+*(Tự động trích xuất CSS inline, tải và upload toàn bộ ảnh lên WordPress Media Library, tự động gom thuộc tính Flex/Grid, chuẩn hóa nesting `_inner` và tự động verify 0 unparsed shortcodes trên frontend)*
 
 ---
 
@@ -277,7 +277,32 @@ Vui lòng kiểm tra hoặc tùy chỉnh các thông số dưới đây trước
 ```
 
 ### **Bước 2: Soạn Thảo, Tối Ưu Hóa & Xuất Bản**
-1. Agent tiến hành soạn thảo shortcode theo đúng Design System đã duyệt (100% `[vbc_icon]`, CSS selector chuẩn, không lồng `[row]`).
+1. Agent tiến hành soạn thảo shortcode theo đúng Design System đã duyệt (100% `[vbc_icon]`, CSS selector chuẩn, không lồng `[row]`, các thẻ form dùng HTML chuẩn).
 2. Lưu shortcode vào tệp `.txt` tạm.
-3. Thực thi script CLI `skills/create-landing-page.js`.
-4. Dọn dẹp tệp tạm, kiểm tra `git status` và gửi link bài viết hoàn tất cho người dùng.
+3. Thực thi script CLI `skills/create-landing-page.js` (hoặc `skills/clone-landingpage.js`).
+4. **BẮT BUỘC: Kiểm tra tự động kết quả Frontend**: Tải URL live của trang vừa tạo và quét kiểm tra Regex `\[/?vbc_[a-zA-Z0-9_\-]+[^\]]*\]`.
+5. Đảm bảo **100% 0 shortcode bị lộ** mới bàn giao cho người dùng.
+
+---
+
+## 8. QUY TẮC BẮT BUỘC: CHỐNG LỖI HIỂN THỊ SHORTCODE RA NGOÀI FRONTEND
+
+> [!CAUTION]
+> Tuyệt đối **KHÔNG ĐƯỢC** để bất kỳ chuỗi shortcode nào (như `[vbc_...]` hay `[/vbc_...]`) hiển thị thô ra ngoài trang web cho khách hàng thấy.
+
+### 5 Nguyên nhân cốt lõi gây lỗi lộ shortcode & Cách phòng tránh:
+1. **Lồng các thẻ cùng tên (Nesting collision)**:
+   - *Nguyên nhân*: WordPress shortcode parser không hỗ trợ lồng 2 thẻ cùng tên (như `[vbc_div] ... [vbc_div] ... [/vbc_div] ... [/vbc_div]`). Thẻ đóng đầu tiên sẽ kết thúc thẻ mở ngoài cùng, làm lộ các thẻ đóng bên trong ra ngoài trang web.
+   - *Quy tắc*: Bắt buộc dùng bí danh xen kẽ (`vbc_box`, `vbc_block`, `vbc_container`) hoặc gán suffix `_inner`, `_inner_1`, `_inner_2`.
+2. **Tự chế các shortcode không tồn tại**:
+   - *Nguyên nhân*: Viết `[vbc_input]`, `[vbc_textarea]`, `[vbc_select]`, `[vbc_form]` trong khi plugin chưa đăng ký các shortcode này.
+   - *Quy tắc*: Dùng thẻ HTML chuẩn `<input ... />`, `<textarea ...></textarea>`, `<select ...></select>`, `<form ...></form>` hoặc bọc chúng trong `[vbc_div]`.
+3. **Thẻ tự đóng (Void tags) bị gán suffix hoặc thẻ đóng sai**:
+   - *Nguyên nhân*: `[vbc_icon]`, `[vbc_img]`, `[vbc_hr]`, `[vbc_br]` là thẻ tự đóng, KHÔNG có `[/vbc_icon]` và KHÔNG được gán `_inner`.
+4. **Sai dấu ngoặc kép hoặc quote không cân đối**:
+   - *Nguyên nhân*: Dùng dấu nháy kép `"` thô bên trong `content="..."` hoặc `custom_css="selector { ... }"` làm vỡ regex attribute của WordPress.
+   - *Quy tắc*: Dùng `&quot;` trong content hoặc kiểm tra kỹ dấu ngoặc nhọn `{ }`.
+5. **QUY TRÌNH KIỂM TRA BẮT BUỘC (MANDATORY LIVE CHECK)**:
+   - Sau khi tạo/sửa trang, Agent **BẮT BUỘC** phải tải lại HTML của trang live và quét regex:
+     `\[/?vbc_[a-zA-Z0-9_\-]+[^\]]*\]`
+   - Chỉ khi kết quả trả về **0 unparsed shortcodes** thì mới được coi là hoàn tất công việc!

@@ -54,12 +54,17 @@ EMOJI_ICON_MAP = {
 }
 
 
-def sanitize_css_rules(style_str):
-    """Làm sạch CSS inline: loại bỏ font-family hardcode và bọc trong selector { ... }"""
+def sanitize_css_rules(style_str, is_container=False):
+    """Làm sạch CSS inline: loại bỏ font-family hardcode và max-width cố định trên container để kế thừa Flatsome"""
     if not style_str:
         return ""
-    # Loại bỏ font-family hardcode để kế thừa font toàn cục Flatsome
+    # 1. Loại bỏ font-family hardcode để kế thừa font toàn cục Flatsome
     cleaned = re.sub(r'font-family\s*:\s*[^;]+;?', '', style_str, flags=re.IGNORECASE)
+
+    # 2. Nếu là container, loại bỏ max-width cố định (ví dụ: max-width: 1200px, 1240px, 1170px, 1080px) để kế thừa theme Flatsome
+    if is_container:
+        cleaned = re.sub(r'max-width\s*:\s*(?:1[0-3]\d{2}px|1080px|1170px|1200px|1240px)\s*;?', '', cleaned, flags=re.IGNORECASE)
+
     cleaned = cleaned.strip().rstrip(';')
     if not cleaned:
         return ""
@@ -76,7 +81,7 @@ class VBCStandardCompiler(HTMLParser):
         # Hệ thống 4-Tier Aliases + Suffix Levels tuân thủ skills/readme.md
         self.CONTAINER_TAGS = [
             'vbc_div',             # Cấp 1: Section ngoài cùng
-            'vbc_box',             # Cấp 2: Container 1200px
+            'vbc_box',             # Cấp 2: Container (Kế thừa kích thước theme Flatsome)
             'vbc_block',           # Cấp 3: Cột / Grid / Row
             'vbc_container',       # Cấp 4: Card item / Badge
             'vbc_container_inner', # Cấp 5: Khối sâu
@@ -183,6 +188,16 @@ class VBCStandardCompiler(HTMLParser):
                 vbc_tag = self.CONTAINER_TAGS[container_depth]
             else:
                 vbc_tag = self.CONTAINER_TAGS[-1]
+
+            is_container = (vbc_tag == 'vbc_box') or any(k in cls.lower() for k in ['container', 'wrap', 'wrapper'])
+            custom_css = sanitize_css_rules(raw_style, is_container=is_container)
+
+            # Tự động đồng bộ và bổ sung class 'container' chuẩn của Flatsome cho vbc_box
+            if vbc_tag == 'vbc_box':
+                classes = cls.split()
+                if 'container' not in classes and 'container-fluid' not in classes:
+                    classes.insert(0, 'container')
+                cls = ' '.join(classes)
 
             attrs_str = []
             if cls:

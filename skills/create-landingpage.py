@@ -151,11 +151,11 @@ class LandingPageCreator:
         """Tự động dựng cấu trúc HTML từ spec các section và nhúng Contact Form 7 shortcode"""
         theme_color = spec.get('theme_color', '#b20000')
 
-        # CSS Base
+        # CSS Base (Kế thừa kích thước và font chữ toàn cục của theme Flatsome)
         css_block = f"""<style>
-.vbc-lp-wrap {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; color: #1e293b; background: #ffffff; line-height: 1.6; }}
+.vbc-lp-wrap {{ color: #1e293b; background: #ffffff; line-height: 1.6; }}
 .vbc-lp-wrap * {{ box-sizing: border-box; }}
-.vbc-lp-container {{ max-width: 1240px; margin: 0 auto; padding: 0 16px; }}
+.vbc-lp-container, .container {{ width: 100%; margin-left: auto; margin-right: auto; padding-left: 15px; padding-right: 15px; }}
 .vbc-lp-hero {{ position: relative; padding: 70px 0; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff; text-align: center; }}
 .vbc-lp-hero h1 {{ font-size: 38px; font-weight: 900; color: #ffffff !important; margin: 0 0 15px; }}
 .vbc-lp-hero p {{ font-size: 18px; color: #e2e8f0 !important; max-width: 800px; margin: 0 auto 25px; }}

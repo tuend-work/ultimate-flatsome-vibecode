@@ -88,7 +88,7 @@ page_html = f"""
 /* CSS Master Styles for Hoàng Long Hải Vân Clone */
 .hlhv-wrap {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; color: #1e293b; background: #ffffff; line-height: 1.6; margin: 0; padding: 0; box-sizing: border-box; }}
 .hlhv-wrap * {{ box-sizing: border-box; }}
-.hlhv-container {{ max-width: 1240px; margin: 0 auto; padding: 0 20px; }}
+.hlhv-container, .container {{ width: 100%; margin-left: auto; margin-right: auto; padding-left: 15px; padding-right: 15px; }}
 
 /* Top Header Bar */
 .hlhv-header {{ background: #ffffff; border-bottom: 2px solid #b20000; position: sticky; top: 0; z-index: 999; box-shadow: 0 4px 15px rgba(0,0,0,0.06); }}

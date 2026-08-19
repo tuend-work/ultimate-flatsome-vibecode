@@ -238,31 +238,35 @@ class VBCStandardCompiler(HTMLParser):
         self.output.append(processed)
 
     def handle_comment(self, data):
-        self.output.append(f'<!--{data}-->')
+        # Loại bỏ hoàn toàn các comment HTML <!-- ... --> để post_content luôn sạch sẽ
+        pass
 
 
-def compile_html_to_vbc(html_content):
-    """Chuyển đổi cây HTML sang VBC Shortcodes chuẩn UX Builder theo skills/readme.md"""
+def compile_html_to_vbc(html_content, return_css=False):
+    """Chuyển đổi cây HTML sang VBC Shortcodes chuẩn UX Builder theo skills/readme.md (Đã loại bỏ comment & tách CSS)"""
     if not html_content:
-        return ""
+        return ("", "") if return_css else ""
 
     content = html_content
 
-    # 1. Bảo vệ các khối <style>...</style>
+    # 1. Trích xuất toàn bộ các khối <style>...</style>
     style_blocks = []
     def _save_style(m):
-        style_blocks.append(m.group(0))
-        return f"<!-- VBC_STYLE_PLACEHOLDER_{len(style_blocks)-1} -->"
-    content = re.sub(r'<style\b[^>]*>.*?</style>', _save_style, content, flags=re.DOTALL | re.IGNORECASE)
+        raw_css = m.group(1) if len(m.groups()) > 0 else m.group(0)
+        # Bỏ thẻ <style> và </style>
+        raw_css = re.sub(r'<\/?style\b[^>]*>', '', raw_css, flags=re.IGNORECASE)
+        style_blocks.append(raw_css.strip())
+        return "" # Loại bỏ style ra khỏi content
+    content = re.sub(r'<style\b[^>]*>(.*?)<\/style>', _save_style, content, flags=re.DOTALL | re.IGNORECASE)
 
     # 2. Bảo vệ các shortcode [contact-form-7 ...] và [vbc_icon ...] sẵn có
     protected_shortcodes = []
     def _save_shortcodes(m):
         protected_shortcodes.append(m.group(0))
-        return f"<!-- VBC_PROTECTED_SC_{len(protected_shortcodes)-1} -->"
+        return f"__VBC_PROTECTED_SC_{len(protected_shortcodes)-1}__"
     content = re.sub(r'\[(?:contact-form-7|vbc_icon|vbc_post|accordion|row|col)\b[^\]]*\](?:[\s\S]*?\[\/(?:accordion|row|col)\])?', _save_shortcodes, content, flags=re.IGNORECASE)
 
-    # 3. Chuyển đổi cây DOM sang VBC Elements
+    # 3. Dùng HTML Parser để chuyển đổi cây DOM sang VBC Elements
     parser = VBCStandardCompiler()
     try:
         parser.feed(content)
@@ -271,11 +275,21 @@ def compile_html_to_vbc(html_content):
         print(f"[CẢNH BÁO] HTML Parser fallback: {e}")
         compiled = content
 
-    # 4. Khôi phục Protected Shortcodes và Style Blocks
+    # 4. Khôi phục Protected Shortcodes
     for idx, sc in enumerate(protected_shortcodes):
-        compiled = compiled.replace(f"<!-- VBC_PROTECTED_SC_{idx} -->", sc)
+        compiled = compiled.replace(f"__VBC_PROTECTED_SC_{idx}__", sc)
 
-    for idx, st in enumerate(style_blocks):
-        compiled = compiled.replace(f"<!-- VBC_STYLE_PLACEHOLDER_{idx} -->", st)
+    # 5. Xóa triệt để tất cả HTML comments <!-- ... -->
+    compiled = re.sub(r'<!--[\s\S]*?-->', '', compiled)
+    
+    # 6. Dọn dẹp các dòng trống liên tiếp
+    compiled = re.sub(r'\n{3,}', '\n\n', compiled).strip()
+
+    extracted_css = ' '.join(style_blocks).strip()
+    # Minify CSS
+    extracted_css = ' '.join(extracted_css.split())
+
+    if return_css:
+        return compiled, extracted_css
 
     return compiled

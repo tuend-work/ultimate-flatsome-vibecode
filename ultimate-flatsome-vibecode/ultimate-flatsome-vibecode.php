@@ -3,7 +3,7 @@
  * Plugin Name: Ultimate Flatsome VibeCode Elements
  * Plugin URI: https://github.com/tuend-work/ultimate-flatsome-vibecode
  * Description: Thêm các phần tử HTML cơ bản tích hợp sâu với Flatsome UX Builder, hỗ trợ responsive hoàn hảo, chèn dữ liệu động (Post Meta, ACF) và chỉnh sửa CSS nâng cao.
- * Version: 2.0.0
+ * Version: 2.0.2
  * Author: Antigravity AI
  * Author URI: https://github.com/tuend-work
  * License: GPL2
@@ -4285,12 +4285,21 @@ function vbc_api_page_handler($request) {
     $content = !empty($params['content']) ? $params['content'] : ''; 
     $content = vbc_fix_utf8_mojibake($content);
     
-    // Tự động nén minified tất cả thẻ <style> để tránh wpautop chèn thẻ <p> và <br> làm hỏng CSS
-    $content = preg_replace_callback('/<style\b[^>]*>(.*?)<\/style>/is', function($matches) {
+    // 1. Tự động trích xuất toàn bộ CSS trong <style>...</style> để lưu riêng vào Custom CSS Post Meta
+    $extracted_css = '';
+    if (!empty($params['custom_css'])) {
+        $extracted_css .= ' ' . $params['custom_css'];
+    }
+    $content = preg_replace_callback('/<style\b[^>]*>(.*?)<\/style>/is', function($matches) use (&$extracted_css) {
         $minified_css = str_replace(array("\r\n", "\r", "\n"), ' ', $matches[1]);
         $minified_css = preg_replace('/\s+/', ' ', $minified_css);
-        return '<style>' . trim($minified_css) . '</style>';
+        $extracted_css .= ' ' . trim($minified_css);
+        return ''; // XÓA HOÀN TOÀN THẺ <style> RA KHỎI post_content
     }, $content);
+
+    // 2. Xóa hoàn toàn tất cả comment HTML <!-- ... --> ra khỏi post_content
+    $content = preg_replace('/<!--[\s\S]*?-->/', '', $content);
+    $content = trim(preg_replace('/\n{3,}/', "\n\n", $content));
     
     $status = !empty($params['status']) ? sanitize_key($params['status']) : 'publish';
     $slug = !empty($params['slug']) ? sanitize_title($params['slug']) : '';
@@ -4354,6 +4363,11 @@ function vbc_api_page_handler($request) {
         }
         
         update_post_meta($updated_id, '_wp_page_template', $target_template);
+        if (!empty($extracted_css)) {
+            $extracted_css = trim($extracted_css);
+            update_post_meta($updated_id, '_custom_css', $extracted_css);
+            update_post_meta($updated_id, 'vbc_page_css', $extracted_css);
+        }
         
         return array(
             'success' => true,
@@ -4383,6 +4397,11 @@ function vbc_api_page_handler($request) {
         }
         
         update_post_meta($new_id, '_wp_page_template', $target_template);
+        if (!empty($extracted_css)) {
+            $extracted_css = trim($extracted_css);
+            update_post_meta($new_id, '_custom_css', $extracted_css);
+            update_post_meta($new_id, 'vbc_page_css', $extracted_css);
+        }
         
         return array(
             'success' => true,
@@ -4390,6 +4409,29 @@ function vbc_api_page_handler($request) {
             'url' => get_permalink($new_id),
             'action' => 'create',
         );
+    }
+}
+
+/**
+ * Tự động nạp Custom CSS vào thẻ <head> của trang
+ */
+add_action('wp_head', 'vbc_render_page_custom_css', 99);
+function vbc_render_page_custom_css() {
+    $post_id = get_the_ID();
+    if (!$post_id) {
+        if (isset($GLOBALS['post']->ID)) {
+            $post_id = $GLOBALS['post']->ID;
+        }
+    }
+    if (!$post_id) return;
+    
+    $css = get_post_meta($post_id, '_custom_css', true);
+    if (empty($css)) {
+        $css = get_post_meta($post_id, 'vbc_page_css', true);
+    }
+    if (!empty($css)) {
+        echo "\n<!-- VibeCode / Flatsome Page Custom CSS -->\n";
+        echo '<style id="vbc-page-custom-css">' . trim($css) . '</style>' . "\n";
     }
 }
 

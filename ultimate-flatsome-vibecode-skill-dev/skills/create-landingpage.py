@@ -283,15 +283,16 @@ class LandingPageCreator:
             spec.loader.exec_module(vbc_compiler_module)
             compile_html_to_vbc = vbc_compiler_module.compile_html_to_vbc
 
-        print(f"-> Đang biên dịch cấu trúc DOM sang các phần tử VBC Elements...")
-        content = compile_html_to_vbc(content)
+        print(f"-> Đang biên dịch cấu trúc DOM sang các phần tử VBC Elements (Tách CSS & Xóa comments)...")
+        clean_vbc, extracted_css = compile_html_to_vbc(content, return_css=True)
 
-        sanitized_content = self.sanitize_for_wp(content)
+        sanitized_content = self.sanitize_for_wp(clean_vbc)
 
         page_endpoint = f"{self.api_url}/vbc/v1/page"
         payload = {
             'title': self.title,
             'content': sanitized_content,
+            'custom_css': extracted_css,
             'template': self.template,
             'status': 'publish'
         }

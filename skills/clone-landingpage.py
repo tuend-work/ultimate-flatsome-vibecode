@@ -250,10 +250,11 @@ class LandingPageCloner:
             spec.loader.exec_module(vbc_compiler_module)
             compile_html_to_vbc = vbc_compiler_module.compile_html_to_vbc
 
-        print(f"-> Đang biên dịch cấu trúc DOM sang các phần tử VBC Elements...")
-        processed_html = compile_html_to_vbc(processed_html)
+        print(f"-> Đang biên dịch cấu trúc DOM sang các phần tử VBC Elements (Tách CSS & Xóa comments)...")
+        clean_vbc, extracted_css = compile_html_to_vbc(processed_html, return_css=True)
+        self.extracted_css = extracted_css
 
-        return self.sanitize_for_wp(processed_html)
+        return self.sanitize_for_wp(clean_vbc)
 
     def publish_to_wordpress(self, content):
         """Gửi nội dung tới REST API /vbc/v1/page"""
@@ -263,6 +264,7 @@ class LandingPageCloner:
         payload = {
             'title': self.title,
             'content': content,
+            'custom_css': getattr(self, 'extracted_css', ''),
             'template': self.template,
             'status': 'publish'
         }

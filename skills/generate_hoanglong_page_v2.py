@@ -643,12 +643,12 @@ def sanitize_for_wp(html):
 import sys
 sys.path.insert(0, os.path.dirname(__file__))
 from html_to_vbc import compile_html_to_vbc
-print("Compiling page HTML to native VBC elements [vbc_*]...")
-vbc_compiled_html = compile_html_to_vbc(page_html)
+print("Compiling page HTML to native VBC elements [vbc_*] (Stripping comments & separating CSS)...")
+vbc_compiled_html, extracted_css = compile_html_to_vbc(page_html, return_css=True)
 page_content = sanitize_for_wp(vbc_compiled_html)
 
 # Publishing to WordPress REST API
-print("\nPublishing to WordPress REST API with native VBC Elements...")
+print("\nPublishing to WordPress REST API with 100% Pure VBC Elements (0 HTML Comments, 0 In-content CSS)...")
 api_url = config.get('api-url', 'https://ultimateflatsomevibecode.s172d211.wpcloud.vn/wp-json').rstrip('/')
 token = config['token']
 
@@ -657,6 +657,7 @@ post_data = {
     'title': 'XE KHÁCH BẮC NAM & CHO THUÊ XE DU LỊCH',
     'slug': 'xe-khach-bac-nam-cho-thue-xe-du-lich',
     'content': page_content,
+    'custom_css': extracted_css,
     'status': 'publish',
     'post_type': 'page',
     'template': 'page-blank.php'

@@ -3,7 +3,7 @@
  * Plugin Name: Ultimate Flatsome VibeCode Elements
  * Plugin URI: https://github.com/tuend-work/ultimate-flatsome-vibecode
  * Description: Thêm các phần tử HTML cơ bản tích hợp sâu với Flatsome UX Builder, hỗ trợ responsive hoàn hảo, chèn dữ liệu động (Post Meta, ACF) và chỉnh sửa CSS nâng cao.
- * Version: 1.9.8
+ * Version: 1.9.9
  * Author: Antigravity AI
  * Author URI: https://github.com/tuend-work
  * License: GPL2
@@ -1312,6 +1312,7 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
     $atts = shortcode_atts(array(
         'content' => '',
         // Common Styling Options
+        'class' => '',
         'custom_class' => '',
         'custom_css' => '',
         'custom_attributes' => '',
@@ -1359,6 +1360,10 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
         'ol_type' => '1',
         'ol_start' => '',
     ), $atts, $tag);
+
+    if (empty($atts['custom_class']) && !empty($atts['class'])) {
+        $atts['custom_class'] = $atts['class'];
+    }
 
     // Biên dịch Responsive CSS
     $styles_desktop = array();
@@ -1889,6 +1894,7 @@ function vbc_card_shortcode($atts, $content = null) {
     $atts = shortcode_atts(array(
         'content' => '',
         'variant' => 'glass',
+        'class' => '',
         'custom_class' => '',
         'custom_css' => '',
         'padding' => '', 'padding__md' => '', 'padding__sm' => '',
@@ -1901,6 +1907,10 @@ function vbc_card_shortcode($atts, $content = null) {
         'glow_color' => '',
         'font_family' => '',
     ), $atts);
+
+    if (empty($atts['custom_class']) && !empty($atts['class'])) {
+        $atts['custom_class'] = $atts['class'];
+    }
 
     $padding = !empty($atts['padding']) ? $atts['padding'] : '35px 30px';
     $radius = !empty($atts['border_radius']) ? $atts['border_radius'] : '20px';
@@ -1955,6 +1965,7 @@ function vbc_testimonial_shortcode($atts, $content = null) {
         'company' => '',
         'stars' => '5',
         'avatar_url' => '',
+        'class' => '',
         'custom_class' => '',
         'custom_css' => '',
         'padding' => '', 'padding__md' => '', 'padding__sm' => '',
@@ -2032,6 +2043,7 @@ function vbc_accordion_shortcode($atts, $content = null) {
     $atts = shortcode_atts(array(
         'content' => '',
         'faq_schema' => 'true',
+        'class' => '',
         'custom_class' => '',
         'custom_css' => '',
         'padding' => '', 'padding__md' => '', 'padding__sm' => '',
@@ -2043,6 +2055,10 @@ function vbc_accordion_shortcode($atts, $content = null) {
         'border_color' => '',
         'font_family' => '',
     ), $atts);
+
+    if (empty($atts['custom_class']) && !empty($atts['class'])) {
+        $atts['custom_class'] = $atts['class'];
+    }
 
     $schema_attr = ($atts['faq_schema'] === 'true') ? ' itemscope itemtype="https://schema.org/FAQPage"' : '';
 
@@ -2116,6 +2132,7 @@ function vbc_button_shortcode($atts, $content = null) {
         'url' => '#',
         'target' => '_self',
         'variant' => 'danger',
+        'class' => '',
         'custom_class' => '',
         'custom_css' => '',
         'padding' => '', 'padding__md' => '', 'padding__sm' => '',
@@ -2128,6 +2145,10 @@ function vbc_button_shortcode($atts, $content = null) {
         'text_color' => '',
         'font_family' => '',
     ), $atts);
+
+    if (empty($atts['custom_class']) && !empty($atts['class'])) {
+        $atts['custom_class'] = $atts['class'];
+    }
 
     $res = vbc_compile_element_css($atts, 'vbc-btn');
     $unique_class = $res['class'];
@@ -2192,9 +2213,14 @@ function vbc_slider_shortcode($atts, $content = null) {
         'arrows' => 'true',
         'pagination' => 'true',
         'gap' => '20px',
+        'class' => '',
         'custom_class' => '',
         'custom_css' => '',
     ), $atts);
+
+    if (empty($atts['custom_class']) && !empty($atts['class'])) {
+        $atts['custom_class'] = $atts['class'];
+    }
 
     wp_enqueue_style('vbc-splide');
     wp_enqueue_script('vbc-splide');
@@ -2253,9 +2279,14 @@ function vbc_slide_shortcode($atts, $content = null) {
         'content' => '',
         'background_color' => '',
         'padding' => '',
+        'class' => '',
         'custom_class' => '',
         'custom_css' => '',
     ), $atts);
+
+    if (empty($atts['custom_class']) && !empty($atts['class'])) {
+        $atts['custom_class'] = $atts['class'];
+    }
 
     $res = vbc_compile_element_css($atts, 'vbc-sld');
     $unique_class = $res['class'];
@@ -2442,9 +2473,14 @@ function vbc_post_shortcode($atts, $content = null) {
         'card_border' => '1px solid #e2e8f0',
         'card_shadow' => '0 4px 15px rgba(0,0,0,0.03)',
         'card_hover' => 'translateY', // translateY, scale, shadow, none
+        'class' => '',
         'custom_class' => '',
         'custom_css' => '',
     ), $atts);
+
+    if (empty($atts['custom_class']) && !empty($atts['class'])) {
+        $atts['custom_class'] = $atts['class'];
+    }
 
     // 1. Chuẩn bị tham số Query
     $post_type = trim($atts['post_type']);
@@ -4236,6 +4272,13 @@ function vbc_api_page_handler($request) {
     $content = !empty($params['content']) ? $params['content'] : ''; 
     $content = vbc_fix_utf8_mojibake($content);
     
+    // Tự động nén minified tất cả thẻ <style> để tránh wpautop chèn thẻ <p> và <br> làm hỏng CSS
+    $content = preg_replace_callback('/<style\b[^>]*>(.*?)<\/style>/is', function($matches) {
+        $minified_css = str_replace(array("\r\n", "\r", "\n"), ' ', $matches[1]);
+        $minified_css = preg_replace('/\s+/', ' ', $minified_css);
+        return '<style>' . trim($minified_css) . '</style>';
+    }, $content);
+    
     $status = !empty($params['status']) ? sanitize_key($params['status']) : 'publish';
     $slug = !empty($params['slug']) ? sanitize_title($params['slug']) : '';
     $post_type = !empty($params['post_type']) ? sanitize_key($params['post_type']) : 'page';
@@ -4643,9 +4686,14 @@ function vbc_icon_shortcode_renderer($atts) {
         'margin'        => '',
         'margin__md'    => '',
         'margin__sm'    => '',
+        'class'         => '',
         'custom_class'  => '',
         'custom_css'    => '',
     ), $atts);
+
+    if (empty($atts['custom_class']) && !empty($atts['class'])) {
+        $atts['custom_class'] = $atts['class'];
+    }
 
     // 1. Nhận diện nguồn icon/ảnh
     $raw_icon = '';

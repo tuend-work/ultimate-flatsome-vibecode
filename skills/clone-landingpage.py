@@ -239,12 +239,12 @@ class UniversalLandingPageCloner:
         self.sections = []
         self.media_map = {}
         self.palette = {
-            "primary": "#e63946",
-            "dark": "#111827",
-            "text": "#1f2937",
-            "muted": "#6b7280",
-            "light_bg": "#f9fafb",
-            "accent": "#f59e0b"
+            "primary": "#f0493e",
+            "dark": "#222f3e",
+            "text": "#2e384d",
+            "muted": "#576574",
+            "light_bg": "#fdf6eb",
+            "accent": "#ff9f43"
         }
         self.cf7_id = 508
         self.has_emitted_hero = False
@@ -509,7 +509,7 @@ class UniversalLandingPageCloner:
             nav_links = [l for l in links if l.get('text') and len(l['text']) < 30][:6]
 
             return f"""
-[vbc_div custom_css="selector {{ width: 100%; background: #ffffff; box-shadow: 0 4px 20px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 999; padding: 12px 0; }}"]
+[vbc_div custom_css="selector {{ width: 100%; background: {BG_LIGHT}; border-bottom: 1px solid #fae8d2; position: sticky; top: 0; z-index: 999; padding: 14px 0; }}"]
     [vbc_box class="container" custom_css="selector {{ margin: 0 auto; max-width: 1200px; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }}"]
         [vbc_a link_url="#" custom_css="selector {{ display: flex; align-items: center; text-decoration: none; }}"]
             {"<img src='" + logo_url + "' alt='" + self.title + "' loading='eager' decoding='sync' style='height: 48px; width: auto; object-fit: contain;' />" if logo_url else "[vbc_span custom_css='selector { font-size: 22px; font-weight: 900; color: " + PRI + "; }']" + self.title + "[/vbc_span]"}
@@ -517,7 +517,7 @@ class UniversalLandingPageCloner:
         <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
             {"".join([f'[vbc_a link_url="{l.get("href", "#")}" custom_css="selector {{ color: {TEXT}; text-decoration: none; font-weight: 600; font-size: 15px; }} selector:hover {{ color: {PRI}; }}"][vbc_span]{l["text"]}[/vbc_span][/vbc_a]' for l in nav_links])}
         </div>
-        [vbc_a link_url="#dang-ky" custom_css="selector {{ background: {PRI}; color: #ffffff !important; padding: 10px 22px; border-radius: 30px; font-weight: 700; font-size: 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }}"]
+        [vbc_a link_url="#dang-ky" custom_css="selector {{ background: {PRI}; color: #ffffff !important; padding: 10px 22px; border-radius: 30px; font-weight: 700; font-size: 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 6px 16px rgba(240,73,62,0.25); }}"]
             [vbc_icon icon_type="lucide" name="sparkles" size="15px" color="#ffffff"]
             [vbc_span]Liên Hệ Ngay[/vbc_span]
         [/vbc_a]
@@ -533,7 +533,7 @@ class UniversalLandingPageCloner:
             hero_img_url = self.get_synced_image_url(hero_img)
 
             return f"""
-[vbc_div custom_css="selector {{ width: 100%; background: linear-gradient(180deg, {BG_LIGHT} 0%, #ffffff 100%); padding: 60px 0; overflow: hidden; }}"]
+[vbc_div custom_css="selector {{ width: 100%; background: {BG_LIGHT}; padding: 60px 0 70px 0; overflow: hidden; }}"]
     [vbc_box class="container" custom_css="selector {{ margin: 0 auto; max-width: 1200px; padding: 0 20px; }}"]
         [vbc_block custom_css="selector {{ display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 40px; align-items: center; }} @media(max-width: 849px){{ selector {{ grid-template-columns: 1fr; text-align: center; }} }}"]
             [vbc_container custom_css="selector {{ display: flex; flex-direction: column; gap: 20px; }}"]
@@ -589,11 +589,44 @@ class UniversalLandingPageCloner:
     [/vbc_box]
 [/vbc_div]"""
 
-        # D. SECTION GRID / CARDS (Nhiều ảnh hoặc nhiều thẻ lặp lại)
-        if len(images) >= 3 or (len(headings) >= 3 and len(paragraphs) >= 3):
+        # D. SECTION TEAM / GALLERY (Nhiều ảnh >= 5 như giáo viên, hình ảnh cơ sở)
+        if len(images) >= 5:
+            title_text = headings[0]['text'] if headings else "Đội Ngũ Giáo Viên & Đào Tạo"
+            sub_text = paragraphs[0]['text'] if paragraphs else ""
+            
+            cards_html = []
+            for i, img in enumerate(images):
+                img_url = self.get_synced_image_url(img['src'])
+                item_title = headings[i + 1]['text'] if i + 1 < len(headings) else f"Giáo viên {i+1}"
+                item_desc = paragraphs[i + 1]['text'] if i + 1 < len(paragraphs) else ""
+                
+                cards_html.append(f"""
+            [vbc_container custom_css="selector {{ background: #ffffff; border-radius: 18px; padding: 20px 14px; text-align: center; box-shadow: 0 6px 20px rgba(0,0,0,0.05); transition: all 0.3s; border: 1px solid rgba(0,0,0,0.04); }} selector:hover {{ transform: translateY(-5px); box-shadow: 0 14px 30px rgba(232,71,42,0.12); }}"]
+                {"<img src='" + img_url + "' alt='" + item_title + "' loading='eager' decoding='sync' style='width: 110px; height: 110px; border-radius: 50%; object-fit: cover; margin: 0 auto 12px auto; display: block; border: 3px solid " + BG_LIGHT + ";' />" if img_url else ""}
+                [vbc_h4 custom_css="selector {{ font-size: 15px; font-weight: 800; color: {DARK}; margin: 0 0 6px 0; }}"]{item_title}[/vbc_h4]
+                {"[vbc_p custom_css='selector { font-size: 12px; color: " + MUTED + "; margin: 0; line-height: 1.5; }']" + item_desc[:80] + "[/vbc_p]" if item_desc else ""}
+            [/vbc_container]""")
+
+            return f"""
+[vbc_div custom_css="selector {{ width: 100%; background: {BG_LIGHT if index % 2 == 1 else '#ffffff'}; padding: 80px 0; }}"]
+    [vbc_box class="container" custom_css="selector {{ margin: 0 auto; max-width: 1200px; padding: 0 20px; }}"]
+        [vbc_block custom_css="selector {{ text-align: center; max-width: 750px; margin: 0 auto 40px auto; }}"]
+            [vbc_h2 custom_css="selector {{ font-size: 34px; font-weight: 900; color: {DARK}; margin-bottom: 12px; position: relative; display: inline-block; }} selector::after {{ content: ''; display: block; width: 60px; height: 4px; background: {PRI}; margin: 10px auto 0 auto; border-radius: 2px; }}"]
+                {title_text}
+            [/vbc_h2]
+            {"[vbc_p custom_css='selector { font-size: 16px; color: " + MUTED + "; line-height: 1.7; }']" + sub_text + "[/vbc_p]" if sub_text else ""}
+        [/vbc_block]
+        [vbc_block_inner custom_css="selector {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 20px; }}"]
+            {"".join(cards_html)}
+        [/vbc_block_inner]
+    [/vbc_box]
+[/vbc_div]"""
+
+        # E. SECTION GRID / CARDS (3 - 4 thẻ dịch vụ, tính năng)
+        if len(images) >= 2 or (len(headings) >= 3 and len(paragraphs) >= 3):
             title_text = headings[0]['text'] if headings else "Dịch Vụ Nổi Bật"
             sub_text = paragraphs[0]['text'] if paragraphs else ""
-            card_count = min(4, max(len(images), len(headings) - 1))
+            card_count = max(len(images), min(4, len(headings) - 1))
 
             cards_html = []
             for i in range(card_count):
@@ -678,7 +711,49 @@ class UniversalLandingPageCloner:
     [/vbc_box]
 [/vbc_div]"""
 
-        # F. SECTION FOOTER
+        # F. SECTION FORM / CONSULTATION (Nếu phát hiện Form hoặc là section áp chót trước Footer)
+        if has_form or (index == len(self.sections) - 1 and index > 2):
+            title_text = headings[0]['text'] if headings else f"Đăng Ký Tư Vấn & Nhận Lộ Trình Học {self.title}"
+            sub_text = paragraphs[0]['text'] if paragraphs else "Để lại thông tin để nhận tư vấn miễn phí từ chuyên gia và kiểm tra trình độ đầu vào."
+
+            return f"""
+[vbc_div id="dang-ky" custom_css="selector {{ width: 100%; background: linear-gradient(135deg, #fff4e6 0%, #fdf6ee 100%); padding: 80px 0; border-top: 1px solid #fed7aa; }}"]
+    [vbc_box class="container" custom_css="selector {{ margin: 0 auto; max-width: 1100px; padding: 0 20px; }}"]
+        [vbc_block custom_css="selector {{ display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; background: #ffffff; padding: 40px; border-radius: 24px; box-shadow: 0 15px 35px rgba(232,71,42,0.08); }} @media(max-width: 849px){{ selector {{ grid-template-columns: 1fr; padding: 24px; }} }}"]
+            [vbc_container]
+                <span style="display: inline-block; background: rgba(232,71,42,0.1); color: {PRI}; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; margin-bottom: 12px;">
+                    [vbc_icon icon_type="lucide" name="gift" size="15px" color="{PRI}"]
+                    ƯU ĐÃI ĐẶC BIỆT
+                </span>
+                [vbc_h2 custom_css="selector {{ font-size: 32px; font-weight: 900; color: {DARK}; line-height: 1.3; margin: 0 0 16px 0; }}"]
+                    {title_text}
+                [/vbc_h2]
+                [vbc_p custom_css="selector {{ font-size: 16px; color: {MUTED}; line-height: 1.7; margin-bottom: 24px; }}"]
+                    {sub_text}
+                [/vbc_p]
+                <div style="display: flex; flex-direction: column; gap: 12px; font-size: 15px; font-weight: 600; color: {DARK};">
+                    <span style="display: flex; align-items: center; gap: 10px;">
+                        [vbc_icon icon_type="lucide" name="check-circle-2" size="18px" color="{PRI}"]
+                        100% Giáo viên bản ngữ có chứng chỉ TCSOL
+                    </span>
+                    <span style="display: flex; align-items: center; gap: 10px;">
+                        [vbc_icon icon_type="lucide" name="check-circle-2" size="18px" color="{PRI}"]
+                        Lộ trình cá nhân hóa 1 kèm 1 linh hoạt
+                    </span>
+                    <span style="display: flex; align-items: center; gap: 10px;">
+                        [vbc_icon icon_type="lucide" name="check-circle-2" size="18px" color="{PRI}"]
+                        Cam kết đầu ra chuẩn quốc tế HSK/YCT
+                    </span>
+                </div>
+            [/vbc_container]
+            [vbc_container_inner custom_css="selector {{ background: #fafafa; padding: 24px; border-radius: 16px; border: 1px solid #f0f0f0; }}"]
+                [contact-form-7 id="{self.cf7_id}" title="Form Đăng Ký Tư Vấn"]
+            [/vbc_container_inner]
+        [/vbc_block]
+    [/vbc_box]
+[/vbc_div]"""
+
+        # G. SECTION FOOTER
         if tag == 'footer' or 'footer' in sec_class.lower() or index == len(self.sections):
             logo_src = images[0]['src'] if images else ""
             logo_url = self.get_synced_image_url(logo_src)

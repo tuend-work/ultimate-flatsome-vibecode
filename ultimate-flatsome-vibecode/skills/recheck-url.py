@@ -112,9 +112,19 @@ class AIVisualComparisonEngine:
             diff_ratio = sum(stat.mean) / (3.0 * 255.0)
             pixel_similarity = max(0.0, min(100.0, (1.0 - diff_ratio) * 100.0))
 
-            # 2. Điểm tương đồng Phân bố Màu sắc (Histogram Cosine Similarity)
-            hist1 = im1_res.histogram()
-            hist2 = im2_res.histogram()
+            # 2. Điểm tương đồng Phân bố Màu sắc (8-bin Quantized Color Palette Cosine Similarity)
+            def get_quantized_palette(img, bins=8):
+                step = 256 // bins
+                hist = [0] * (bins * 3)
+                raw_bytes = img.tobytes()
+                for i in range(0, len(raw_bytes), 3):
+                    hist[raw_bytes[i] // step] += 1
+                    hist[bins + (raw_bytes[i + 1] // step)] += 1
+                    hist[bins * 2 + (raw_bytes[i + 2] // step)] += 1
+                return hist
+
+            hist1 = get_quantized_palette(im1_res, bins=8)
+            hist2 = get_quantized_palette(im2_res, bins=8)
             dot_prod = sum(a * b for a, b in zip(hist1, hist2))
             norm1 = math.sqrt(sum(a * a for a in hist1))
             norm2 = math.sqrt(sum(b * b for b in hist2))

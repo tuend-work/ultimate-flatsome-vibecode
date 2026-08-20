@@ -1,0 +1,24 @@
+[vbc_div custom_css="selector { width: 100%; background: #ffffff; border-bottom: 1px solid #f0f0f0; position: sticky; top: 0; z-index: 999; }"]
+    [vbc_box class="container" custom_css="selector { margin: 0 auto; max-width: 1200px; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }"]
+        [vbc_a link_url="#" custom_css="selector { display: flex; align-items: center; text-decoration: none; }"]
+            [vbc_span custom_css="selector { font-size: 22px; font-weight: 900; color: #f0493e; }"]SAMPLE BRAND[/vbc_span]
+        [/vbc_a]
+        <div style="display: flex; align-items: center; gap: 24px; font-weight: 600; font-size: 15px;">
+            <a href="#" style="color: #222f3e; text-decoration: none;">Khóa Học</a>
+            <a href="#" style="color: #222f3e; text-decoration: none;">Giáo Viên</a>
+            <a href="#" style="color: #222f3e; text-decoration: none;">Về Chúng Tôi</a>
+        </div>
+        [vbc_a link_url="#dang-ky" custom_css="selector { background: #f0493e; color: #ffffff !important; padding: 10px 24px; border-radius: 25px; font-weight: 700; font-size: 14px; text-decoration: none; }"]
+            [vbc_span]Đăng Ký Ngay[/vbc_span]
+        [/vbc_a]
+    [/vbc_box]
+[/vbc_div]
+
+[vbc_div custom_css="selector { width: 100%; background: #fdf6eb; padding: 40px 0; }"]
+    [vbc_box class="container" custom_css="selector { margin: 0 auto; max-width: 1200px; padding: 0 20px; }"]
+        <div style="position: relative; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.08);">
+            <h1 style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;">Sample Landing Page</h1>
+            <img src="https://via.placeholder.com/1200x500" alt="Banner" style="width: 100%; height: auto; display: block;" />
+        </div>
+    [/vbc_box]
+[/vbc_div]

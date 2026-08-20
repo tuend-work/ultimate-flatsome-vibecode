@@ -1,0 +1,25 @@
+[vbc_div custom_css="selector { width: 100%; background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); padding: 90px 0; }"]
+    [vbc_box class="container" custom_css="selector { margin: 0 auto; max-width: 1200px; padding: 0 20px; }"]
+        [vbc_block custom_css="selector { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 50px; align-items: center; } @media(max-width: 849px){ selector { grid-template-columns: 1fr; text-align: center; } }"]
+            <div>
+                <span style="display: inline-flex; align-items: center; gap: 8px; background: rgba(240,73,62,0.1); color: #f0493e; padding: 6px 16px; border-radius: 20px; font-weight: 700; font-size: 13px; margin-bottom: 16px;">
+                    [vbc_icon icon_type="lucide" name="sparkles" size="16px" color="#f0493e"]
+                    GIẢI PHÁP SỐ HÀNG ĐẦU
+                </span>
+                [vbc_h1 custom_css="selector { font-size: 44px; font-weight: 900; color: #1e293b; line-height: 1.25; margin: 0 0 18px 0; } @media(max-width: 549px){ selector { font-size: 30px; } }"]
+                    Kiến Tạo Tương Lai Cho Doanh Nghiệp Bạn
+                [/vbc_h1]
+                [vbc_p custom_css="selector { font-size: 17px; color: #64748b; line-height: 1.7; margin-bottom: 30px; }"]
+                    Nền tảng quản trị và tăng trưởng toàn diện, nâng tầm chuyển đổi và bứt phá doanh thu.
+                [/vbc_p]
+                [vbc_a link_url="#dang-ky" custom_css="selector { background: #f0493e; color: #ffffff !important; padding: 15px 36px; border-radius: 30px; font-weight: 700; font-size: 16px; text-decoration: none; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 10px 25px rgba(240,73,62,0.25); }"]
+                    [vbc_span]Trải Nghiệm Miễn Phí[/vbc_span]
+                    [vbc_icon icon_type="lucide" name="arrow-right" size="18px" color="#ffffff"]
+                [/vbc_a]
+            </div>
+            <div style="text-align: center;">
+                <img src="https://via.placeholder.com/520x420" alt="Hero Mockup" style="width: 100%; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.08);" />
+            </div>
+        [/vbc_block]
+    [/vbc_box]
+[/vbc_div]

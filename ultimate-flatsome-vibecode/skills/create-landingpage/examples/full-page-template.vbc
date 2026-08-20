@@ -1,0 +1,21 @@
+<style>
+#header, #footer, .header-wrapper, #wrapper > footer { display: none !important; }
+body { padding-top: 0 !important; margin: 0 !important; background: #ffffff !important; }
+#main { padding-top: 0 !important; padding-bottom: 0 !important; }
+</style>
+
+[vbc_div custom_css="selector { width: 100%; background: #ffffff; border-bottom: 1px solid #f0f0f0; position: sticky; top: 0; z-index: 999; }"]
+    [vbc_box class="container" custom_css="selector { margin: 0 auto; max-width: 1200px; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; }"]
+        [vbc_span custom_css="selector { font-size: 22px; font-weight: 900; color: #f0493e; }"]LANDING PRO[/vbc_span]
+        [vbc_a link_url="#dang-ky" custom_css="selector { background: #f0493e; color: #fff !important; padding: 10px 22px; border-radius: 25px; font-weight: 700; text-decoration: none; }"]
+            [vbc_span]Tư Vấn Miễn Phí[/vbc_span]
+        [/vbc_a]
+    [/vbc_box]
+[/vbc_div]
+
+[vbc_div custom_css="selector { width: 100%; background: #fdf6eb; padding: 60px 0; }"]
+    [vbc_box class="container" custom_css="selector { margin: 0 auto; max-width: 1200px; padding: 0 20px; text-align: center; }"]
+        [vbc_h1 custom_css="selector { font-size: 40px; font-weight: 900; color: #222f3e; margin: 0 0 16px 0; }"]Khởi Đầu Thành Công Cùng Landing Pro[/vbc_h1]
+        [vbc_p custom_css="selector { font-size: 17px; color: #576574; max-width: 700px; margin: 0 auto 30px auto; }"]Giải pháp thiết kế và xây dựng giao diện chuyển đổi cao dành cho doanh nghiệp hiện đại.[/vbc_p]
+    [/vbc_box]
+[/vbc_div]

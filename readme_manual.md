@@ -91,22 +91,30 @@ Chạy trên website WordPress đích với các nhiệm vụ chính:
 
 ---
 
-### 3.2. Bộ Công Cụ AI CLI Skills (`ultimate-flatsome-skill`)
+### 3.2. Hệ Thống Antigravity Agent Skills (Chuẩn Google Codelabs)
 
-Dành cho Antigravity AI và các lập trình viên tự động hóa:
+Bộ Skills tuân thủ 100% đặc tả **Google Antigravity Skills** (`.agents/skills/`), hỗ trợ cơ chế nạp động theo nhu cầu (**Progressive Disclosure**) và phân tách thành 4 module độc lập:
 
-1. **`clone-landingpage.js` (Trình Clone Giao Diện Đa Nguồn 99%)**:
-   * Đầu vào: URL trực tiếp (`--url`), file HTML (`--html`), file ZIP template (`--zip`), file shortcode (`--file`).
-   * **Auto Asset Crawler**: Quét toàn bộ `<img>`, `background-image`, `preload link`, tải về cache và upload lên WP Media qua API, sau đó tự động map lại toàn bộ link ảnh trong trang.
+1. **`clone-landingpage`** (`.agents/skills/clone-landingpage/`):
+   * **Runbook:** `SKILL.md` (YAML Frontmatter + Quy trình phân tích DOM & đồng bộ Media).
+   * **Script lõi:** `scripts/cloner.py` (Generic Cloner 100% tự động).
+   * **Tài liệu tham khảo:** `references/dom-pattern-guide.md`, `references/vbc-mapping-rules.md`.
+   * **Ví dụ mẫu:** `examples/sample-landing-page.vbc`.
 
-2. **`create-landing-page.js` & Bộ Shortcode Sanitizer / Linter Pipeline**:
-   * **Stack Tokenizer Nesting Fixer**: Giải quyết triệt để hạn chế của WordPress shortcode parser bằng cách tự động biến đổi thẻ trùng tên lồng nhau thành `_inner`, `_inner_1`, `_inner_2`...
-   * **Wpautop Conflict Resolver**: Tự động chuyển đổi các thẻ text trần sang thuộc tính `content="..."` với `&quot;` an toàn để ngăn chặn WordPress tự bọc thẻ `<p>` hoặc `<br>`.
-   * **Flexbox/Grid Normalizer**: Tự động gom các thuộc tính trần (`align_items`, `justify_content`, `gap`...) vào khối `custom_css="selector { ... }"`.
-   * **Color & Link Normalizer**: Tự động thêm `#` cho mã màu Hex, chuyển đổi `href` $\rightarrow$ `link_url`, `target` $\rightarrow$ `link_target`.
+2. **`recheck-url`** (`.agents/skills/recheck-url/`):
+   * **Runbook:** `SKILL.md` (Quy trình kiểm thử chất lượng QA Audit & chụp ảnh 1-shot).
+   * **Script lõi:** `scripts/rechecker.py` (Động cơ so sánh thị giác AI & Histogram VSI $\ge 90\%$).
+   * **Tài liệu tham khảo:** `references/audit-criteria.md`.
+   * **Ví dụ mẫu:** `examples/sample-audit-report.md`.
 
-3. **`ftp-upload.js`**:
-   * Sử dụng kết nối Socket TCP thuần (FTP Port 21) để tự động xóa và ghi đè file code plugin trên hosting, phục vụ cập nhật nhanh chóng.
+3. **`create-landingpage`** (`.agents/skills/create-landingpage/`):
+   * **Runbook:** `SKILL.md` (Quy trình kiến tạo Landing Page chuyển đổi cao từ Prompt/Wireframe).
+   * **Script lõi:** `scripts/generator.py` (Trình sinh shortcode VBC).
+   * **Tài liệu tham khảo:** `references/section-templates.md`.
+
+4. **`vbc-elements`** (`.agents/skills/vbc-elements/`):
+   * **Cẩm nang tra cứu:** `SKILL.md`, `references/shortcodes-catalog.md`, `references/responsive-css-guide.md`.
+   * **Ví dụ mẫu:** `examples/modern-hero-section.vbc`.
 
 ---
 

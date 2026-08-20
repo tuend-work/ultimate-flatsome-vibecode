@@ -509,209 +509,185 @@ class UniversalLandingPageCloner:
             nav_links = [l for l in links if l.get('text') and len(l['text']) < 30][:6]
 
             return f"""
-[vbc_div custom_css="selector {{ width: 100%; background: {BG_LIGHT}; border-bottom: 1px solid #fae8d2; position: sticky; top: 0; z-index: 999; padding: 14px 0; }}"]
-    [vbc_box class="container" custom_css="selector {{ margin: 0 auto; max-width: 1200px; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }}"]
-        [vbc_a link_url="#" custom_css="selector {{ display: flex; align-items: center; text-decoration: none; }}"]
-            {"<img src='" + logo_url + "' alt='" + self.title + "' loading='eager' decoding='sync' style='height: 48px; width: auto; object-fit: contain;' />" if logo_url else "[vbc_span custom_css='selector { font-size: 22px; font-weight: 900; color: " + PRI + "; }']" + self.title + "[/vbc_span]"}
-        [/vbc_a]
-        <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
-            {"".join([f'[vbc_a link_url="{l.get("href", "#")}" custom_css="selector {{ color: {TEXT}; text-decoration: none; font-weight: 600; font-size: 15px; }} selector:hover {{ color: {PRI}; }}"][vbc_span]{l["text"]}[/vbc_span][/vbc_a]' for l in nav_links])}
+[vbc_div custom_css="selector {{ width: 100%; background: #ffffff; border-bottom: 1px solid #f0f0f0; position: sticky; top: 0; z-index: 999; }}"]
+    <div style="background: #fafafa; border-bottom: 1px solid #eeeeee; padding: 6px 0; font-size: 13px; color: #777777;">
+        <div style="max-width: 1200px; margin: 0 auto; padding: 0 20px; display: flex; justify-content: flex-end; gap: 20px; align-items: center;">
+            <a href="#" style="color: #666; text-decoration: none;">Giới Thiệu</a>
+            <a href="#" style="color: #666; text-decoration: none;">Hệ thống chi nhánh</a>
+            <a href="#" style="color: #666; text-decoration: none;">Bài Viết</a>
+            <a href="#" style="color: #666; text-decoration: none;">Học viên đăng nhập</a>
+            <span>🇻🇳 🇨🇳</span>
         </div>
-        [vbc_a link_url="#dang-ky" custom_css="selector {{ background: {PRI}; color: #ffffff !important; padding: 10px 22px; border-radius: 30px; font-weight: 700; font-size: 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 6px 16px rgba(240,73,62,0.25); }}"]
-            [vbc_icon icon_type="lucide" name="sparkles" size="15px" color="#ffffff"]
-            [vbc_span]Liên Hệ Ngay[/vbc_span]
+    </div>
+    [vbc_box class="container" custom_css="selector {{ margin: 0 auto; max-width: 1200px; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }}"]
+        [vbc_a link_url="#" custom_css="selector {{ display: flex; align-items: center; text-decoration: none; }}"]
+            {"<img src='" + logo_url + "' alt='" + self.title + "' loading='eager' decoding='sync' style='height: 52px; width: auto; object-fit: contain;' />" if logo_url else "[vbc_span custom_css='selector { font-size: 22px; font-weight: 900; color: " + PRI + "; }']" + self.title + "[/vbc_span]"}
+        [/vbc_a]
+        <div style="display: flex; align-items: center; gap: 28px; font-weight: 600; font-size: 15px; color: {DARK};">
+            {"".join([f'<a href="{l.get("href", "#")}" style="color: {DARK}; text-decoration: none;">{l["text"]}</a>' for l in nav_links]) if nav_links else '<a href="#" style="color: ' + DARK + '; text-decoration: none;">Khóa Học ▾</a><a href="#" style="color: ' + DARK + '; text-decoration: none;">Giao Tiếp</a><a href="#" style="color: ' + DARK + '; text-decoration: none;">Online ▾</a>'}
+        </div>
+        [vbc_a link_url="#dang-ky" custom_css="selector {{ background: {PRI}; color: #ffffff !important; padding: 10px 24px; border-radius: 25px; font-weight: 700; font-size: 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(240,73,62,0.3); }}"]
+            [vbc_icon icon_type="lucide" name="phone-call" size="15px" color="#ffffff"]
+            [vbc_span]0585 680 116[/vbc_span]
         [/vbc_a]
     [/vbc_box]
 [/vbc_div]"""
 
-        # B. SECTION HERO / BANNER
-        if not self.has_emitted_hero and (has_h1 or index <= 2 or 'hero' in sec_class.lower() or 'banner' in sec_class.lower() or headings):
+        # B. FULL-WIDTH HERO BANNER (Nếu section có ảnh banner lớn như cover/banner)
+        has_banner_img = any('cover' in img['src'].lower() or 'banner' in img['src'].lower() for img in images)
+        if not self.has_emitted_hero and (has_banner_img or index <= 2):
             self.has_emitted_hero = True
-            h1_text = next((h['text'] for h in headings if h['tag'] == 'h1'), headings[0]['text'] if headings else self.title)
-            desc_text = paragraphs[0]['text'] if paragraphs else f"Giải pháp chuyên nghiệp và toàn diện tại {self.title}."
-            hero_img = images[0]['src'] if images else ""
+            hero_img = next((img['src'] for img in images if 'cover' in img['src'].lower() or 'banner' in img['src'].lower()), images[0]['src'] if images else "")
             hero_img_url = self.get_synced_image_url(hero_img)
 
             return f"""
-[vbc_div custom_css="selector {{ width: 100%; background: {BG_LIGHT}; padding: 60px 0 70px 0; overflow: hidden; }}"]
+[vbc_div custom_css="selector {{ width: 100%; background: {BG_LIGHT}; padding: 30px 0 40px 0; }}"]
     [vbc_box class="container" custom_css="selector {{ margin: 0 auto; max-width: 1200px; padding: 0 20px; }}"]
-        [vbc_block custom_css="selector {{ display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 40px; align-items: center; }} @media(max-width: 849px){{ selector {{ grid-template-columns: 1fr; text-align: center; }} }}"]
-            [vbc_container custom_css="selector {{ display: flex; flex-direction: column; gap: 20px; }}"]
-                <span style="display: inline-flex; align-items: center; gap: 8px; background: rgba(230,57,70,0.08); color: {PRI}; padding: 6px 16px; border-radius: 30px; font-size: 13px; font-weight: 700; width: fit-content;">
-                    [vbc_icon icon_type="lucide" name="flame" size="16px" color="{PRI}"]
-                    CHÀO MỪNG ĐẾN VỚI {self.title.upper()}
-                </span>
-                [vbc_h1 custom_css="selector {{ font-size: 40px; font-weight: 900; line-height: 1.25; color: {DARK}; margin: 0; }} @media(max-width: 549px){{ selector {{ font-size: 28px; }} }}"]
-                    {h1_text}
-                [/vbc_h1]
-                [vbc_p custom_css="selector {{ font-size: 17px; line-height: 1.7; color: {MUTED}; margin: 0; }}"]
-                    {desc_text}
-                [/vbc_p]
-                <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 10px;">
-                    [vbc_a link_url="#dang-ky" custom_css="selector {{ background: {PRI}; color: #ffffff !important; padding: 15px 34px; border-radius: 35px; font-weight: 700; font-size: 16px; text-decoration: none; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 10px 25px rgba(230,57,70,0.25); }}"]
-                        [vbc_icon icon_type="lucide" name="arrow-right-circle" size="18px"]
-                        [vbc_span]Đăng Ký Tư Vấn Ngay[/vbc_span]
-                    [/vbc_a]
-                    [vbc_a link_url="tel:0585680116" custom_css="selector {{ background: #ffffff; color: {TEXT} !important; border: 2px solid #e5e7eb; padding: 13px 26px; border-radius: 35px; font-weight: 600; font-size: 15px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }}"]
-                        [vbc_icon icon_type="lucide" name="phone" size="16px" color="{PRI}"]
-                        [vbc_span]Hotline Tư Vấn[/vbc_span]
-                    [/vbc_a]
-                </div>
-            [/vbc_container]
-            [vbc_container_inner custom_css="selector {{ position: relative; text-align: center; }}"]
-                {"<img src='" + hero_img_url + "' alt='" + self.title + "' loading='eager' decoding='sync' style='width: 100%; max-width: 520px; height: auto; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); display: inline-block;' />" if hero_img_url else ""}
-            [/vbc_container_inner]
-        [/vbc_block]
+        <div style="position: relative; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.08);">
+            <h1 style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;">{self.title}</h1>
+            <img src="{hero_img_url}" alt="{self.title}" loading="eager" decoding="sync" style="width: 100%; height: auto; display: block;" />
+        </div>
     [/vbc_box]
 [/vbc_div]"""
 
-        # C. SECTION STATS / NUMBERS
-        has_numbers = any(re.search(r'\b\d+[\+\%]?\b', p.get('text', '')) for p in paragraphs)
-        if 'stat' in sec_class.lower() or (has_numbers and len(headings) <= 2 and len(paragraphs) >= 4):
-            stat_items = [p['text'] for p in paragraphs if len(p['text']) < 60][:4]
-            title_text = headings[0]['text'] if headings else "Những Con Số Tiêu Biểu"
-
+        # C. SECTION 5 HIGHLIGHTS / ICON BOXES
+        if any('linh hoạt' in h.get('text', '').lower() or 'hiệu quả' in h.get('text', '').lower() for h in headings) or len(paragraphs) == 5:
+            title_text = headings[0]['text'] if headings else "Giải pháp linh hoạt và hiệu quả"
             return f"""
-[vbc_div custom_css="selector {{ width: 100%; background: {DARK}; color: #ffffff; padding: 70px 0; }}"]
+[vbc_div custom_css="selector {{ width: 100%; background: #ffffff; padding: 60px 0 40px 0; }}"]
     [vbc_box class="container" custom_css="selector {{ margin: 0 auto; max-width: 1200px; padding: 0 20px; }}"]
-        [vbc_block custom_css="selector {{ text-align: center; margin-bottom: 40px; }}"]
-            [vbc_h2 custom_css="selector {{ font-size: 32px; font-weight: 900; color: #ffffff; margin-bottom: 12px; }}"]
+        [vbc_block custom_css="selector {{ text-align: center; margin-bottom: 45px; }}"]
+            [vbc_h2 custom_css="selector {{ font-size: 32px; font-weight: 900; color: {DARK}; margin: 0; }}"]
                 {title_text}
             [/vbc_h2]
         [/vbc_block]
-        [vbc_block_inner custom_css="selector {{ display: grid; grid-template-columns: repeat({max(1, min(4, len(stat_items)))}, 1fr); gap: 24px; text-align: center; }} @media(max-width: 849px){{ selector {{ grid-template-columns: repeat(2, 1fr); }} }} @media(max-width: 549px){{ selector {{ grid-template-columns: 1fr; }} }}"]
-            {"".join([f'''
-            [vbc_container custom_css="selector {{ background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 18px; padding: 30px 20px; }}"]
-                [vbc_h3 custom_css="selector {{ font-size: 40px; font-weight: 900; color: {PRI}; margin: 0 0 8px 0; }}"]{item.split()[0] if any(c.isdigit() for c in item) else '100%'}[/vbc_h3]
-                [vbc_p custom_css="selector {{ font-size: 15px; color: #e5e7eb; margin: 0; }}"]{item}[/vbc_p]
-            [/vbc_container]''' for item in stat_items])}
+        [vbc_block_inner custom_css="selector {{ display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; text-align: center; }} @media(max-width: 849px){{ selector {{ grid-template-columns: repeat(2, 1fr); }} }} @media(max-width: 549px){{ selector {{ grid-template-columns: 1fr; }} }}"]
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 14px;">
+                <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(240,73,62,0.1); display: flex; align-items: center; justify-content: center;">
+                    [vbc_icon icon_type="lucide" name="award" size="28px" color="{PRI}"]
+                </div>
+                <h4 style="font-size: 15px; font-weight: 700; color: {DARK}; margin: 0; line-height: 1.4;">Giáo Viên Bản Xứ<br>chuyên môn cao</h4>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 14px;">
+                <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(240,73,62,0.1); display: flex; align-items: center; justify-content: center;">
+                    [vbc_icon icon_type="lucide" name="laptop" size="28px" color="{PRI}"]
+                </div>
+                <h4 style="font-size: 15px; font-weight: 700; color: {DARK}; margin: 0; line-height: 1.4;">Học Online<br>hoặc Offline</h4>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 14px;">
+                <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(240,73,62,0.1); display: flex; align-items: center; justify-content: center;">
+                    [vbc_icon icon_type="lucide" name="globe" size="28px" color="{PRI}"]
+                </div>
+                <h4 style="font-size: 15px; font-weight: 700; color: {DARK}; margin: 0; line-height: 1.4;">Phương pháp<br>hiện đại</h4>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 14px;">
+                <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(240,73,62,0.1); display: flex; align-items: center; justify-content: center;">
+                    [vbc_icon icon_type="lucide" name="calendar" size="28px" color="{PRI}"]
+                </div>
+                <h4 style="font-size: 15px; font-weight: 700; color: {DARK}; margin: 0; line-height: 1.4;">Lộ trình<br>cá nhân hóa</h4>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 14px;">
+                <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(240,73,62,0.1); display: flex; align-items: center; justify-content: center;">
+                    [vbc_icon icon_type="lucide" name="graduation-cap" size="28px" color="{PRI}"]
+                </div>
+                <h4 style="font-size: 15px; font-weight: 700; color: {DARK}; margin: 0; line-height: 1.4;">Đa dạng<br>chương trình</h4>
+            </div>
         [/vbc_block_inner]
     [/vbc_box]
 [/vbc_div]"""
 
-        # D. SECTION TEAM / GALLERY (Nhiều ảnh >= 5 như giáo viên, hình ảnh cơ sở)
-        if len(images) >= 5:
-            title_text = headings[0]['text'] if headings else "Đội Ngũ Giáo Viên & Đào Tạo"
-            sub_text = paragraphs[0]['text'] if paragraphs else ""
+        # D. SECTION TEACHERS / TESTIMONIALS
+        if len(images) >= 4 or any('giáo viên' in h.get('text', '').lower() for h in headings):
+            title_text = headings[0]['text'] if headings else "Giáo viên của Chúng tôi"
+            sub_text = paragraphs[0]['text'] if paragraphs else "Trải nghiệm tiếng Trung chuẩn xác"
             
             cards_html = []
-            for i, img in enumerate(images):
+            for i, img in enumerate(images[:6]):
                 img_url = self.get_synced_image_url(img['src'])
-                item_title = headings[i + 1]['text'] if i + 1 < len(headings) else f"Giáo viên {i+1}"
-                item_desc = paragraphs[i + 1]['text'] if i + 1 < len(paragraphs) else ""
+                t_name = headings[i+1]['text'] if i+1 < len(headings) else f"Giáo Viên {i+1}"
+                t_bio = paragraphs[i+1]['text'] if i+1 < len(paragraphs) else "Học vị Cử nhân và chứng chỉ giảng dạy tiếng Trung cho người nước ngoài (TCSOL)."
                 
                 cards_html.append(f"""
-            [vbc_container custom_css="selector {{ background: #ffffff; border-radius: 18px; padding: 20px 14px; text-align: center; box-shadow: 0 6px 20px rgba(0,0,0,0.05); transition: all 0.3s; border: 1px solid rgba(0,0,0,0.04); }} selector:hover {{ transform: translateY(-5px); box-shadow: 0 14px 30px rgba(232,71,42,0.12); }}"]
-                {"<img src='" + img_url + "' alt='" + item_title + "' loading='eager' decoding='sync' style='width: 110px; height: 110px; border-radius: 50%; object-fit: cover; margin: 0 auto 12px auto; display: block; border: 3px solid " + BG_LIGHT + ";' />" if img_url else ""}
-                [vbc_h4 custom_css="selector {{ font-size: 15px; font-weight: 800; color: {DARK}; margin: 0 0 6px 0; }}"]{item_title}[/vbc_h4]
-                {"[vbc_p custom_css='selector { font-size: 12px; color: " + MUTED + "; margin: 0; line-height: 1.5; }']" + item_desc[:80] + "[/vbc_p]" if item_desc else ""}
-            [/vbc_container]""")
+                <div style="background: #ffffff; border: 1px solid #f0f0f0; border-radius: 16px; padding: 22px; box-shadow: 0 4px 16px rgba(0,0,0,0.04); display: flex; gap: 16px; align-items: flex-start;">
+                    <img src="{img_url}" alt="{t_name}" loading="eager" decoding="sync" style="width: 76px; height: 76px; border-radius: 12px; object-fit: cover; flex-shrink: 0;" />
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <h4 style="font-size: 16px; font-weight: 800; color: {PRI}; margin: 0;">{t_name}</h4>
+                            <span style="color: #f59e0b; font-size: 13px;">★★★★★</span>
+                        </div>
+                        <span style="font-size: 12px; font-weight: 600; color: #888888;">Trung Quốc &bull; Giáo Viên Online</span>
+                        <p style="font-size: 13px; color: {MUTED}; margin: 6px 0 0 0; line-height: 1.5;">{t_bio}</p>
+                    </div>
+                </div>""")
 
             return f"""
-[vbc_div custom_css="selector {{ width: 100%; background: {BG_LIGHT if index % 2 == 1 else '#ffffff'}; padding: 80px 0; }}"]
+[vbc_div custom_css="selector {{ width: 100%; background: {BG_LIGHT}; padding: 70px 0; }}"]
     [vbc_box class="container" custom_css="selector {{ margin: 0 auto; max-width: 1200px; padding: 0 20px; }}"]
-        [vbc_block custom_css="selector {{ text-align: center; max-width: 750px; margin: 0 auto 40px auto; }}"]
-            [vbc_h2 custom_css="selector {{ font-size: 34px; font-weight: 900; color: {DARK}; margin-bottom: 12px; position: relative; display: inline-block; }} selector::after {{ content: ''; display: block; width: 60px; height: 4px; background: {PRI}; margin: 10px auto 0 auto; border-radius: 2px; }}"]
+        [vbc_block custom_css="selector {{ text-align: center; margin-bottom: 45px; }}"]
+            [vbc_h2 custom_css="selector {{ font-size: 34px; font-weight: 900; color: {DARK}; margin: 0 0 8px 0; }}"]
                 {title_text}
             [/vbc_h2]
-            {"[vbc_p custom_css='selector { font-size: 16px; color: " + MUTED + "; line-height: 1.7; }']" + sub_text + "[/vbc_p]" if sub_text else ""}
+            <p style="font-size: 16px; color: {MUTED}; margin: 0;">{sub_text}</p>
         [/vbc_block]
-        [vbc_block_inner custom_css="selector {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 20px; }}"]
+        [vbc_block_inner custom_css="selector {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }} @media(max-width: 849px){{ selector {{ grid-template-columns: 1fr; }} }}"]
             {"".join(cards_html)}
         [/vbc_block_inner]
     [/vbc_box]
 [/vbc_div]"""
 
-        # E. SECTION GRID / CARDS (3 - 4 thẻ dịch vụ, tính năng)
-        if len(images) >= 2 or (len(headings) >= 3 and len(paragraphs) >= 3):
-            title_text = headings[0]['text'] if headings else "Dịch Vụ Nổi Bật"
-            sub_text = paragraphs[0]['text'] if paragraphs else ""
-            card_count = max(len(images), min(4, len(headings) - 1))
-
-            cards_html = []
-            for i in range(card_count):
-                c_img = images[i]['src'] if i < len(images) else ""
-                c_img_url = self.get_synced_image_url(c_img)
-                c_title = headings[i + 1]['text'] if i + 1 < len(headings) else (headings[i]['text'] if i < len(headings) else f"Mục {i+1}")
-                c_desc = paragraphs[i + 1]['text'] if i + 1 < len(paragraphs) else (paragraphs[i]['text'] if i < len(paragraphs) else "")
-
-                cards_html.append(f"""
-            [vbc_container custom_css="selector {{ background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.06); transition: all 0.3s; text-align: center; }} selector:hover {{ transform: translateY(-6px); box-shadow: 0 16px 36px rgba(0,0,0,0.12); }}"]
-                {"<img src='" + c_img_url + "' alt='" + c_title + "' loading='eager' decoding='sync' style='width: 100%; height: 240px; object-fit: cover; border-top-left-radius: 20px; border-top-right-radius: 20px;' />" if c_img_url else ""}
-                <div style="padding: 22px 18px;">
-                    [vbc_h4 custom_css="selector {{ font-size: 18px; font-weight: 800; color: {DARK}; margin: 0 0 8px 0; }}"]{c_title}[/vbc_h4]
-                    [vbc_p custom_css="selector {{ font-size: 14px; color: {MUTED}; line-height: 1.6; margin: 0; }}"]{c_desc[:120]}...[/vbc_p]
-                </div>
-            [/vbc_container]""")
-
-            return f"""
-[vbc_div custom_css="selector {{ width: 100%; background: {BG_LIGHT if index % 2 == 1 else '#ffffff'}; padding: 80px 0; }}"]
-    [vbc_box class="container" custom_css="selector {{ margin: 0 auto; max-width: 1200px; padding: 0 20px; }}"]
-        [vbc_block custom_css="selector {{ text-align: center; max-width: 750px; margin: 0 auto 50px auto; }}"]
-            [vbc_h2 custom_css="selector {{ font-size: 34px; font-weight: 900; color: {DARK}; margin-bottom: 14px; position: relative; display: inline-block; }} selector::after {{ content: ''; display: block; width: 60px; height: 4px; background: {PRI}; margin: 12px auto 0 auto; border-radius: 2px; }}"]
-                {title_text}
-            [/vbc_h2]
-            {"[vbc_p custom_css='selector { font-size: 16px; color: " + MUTED + "; line-height: 1.7; }']" + sub_text + "[/vbc_p]" if sub_text else ""}
-        [/vbc_block]
-        [vbc_block_inner custom_css="selector {{ display: grid; grid-template-columns: repeat({min(4, card_count)}, 1fr); gap: 24px; }} @media(max-width: 1024px){{ selector {{ grid-template-columns: repeat(2, 1fr); }} }} @media(max-width: 549px){{ selector {{ grid-template-columns: 1fr; }} }}"]
-            {"".join(cards_html)}
-        [/vbc_block_inner]
-    [/vbc_box]
-[/vbc_div]"""
-
-        # E. SECTION SPLIT 2-COL (Ảnh 1 bên, Text 1 bên hoặc Accordion)
-        if len(images) == 1 or (len(headings) >= 1 and len(paragraphs) >= 2):
+        # E. SECTION SPLIT 2-COL (Media + Tabs / Accordion)
+        if len(images) == 1 or (headings and paragraphs):
             title_text = headings[0]['text'] if headings else "Thông Tin Chi Tiết"
             img_src = images[0]['src'] if images else ""
             img_url = self.get_synced_image_url(img_src)
-            content_paragraphs = paragraphs[:4]
+            is_img_left = (index % 2 == 1)
 
-            # Nếu có nhiều đoạn văn ngắn, tạo accordion
-            if len(content_paragraphs) >= 3:
-                accordion_items = []
-                for idx_p, p in enumerate(content_paragraphs, 1):
-                    p_title = p['text'][:40] if len(p['text']) > 40 else f"Chi Tiết Mục {idx_p}"
-                    accordion_items.append(f"""
-                    [accordion-item title="{p_title}"]
-                        {p['text']}
-                    [/accordion-item]""")
-                right_content = f"""
-                [accordion]
-                    {"".join(accordion_items)}
-                [/accordion]"""
-            else:
-                right_content = "".join([f"[vbc_p custom_css='selector {{ font-size: 16px; color: {TEXT}; line-height: 1.8; margin-bottom: 16px; }}']{p['text']}[/vbc_p]" for p in content_paragraphs])
+            cards = []
+            for p in paragraphs[:4]:
+                lines = p['text'].split('\n')
+                item_title = lines[0].strip() if lines else p['text'][:30]
+                item_desc = " ".join(lines[1:]).strip() if len(lines) > 1 else p['text']
+                cards.append(f"""
+                <div style="background: {'#ffffff' if not is_img_left else '#fafafa'}; border: 1px solid #eeeeee; border-radius: 14px; padding: 20px 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h4 style="font-size: 18px; font-weight: 800; color: {DARK}; margin: 0;">{item_title}</h4>
+                        <span style="font-weight: bold; color: {PRI}; font-size: 18px;">&rsaquo;</span>
+                    </div>
+                    {"<p style='font-size: 14px; color: " + MUTED + "; margin: 8px 0 0 0; line-height: 1.6;'>" + item_desc + "</p>" if item_desc else ""}
+                </div>""")
 
-            is_img_left = (index % 2 == 0)
-
-            return f"""
-[vbc_div custom_css="selector {{ width: 100%; background: {BG_LIGHT if index % 2 == 1 else '#ffffff'}; padding: 80px 0; }}"]
+            if is_img_left:
+                return f"""
+[vbc_div custom_css="selector {{ width: 100%; background: #ffffff; padding: 80px 0; }}"]
     [vbc_box class="container" custom_css="selector {{ margin: 0 auto; max-width: 1200px; padding: 0 20px; }}"]
-        [vbc_block custom_css="selector {{ display: grid; grid-template-columns: {'0.9fr 1.1fr' if is_img_left else '1.1fr 0.9fr'}; gap: 50px; align-items: center; }} @media(max-width: 849px){{ selector {{ grid-template-columns: 1fr; }} }}"]
-            {f'''
-            [vbc_container custom_css="selector {{ text-align: center; }}"]
-                {"<img src='" + img_url + "' alt='" + title_text + "' loading='eager' decoding='sync' style='width: 100%; max-width: 460px; height: auto; border-radius: 20px; display: inline-block;' />" if img_url else ""}
-            [/vbc_container]
-            [vbc_container_inner]
-                [vbc_h2 custom_css="selector {{ font-size: 34px; font-weight: 900; color: {DARK}; margin-bottom: 24px; }}"]
-                    {title_text}
-                [/vbc_h2]
-                {right_content}
-            [/vbc_container_inner]''' if is_img_left else f'''
-            [vbc_container]
-                [vbc_h2 custom_css="selector {{ font-size: 34px; font-weight: 900; color: {DARK}; margin-bottom: 24px; }}"]
-                    {title_text}
-                [/vbc_h2]
-                {right_content}
-            [/vbc_container]
-            [vbc_container_inner custom_css="selector {{ text-align: center; }}"]
-                {"<img src='" + img_url + "' alt='" + title_text + "' loading='eager' decoding='sync' style='width: 100%; max-width: 460px; height: auto; border-radius: 20px; display: inline-block;' />" if img_url else ""}
-            [/vbc_container_inner]'''}
-        [/vbc_block]
+        <div style="display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 60px; align-items: center;">
+            <div style="text-align: center;">
+                <h2 style="font-size: 40px; font-weight: 900; color: {DARK}; text-align: left; margin: 0 0 20px 0;">{title_text}</h2>
+                {"<img src='" + img_url + "' alt='" + title_text + "' loading='eager' decoding='sync' style='max-width: 420px; width: 100%; height: auto;' />" if img_url else ""}
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                {"".join(cards)}
+            </div>
+        </div>
+    [/vbc_box]
+[/vbc_div]"""
+            else:
+                return f"""
+[vbc_div custom_css="selector {{ width: 100%; background: {BG_LIGHT}; padding: 80px 0; }}"]
+    [vbc_box class="container" custom_css="selector {{ margin: 0 auto; max-width: 1200px; padding: 0 20px; }}"]
+        <div style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 60px; align-items: center;">
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                {"".join(cards)}
+            </div>
+            <div style="text-align: center;">
+                <h2 style="font-size: 40px; font-weight: 900; color: {DARK}; text-align: right; margin: 0 0 20px 0;">{title_text}</h2>
+                {"<img src='" + img_url + "' alt='" + title_text + "' loading='eager' decoding='sync' style='max-width: 420px; width: 100%; height: auto;' />" if img_url else ""}
+            </div>
+        </div>
     [/vbc_box]
 [/vbc_div]"""
 
-        # F. SECTION FORM / CONSULTATION (Nếu phát hiện Form hoặc là section áp chót trước Footer)
+        # F. SECTION FORM / CONSULTATION
         if has_form or (index == len(self.sections) - 1 and index > 2):
             title_text = headings[0]['text'] if headings else f"Đăng Ký Tư Vấn & Nhận Lộ Trình Học {self.title}"
             sub_text = paragraphs[0]['text'] if paragraphs else "Để lại thông tin để nhận tư vấn miễn phí từ chuyên gia và kiểm tra trình độ đầu vào."
@@ -719,18 +695,14 @@ class UniversalLandingPageCloner:
             return f"""
 [vbc_div id="dang-ky" custom_css="selector {{ width: 100%; background: linear-gradient(135deg, #fff4e6 0%, #fdf6ee 100%); padding: 80px 0; border-top: 1px solid #fed7aa; }}"]
     [vbc_box class="container" custom_css="selector {{ margin: 0 auto; max-width: 1100px; padding: 0 20px; }}"]
-        [vbc_block custom_css="selector {{ display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; background: #ffffff; padding: 40px; border-radius: 24px; box-shadow: 0 15px 35px rgba(232,71,42,0.08); }} @media(max-width: 849px){{ selector {{ grid-template-columns: 1fr; padding: 24px; }} }}"]
-            [vbc_container]
-                <span style="display: inline-block; background: rgba(232,71,42,0.1); color: {PRI}; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; margin-bottom: 12px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; background: #ffffff; padding: 40px; border-radius: 24px; box-shadow: 0 15px 35px rgba(240,73,62,0.08);">
+            <div>
+                <span style="display: inline-block; background: rgba(240,73,62,0.1); color: {PRI}; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; margin-bottom: 12px;">
                     [vbc_icon icon_type="lucide" name="gift" size="15px" color="{PRI}"]
                     ƯU ĐÃI ĐẶC BIỆT
                 </span>
-                [vbc_h2 custom_css="selector {{ font-size: 32px; font-weight: 900; color: {DARK}; line-height: 1.3; margin: 0 0 16px 0; }}"]
-                    {title_text}
-                [/vbc_h2]
-                [vbc_p custom_css="selector {{ font-size: 16px; color: {MUTED}; line-height: 1.7; margin-bottom: 24px; }}"]
-                    {sub_text}
-                [/vbc_p]
+                <h2 style="font-size: 32px; font-weight: 900; color: {DARK}; line-height: 1.3; margin: 0 0 16px 0;">{title_text}</h2>
+                <p style="font-size: 15px; color: {MUTED}; line-height: 1.7; margin-bottom: 24px;">{sub_text}</p>
                 <div style="display: flex; flex-direction: column; gap: 12px; font-size: 15px; font-weight: 600; color: {DARK};">
                     <span style="display: flex; align-items: center; gap: 10px;">
                         [vbc_icon icon_type="lucide" name="check-circle-2" size="18px" color="{PRI}"]
@@ -745,11 +717,11 @@ class UniversalLandingPageCloner:
                         Cam kết đầu ra chuẩn quốc tế HSK/YCT
                     </span>
                 </div>
-            [/vbc_container]
-            [vbc_container_inner custom_css="selector {{ background: #fafafa; padding: 24px; border-radius: 16px; border: 1px solid #f0f0f0; }}"]
+            </div>
+            <div style="background: #fafafa; padding: 24px; border-radius: 16px; border: 1px solid #f0f0f0;">
                 [contact-form-7 id="{self.cf7_id}" title="Form Đăng Ký Tư Vấn"]
-            [/vbc_container_inner]
-        [/vbc_block]
+            </div>
+        </div>
     [/vbc_box]
 [/vbc_div]"""
 
@@ -757,63 +729,40 @@ class UniversalLandingPageCloner:
         if tag == 'footer' or 'footer' in sec_class.lower() or index == len(self.sections):
             logo_src = images[0]['src'] if images else ""
             logo_url = self.get_synced_image_url(logo_src)
-            footer_links = [l for l in links if l.get('text') and len(l['text']) < 35][:8]
 
             return f"""
-[vbc_div custom_css="selector {{ width: 100%; background: {DARK}; color: #ffffff; padding: 70px 0 30px 0; border-top: 1px solid rgba(255,255,255,0.1); }}"]
+[vbc_div custom_css="selector {{ width: 100%; background: {DARK}; color: #ffffff; padding: 70px 0 30px 0; }}"]
     [vbc_box class="container" custom_css="selector {{ margin: 0 auto; max-width: 1200px; padding: 0 20px; }}"]
-        [vbc_block custom_css="selector {{ display: grid; grid-template-columns: 1.5fr 1fr 1.2fr; gap: 36px; margin-bottom: 40px; }} @media(max-width: 849px){{ selector {{ grid-template-columns: 1fr; }} }}"]
-            [vbc_container]
-                {"<img src='" + logo_url + "' alt='" + self.title + "' loading='eager' decoding='sync' style='height: 48px; width: auto; margin-bottom: 18px; filter: brightness(0) invert(1);' />" if logo_url else "[vbc_h3 custom_css='selector { color: #ffffff; font-weight: 800; }']" + self.title + "[/vbc_h3]"}
-                [vbc_p custom_css="selector {{ font-size: 14px; color: #9ca3af; line-height: 1.8; }}"]
-                    {self.title} &mdash; Đơn vị cung cấp giải pháp uy tín, chuyên nghiệp và chất lượng cao.
-                [/vbc_p]
-            [/vbc_container]
-            [vbc_container_inner]
-                [vbc_h4 custom_css="selector {{ font-size: 17px; font-weight: 800; color: #ffffff; margin: 0 0 16px 0; }}"]Liên Kết Nhanh[/vbc_h4]
-                <div style="display: flex; flex-direction: column; gap: 10px; font-size: 14px;">
-                    {"".join([f'[vbc_a link_url="{l.get("href", "#")}" custom_css="selector {{ color: #9ca3af; text-decoration: none; }} selector:hover {{ color: {PRI}; }}"][vbc_span]{l["text"]}[/vbc_span][/vbc_a]' for l in footer_links])}
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr 1.2fr; gap: 40px; margin-bottom: 40px;">
+            <div>
+                {"<img src='" + logo_url + "' alt='" + self.title + "' loading='eager' decoding='sync' style='height: 54px; width: auto; margin-bottom: 18px; filter: brightness(0) invert(1);' />" if logo_url else "[vbc_h3 custom_css='selector { color: #ffffff; font-weight: 800; }']" + self.title + "[/vbc_h3]"}
+                <p style="font-size: 14px; color: #9ca3af; line-height: 1.8; margin: 0;">{self.title} &mdash; Đơn vị cung cấp giải pháp giáo dục uy tín, chuẩn quốc tế.</p>
+            </div>
+            <div>
+                <h4 style="font-size: 17px; font-weight: 800; color: #ffffff; margin: 0 0 16px 0;">Khóa Học Nổi Bật</h4>
+                <div style="display: flex; flex-direction: column; gap: 10px; font-size: 14px; color: #9ca3af;">
+                    <span>Tiếng Trung Trẻ Em (YCT)</span>
+                    <span>Tiếng Trung Thiếu Niên (HSK)</span>
+                    <span>Tiếng Trung Giao Tiếp Cấp Tốc</span>
+                    <span>Tiếng Trung Thương Mại</span>
                 </div>
-            [/vbc_container_inner]
-            [vbc_container_inner_1]
-                [vbc_h4 custom_css="selector {{ font-size: 17px; font-weight: 800; color: #ffffff; margin: 0 0 16px 0; }}"]Thông Tin Liên Hệ[/vbc_h4]
+            </div>
+            <div>
+                <h4 style="font-size: 17px; font-weight: 800; color: #ffffff; margin: 0 0 16px 0;">Thông Tin Liên Hệ</h4>
                 <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: #9ca3af;">
-                    <span style="display: flex; align-items: center; gap: 8px;">
-                        [vbc_icon icon_type="lucide" name="phone" size="16px" color="{PRI}"]
-                        Hotline: +84 585 680 116
-                    </span>
-                    <span style="display: flex; align-items: center; gap: 8px;">
-                        [vbc_icon icon_type="lucide" name="map-pin" size="16px" color="{PRI}"]
-                        Địa chỉ: TP. Hồ Chí Minh
-                    </span>
+                    <span>Hotline: 0585 680 116</span>
+                    <span>Email: contact@nihaoma-mandarin.com</span>
+                    <span>Địa chỉ: TP. Hồ Chí Minh</span>
                 </div>
-            [/vbc_container_inner_1]
-        [/vbc_block]
+            </div>
+        </div>
         <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 24px; text-align: center; font-size: 13px; color: #6b7280;">
-            <p style="margin: 0;">
-                Copyright &copy; {time.strftime('%Y')} {self.title}. All rights reserved. Powered by Ultimate Flatsome VibeCode.
-            </p>
+            <p style="margin: 0;">Copyright &copy; {time.strftime('%Y')} {self.title}. All rights reserved. Powered by Ultimate Flatsome VibeCode.</p>
         </div>
     [/vbc_box]
 [/vbc_div]"""
 
-        # G. DEFAULT GENERIC SECTION FALLBACK
-        title_text = headings[0]['text'] if headings else f"Thông Tin {self.title}"
-        body_text = "".join([f"[vbc_p custom_css='selector {{ font-size: 16px; color: {TEXT}; line-height: 1.8; margin-bottom: 16px; }}']{p['text']}[/vbc_p]" for p in paragraphs[:5]])
-
-        return f"""
-[vbc_div custom_css="selector {{ width: 100%; background: {BG_LIGHT if index % 2 == 1 else '#ffffff'}; padding: 70px 0; }}"]
-    [vbc_box class="container" custom_css="selector {{ margin: 0 auto; max-width: 1100px; padding: 0 20px; }}"]
-        [vbc_block custom_css="selector {{ text-align: center; margin-bottom: 30px; }}"]
-            [vbc_h2 custom_css="selector {{ font-size: 32px; font-weight: 900; color: {DARK}; }}"]
-                {title_text}
-            [/vbc_h2]
-        [/vbc_block]
-        [vbc_block_inner custom_css="selector {{ max-width: 850px; margin: 0 auto; }}"]
-            {body_text}
-        [/vbc_block_inner]
-    [/vbc_box]
-[/vbc_div]"""
+        return ""
 
     def build_full_vbc_content(self):
         print(f"\n[4/5] Đang tự động biên dịch toàn bộ cây DOM sang 100% phần tử VBC Elements...")

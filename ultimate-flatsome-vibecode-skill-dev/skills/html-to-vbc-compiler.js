@@ -367,9 +367,12 @@ function convertChildren($el, $, urlMapping, depth = 0) {
     return result;
 }
 
+// VBC chỉ hỗ trợ nesting tối đa ~4 levels
+const MAX_NESTING_DEPTH = 4;
+
 /**
  * Convert block-level containers → [vbc_div] / [vbc_box] / [vbc_container]
- * Với proper Flatsome layout wrapping
+ * Với proper Flatsome layout wrapping và giới hạn độ sâu nesting
  */
 function convertBlock($el, $, urlMapping, depth = 0) {
     const className = $el.attr('class') || '';
@@ -378,6 +381,22 @@ function convertBlock($el, $, urlMapping, depth = 0) {
     const tag = $el.prop('tagName').toLowerCase();
     const id = $el.attr('id') || '';
     
+    // === DEPTH LIMIT: Khi quá sâu, flatten thành plain text content ===
+    if (depth >= MAX_NESTING_DEPTH) {
+        // Lấy toàn bộ text và ảnh bên trong, không wrap thêm container
+        const text = decodeHtmlEntities($el.text().trim());
+        const imgs = [];
+        $el.find('img').each((i, img) => {
+            const src = $(img).attr('src') || $(img).attr('data-src') || '';
+            const mappedSrc = urlMapping && urlMapping.get(src) ? urlMapping.get(src) : src;
+            if (mappedSrc && !mappedSrc.startsWith('data:')) {
+                imgs.push(`[vbc_img img_source="external" img_url="${escapeAttr(mappedSrc)}"][/vbc_img]`);
+            }
+        });
+        const result = imgs.join('') + (text ? `[vbc_p content="${escapeAttr(text)}"][/vbc_p]` : '');
+        return result;
+    }
+
     // Build custom_css từ styles
     const bgImage = getBgImageUrl($el);
     let bgUrl = bgImage;
@@ -390,12 +409,17 @@ function convertBlock($el, $, urlMapping, depth = 0) {
     
     const customCss = stylesToCustomCss(filteredStyles);
     
-    // Xây dựng attrs
+    // Xây dựng attrs — chỉ giữ el_class và những gì quan trọng
     let attrs = '';
     if (customCss) attrs += ` custom_css="${escapeAttr(customCss)}"`;
     if (bgUrl) attrs += ` bg_image="${escapeAttr(bgUrl)}" bg_size="cover" bg_pos="center"`;
     if (id) attrs += ` el_id="${id}"`;
-    if (className) attrs += ` el_class="${className}"`;
+    // Giới hạn el_class: bỏ các class dài của framework (Elementor, Bootstrap...)
+    if (className) {
+        // Lấy tối đa 3 class đầu để tránh attr quá dài
+        const shortClass = className.split(/\s+/).slice(0, 3).join(' ');
+        if (shortClass) attrs += ` el_class="${shortClass}"`;
+    }
     
     // Children
     const children = convertChildren($el, $, urlMapping, depth + 1);
@@ -403,9 +427,9 @@ function convertBlock($el, $, urlMapping, depth = 0) {
     // Chọn VBC tag phù hợp theo context
     let vbcTag = 'vbc_div';
     if (tag === 'section' || depth === 0) vbcTag = 'vbc_box';
-    if (className.includes('container')) vbcTag = 'vbc_container';
+    if (className.includes('container') && !className.includes('elementor')) vbcTag = 'vbc_container';
     
-    // Nếu không có children có ý nghĩa, check text trực tiếp
+    // Nếu không có children có ý nghĩa, dùng text trực tiếp
     if (!children.trim()) {
         const text = decodeHtmlEntities($el.text().trim());
         if (!text) return '';

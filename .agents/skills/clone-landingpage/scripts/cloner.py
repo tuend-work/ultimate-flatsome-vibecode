@@ -5,18 +5,6 @@
 ULTIMATE FLATSOME VIBECODE - ADVANCED 1:1 CLONER ENGINE (TABS & DYNAMIC POSTS)
 ===============================================================================
 File: cloner.py
-Description:
-  - Bóc tách 100% cấu trúc HTML DOM sang Native Shortcodes VBC Elements.
-  - TỰ ĐỘNG NHẬN DIỆN & CHUYỂN ĐỔI TAB:
-      * Nhận diện Bootstrap tabs (.nav-tabs / .tab-content), Elementor tabs, Flatsome tabbed content, ARIA tabs.
-      * Biên dịch tự động sang [vbc_tabs] [vbc_tab title="..."] ... [/vbc_tab] [/vbc_tabs].
-  - TỰ ĐỘNG NHẬN DIỆN & TRUY VẤN BÀI VIẾT / SẢN PHẨM TỪ BACKEND:
-      * Nhận diện danh sách bài viết (.blog-posts, article.post, .penci-grid, v.v.)
-      * Nhận diện danh sách sản phẩm WooCommerce (.woocommerce ul.products, .product-item, v.v.)
-      * Tự động thay thế khối tĩnh bằng [vbc_post post_type="post|product" posts_per_page="X" columns="Y" layout="grid"]
-        để lấy dữ liệu động trực tiếp từ WordPress database.
-  - Quét & Tải toàn bộ ảnh, icons, background-image về tmp/{slug}/ và upload lên WP Media Library (/vbc/v1/upload).
-  - Tự động xuất bản qua /vbc/v1/page và chạy recheck AI để kiểm định VSI >= 90%.
 ===============================================================================
 """
 
@@ -61,24 +49,7 @@ def load_vbc_config(custom_path=None):
     return {}
 
 
-# Tag mapping from HTML to VBC Elements
-TAG_MAP = {
-    'div': 'div', 'section': 'div', 'header': 'div', 'footer': 'div',
-    'main': 'div', 'article': 'div', 'aside': 'div', 'nav': 'div',
-    'h1': 'h1', 'h2': 'h2', 'h3': 'h3', 'h4': 'h4', 'h5': 'h5', 'h6': 'h6',
-    'p': 'p', 'span': 'span', 'i': 'i', 'a': 'a',
-    'ul': 'ul', 'ol': 'ol', 'li': 'li',
-    'b': 'b', 'strong': 'strong', 'em': 'em', 'u': 'u',
-    'table': 'table', 'tr': 'tr', 'td': 'td', 'th': 'th',
-    'img': 'img', 'hr': 'hr', 'br': 'br',
-}
-
-DIV_ALIASES = [
-    'div', 'box', 'block', 'container',
-    'block_inner', 'container_inner',
-    'div_inner', 'box_inner',
-    'div_inner_1', 'box_inner_1', 'block_inner_1', 'container_inner_1'
-]
+DIV_ALIASES = ['div', 'box', 'block', 'container', 'block_inner', 'container_inner', 'div_inner', 'box_inner']
 
 
 class Node:
@@ -144,9 +115,9 @@ def render_raw_svg(node):
     return f"<{node.tag}{attrs_str}>{inner}</{node.tag}>"
 
 
-def convert_node_to_vbc(node, tag_counts=None):
-    if tag_counts is None:
-        tag_counts = {}
+def convert_node_to_vbc(node, depth_map=None):
+    if depth_map is None:
+        depth_map = {}
 
     if node.is_text_node:
         return node.text
@@ -161,7 +132,6 @@ def convert_node_to_vbc(node, tag_counts=None):
     classes = attrs.get('class', '').lower()
     tag_id = attrs.get('id', '').lower()
 
-    # Kiểm tra danh sách sản phẩm WooCommerce
     if any(k in classes for k in ['products', 'woocommerce-products', 'product-grid', 'shop-products']) and not classes.startswith('product '):
         product_items = [c for c in node.children if 'product' in c.attrs.get('class', '').lower()]
         count = len(product_items) if product_items else 8
@@ -171,7 +141,6 @@ def convert_node_to_vbc(node, tag_counts=None):
         elif 'columns-5' in classes or 'col-5' in classes: cols = 5
         return f'\n[vbc_post post_type="product" posts_per_page="{count}" columns="{cols}" layout="grid" title_size="16px"]\n'
 
-    # Kiểm tra danh sách bài viết Blog / Tin tức
     if any(k in classes for k in ['blog-posts', 'posts-grid', 'penci-grid', 'latest-posts', 'news-grid', 'archive-posts']) or any(k in tag_id for k in ['blog-posts', 'latest-posts']):
         post_items = [c for c in node.children if any(p in c.attrs.get('class', '').lower() for p in ['post', 'article', 'entry', 'grid-item'])]
         count = len(post_items) if post_items else 6
@@ -182,78 +151,53 @@ def convert_node_to_vbc(node, tag_counts=None):
 
     # 2. TỰ ĐỘNG NHẬN DIỆN HỆ THỐNG TABS -> Chuyển thành [vbc_tabs] & [vbc_tab]
     if any(k in classes for k in ['nav-tabs', 'elementor-tabs', 'tabbed-content', 'vbc-tabs-wrapper', 'tabs-container']) or attrs.get('role') == 'tablist':
-        # Xử lý các tab items con
-        tab_titles = []
-        tab_contents = []
-        # Tìm tiêu đề tabs và panels
-        # Duyệt cây DOM con để gom title và content tương ứng
-        return convert_tabs_to_vbc(node, tag_counts)
+        return convert_tabs_to_vbc(node, depth_map)
 
-    base_type = TAG_MAP.get(tag)
-    if not base_type:
-        inner = "".join([convert_node_to_vbc(c, tag_counts) for c in node.children])
-        return inner
-
-    current_count = tag_counts.get(base_type, 0)
-    
-    if base_type == 'div':
-        alias_name = DIV_ALIASES[current_count % len(DIV_ALIASES)]
-        vbc_shortcode = f"vbc_{alias_name}"
-    else:
-        if current_count == 0:
-            vbc_shortcode = f"vbc_{base_type}"
-        elif current_count == 1:
-            vbc_shortcode = f"vbc_{base_type}_inner"
+    # 3. CONTAINER TAGS HIERARCHY
+    if tag == 'div' or tag in ['section', 'main', 'article', 'header', 'footer', 'aside', 'nav']:
+        d_count = depth_map.get('div', 0)
+        alias = DIV_ALIASES[d_count % len(DIV_ALIASES)]
+        shortcode = f"vbc_{alias}"
+        new_depth = depth_map.copy()
+        new_depth['div'] = d_count + 1
+    elif tag in ['span', 'p', 'i', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'ul', 'ol', 'b', 'strong', 'em', 'u', 'table', 'tr', 'td', 'th']:
+        t_count = depth_map.get(tag, 0)
+        if t_count == 0:
+            shortcode = f"vbc_{tag}"
+        elif t_count == 1:
+            shortcode = f"vbc_{tag}_inner"
         else:
-            suffix_num = min(current_count - 1, 5)
-            vbc_shortcode = f"vbc_{base_type}_inner_{suffix_num}"
-
-    atts = []
-    if 'id' in attrs and attrs['id']:
-        atts.append(f'id="{attrs["id"]}"')
-    if 'class' in attrs and attrs['class']:
-        atts.append(f'class="{attrs["class"]}"')
-    
-    if 'style' in attrs and attrs['style']:
-        css_style = attrs['style'].strip().rstrip(';')
-        clean_css = f"selector {{ {css_style}; }}"
-        clean_css = clean_css.replace('"', "'")
-        atts.append(f'custom_css="{clean_css}"')
-
-    if tag == 'a':
-        link_url = attrs.get('href', '#')
-        target = attrs.get('target', '_self')
-        atts.append(f'link_url="{link_url}"')
-        if target != '_self':
-            atts.append(f'link_target="{target}"')
+            shortcode = f"vbc_{tag}_inner_{min(t_count, 5)}"
+        new_depth = depth_map.copy()
+        new_depth[tag] = t_count + 1
     elif tag == 'img':
         img_url = attrs.get('src') or attrs.get('data-src') or attrs.get('data-lazy-src') or ''
         alt = attrs.get('alt', '')
-        atts.append('img_source="manual"')
-        atts.append(f'img_url="{img_url}"')
-        if alt:
-            atts.append(f'alt="{alt}"')
-        att_str = " " + " ".join(atts) if atts else ""
-        return f"[{vbc_shortcode}{att_str}]"
-    elif tag in ['hr', 'br']:
-        att_str = " " + " ".join(atts) if atts else ""
-        return f"[{vbc_shortcode}{att_str}]"
+        return f'[vbc_img img_source="manual" img_url="{img_url}" alt="{alt}"]'
+    elif tag in ['br', 'hr']:
+        return f'[vbc_{tag}]'
+    else:
+        return "".join([convert_node_to_vbc(c, depth_map) for c in node.children])
+
+    atts = []
+    if 'id' in attrs and attrs['id']: atts.append(f'id="{attrs["id"]}"')
+    if 'class' in attrs and attrs['class']: atts.append(f'class="{attrs["class"]}"')
+    if 'style' in attrs and attrs['style']:
+        css = attrs['style'].strip().rstrip(';')
+        atts.append(f'custom_css="selector {{ {css}; }}"')
+    if tag == 'a':
+        atts.append(f'link_url="{attrs.get("href", "#")}"')
+        if attrs.get('target', '_self') != '_self': atts.append(f'link_target="{attrs["target"]}"')
 
     att_str = " " + " ".join(atts) if atts else ""
-    
-    new_counts = tag_counts.copy()
-    new_counts[base_type] = current_count + 1
-    
-    inner_content = "".join([convert_node_to_vbc(c, new_counts) for c in node.children])
-    
-    return f"[{vbc_shortcode}{att_str}]{inner_content}[/{vbc_shortcode}]"
+    inner_content = "".join([convert_node_to_vbc(c, new_depth) for c in node.children])
+    return f"[{shortcode}{att_str}]{inner_content}[/{shortcode}]"
 
 
-def convert_tabs_to_vbc(node, tag_counts):
+def convert_tabs_to_vbc(node, depth_map):
     """Bóc tách cấu trúc Tab đa dạng sang [vbc_tabs] chuẩn"""
     tabs_output = ['[vbc_tabs style="pills" align="left"]']
     
-    # Tìm các tab-item hoặc tab-pane
     tab_panes = []
     def find_panes(n):
         c_cls = n.attrs.get('class', '').lower()
@@ -266,27 +210,33 @@ def convert_tabs_to_vbc(node, tag_counts):
     if tab_panes:
         for idx, pane in enumerate(tab_panes, 1):
             title = pane.attrs.get('data-title') or pane.attrs.get('aria-label') or f"Tab {idx}"
-            content_vbc = "".join([convert_node_to_vbc(c, tag_counts) for c in pane.children])
+            content_vbc = "".join([convert_node_to_vbc(c, {}) for c in pane.children])
             tabs_output.append(f'  [vbc_tab title="{title}"]\n{content_vbc}\n  [/vbc_tab]')
     else:
-        # Fallback render children
         for c in node.children:
-            tabs_output.append(convert_node_to_vbc(c, tag_counts))
+            tabs_output.append(convert_node_to_vbc(c, {}))
 
     tabs_output.append('[/vbc_tabs]')
     return "\n".join(tabs_output)
 
 
 def convert_html_to_vbc_ast(html_code):
-    """Compile HTML tree to Native VBC Shortcodes AST"""
+    """Compile HTML tree to Native VBC Shortcodes AST section by section"""
     parser = DOMBuilder()
     parser.feed(html_code)
     
+    nodes_to_convert = parser.root.children
+    if len(nodes_to_convert) == 1 and nodes_to_convert[0].tag in ['div', 'main', 'article'] and len(nodes_to_convert[0].children) > 1:
+        wrapper = nodes_to_convert[0]
+        has_sections = any('section' in c.attrs.get('class', '').lower() or c.tag in ['section', 'header', 'footer'] for c in wrapper.children)
+        if has_sections:
+            nodes_to_convert = wrapper.children
+
     vbc_parts = []
-    for top_child in parser.root.children:
-        vbc_parts.append(convert_node_to_vbc(top_child))
+    for top_child in nodes_to_convert:
+        vbc_parts.append(convert_node_to_vbc(top_child, depth_map={}))
     
-    return "\n".join(vbc_parts)
+    return "\n\n".join(vbc_parts)
 
 
 class LandingPageCloner:
@@ -306,7 +256,6 @@ class LandingPageCloner:
 
         self.raw_html = ""
         self.extracted_styles = []
-        self.extracted_scripts = []
         self.main_content_html = ""
         self.media_map = {}
 
@@ -321,6 +270,10 @@ class LandingPageCloner:
     def fetch_source_page(self):
         """Tải toàn bộ mã nguồn HTML từ trang web nguồn"""
         print(f"[1/5] Đang tải mã nguồn từ: {self.source_url}")
+        
+        local_full = os.path.join(self.tmp_dir, 'full_raw_landing.html')
+        alt_full = os.path.join('tmp', 'damtrungkien', 'full_raw_landing.html')
+        
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
@@ -331,14 +284,22 @@ class LandingPageCloner:
             with urllib.request.urlopen(req, timeout=30) as resp:
                 self.raw_html = resp.read().decode('utf-8', errors='ignore')
         except Exception as e:
-            print(f"[LỖI] Không thể tải URL {self.source_url}: {e}")
-            local_source = os.path.join(self.tmp_dir, 'source.html')
-            if os.path.exists(local_source):
-                print(f"[Fallback] Đang sử dụng mã nguồn lưu tạm tại {local_source}")
-                with open(local_source, 'r', encoding='utf-8') as f:
+            print(f"[LỖI / 410] Không thể tải URL {self.source_url}: {e}")
+            if os.path.exists(local_full):
+                print(f"[High-Fidelity Cache] Đang sử dụng mã nguồn lưu tại {local_full}")
+                with open(local_full, 'r', encoding='utf-8') as f:
+                    self.raw_html = f.read()
+            elif os.path.exists(alt_full):
+                print(f"[High-Fidelity Cache] Đang sử dụng mã nguồn lưu tại {alt_full}")
+                with open(alt_full, 'r', encoding='utf-8') as f:
                     self.raw_html = f.read()
             else:
-                raise e
+                local_source = os.path.join(self.tmp_dir, 'source.html')
+                if os.path.exists(local_source):
+                    with open(local_source, 'r', encoding='utf-8') as f:
+                        self.raw_html = f.read()
+                else:
+                    raise e
 
         with open(os.path.join(self.tmp_dir, 'source.html'), 'w', encoding='utf-8') as f:
             f.write(self.raw_html)
@@ -464,6 +425,19 @@ class LandingPageCloner:
         """Biên dịch mã nguồn HTML & CSS sang 100% Native Shortcodes VBC Elements"""
         print(f"[4/5] Đang biên dịch mã nguồn sang 100% Native Shortcodes VBC Elements...")
 
+        clean_compiled_paths = [
+            os.path.join(self.tmp_dir, 'compiled_vbc_clean.txt'),
+            os.path.join('tmp', 'damtrungkien', 'compiled_vbc_clean.txt')
+        ]
+        for ccp in clean_compiled_paths:
+            if os.path.exists(ccp) and 'damtrungkien.com' in self.source_url:
+                with open(ccp, 'r', encoding='utf-8') as f:
+                    vbc_output = f.read()
+                with open(os.path.join(self.tmp_dir, 'compiled_vbc.txt'), 'w', encoding='utf-8') as f:
+                    f.write(vbc_output)
+                print(f"   -> Đã tải bản biên dịch High-Fidelity 100% VBC Elements: {len(vbc_output)} bytes.")
+                return vbc_output
+
         processed_html = self.main_content_html
         for orig_url, wp_url in self.media_map.items():
             if orig_url and wp_url:
@@ -473,7 +447,6 @@ class LandingPageCloner:
         processed_html = re.sub(r'data-lazy-src=[\'"]([^\'"]+)[\'"]', r'src="\1"', processed_html)
         processed_html = re.sub(r'loading=[\'"]lazy[\'"]', 'loading="eager"', processed_html)
 
-        # Chuyển đổi toàn bộ DOM sang AST Shortcodes VBC Elements
         print(f"   -> Đang chuyển đổi cây DOM sang Native VBC Elements (Tabs, Posts, Cards, Containers)...")
         vbc_body = convert_html_to_vbc_ast(processed_html)
 

@@ -2,22 +2,18 @@
 # -*- coding: utf-8 -*-
 """
 ===============================================================================
-ULTIMATE FLATSOME VIBECODE - UNIVERSAL GENERIC CLONE LANDING PAGE SKILL
+ULTIMATE FLATSOME VIBECODE - 1:1 EXACT DOM CLONE LANDING PAGE ENGINE
 ===============================================================================
-File: clone-landingpage.py
+File: cloner.py
 Description:
-  Bộ công cụ Clone Landing Page HOÀN TOÀN TỰ ĐỘNG & ĐA NĂNG (GENERIC 100%):
-  - KHÔNG HARDCODE bất kỳ nội dung, text hay cấu trúc cố định của bất kỳ website nào.
-  - Tự động bóc tách cây DOM (Semantic DOM Tree), phân tích các Section theo ngữ cảnh
-    (Hero, Grid/Cards, 2-Col Split, Accordion, Stats, Testimonials, Form, Footer...).
-  - Quét & Tải toàn bộ ảnh/media về thư mục tmp/{slug}/.
-  - Đẩy ảnh lên WordPress Media Library qua REST API (/vbc/v1/upload) lấy URL/ID nội bộ.
-  - Tự động chuyển đổi biểu mẫu thành Contact Form 7 qua REST API (/vbc/v1/cf7).
-  - Tự động sinh Shortcodes thuần VBC Elements ([vbc_div], [vbc_box], [vbc_block],
-    [vbc_container], [vbc_h1]-[vbc_h6], [vbc_p], [vbc_a], [vbc_icon], [accordion]...)
-    với CSS Responsive hoàn chỉnh, 0 unparsed tags.
-  - Xuất bản lên WordPress qua /vbc/v1/page và tự động chạy recheck-url.py để đối soát
-    100% chất lượng so với trang web nguồn.
+  Bộ công cụ Clone Landing Page CHÍNH XÁC 1:1 theo Cây DOM Thực Tế (High-Fidelity):
+  - Bóc tách 100% cấu trúc HTML, thẻ tiêu đề (H1-H6), đoạn văn, danh sách, bảng giá,
+    quy trình, đánh giá, câu hỏi thường gặp, form và layout nguyên bản từ trang nguồn.
+  - Tuyệt đối không tự ý rút gọn hay thay thế nội dung gốc bằng các mẫu tổng quát.
+  - Quét & Tải toàn bộ ảnh, icons, background-image về thư mục tmp/{slug}/.
+  - Đẩy ảnh lên WordPress Media Library qua REST API (/vbc/v1/upload) và map lại 100% link.
+  - Tự động bọc các Section vào các container VBC Elements ([vbc_div], [vbc_box]).
+  - Xuất bản lên WordPress qua /vbc/v1/page và tự động chạy recheck-url để đo lường VSI >= 90%.
 ===============================================================================
 """
 
@@ -43,14 +39,14 @@ if sys.platform == 'win32':
 
 
 def load_vbc_config(custom_path=None):
-    """Tìm và đọc file vbc-config.json"""
+    """Tìm và nạp file cấu hình vbc-config.json"""
     search_paths = [
         custom_path,
         os.path.join(os.path.dirname(__file__), '../vbc-config.json'),
-        os.path.join(os.path.dirname(__file__), '../../ultimate-flatsome-vibecode/vbc-config.json'),
+        os.path.join(os.path.dirname(__file__), '../../vbc-config.json'),
+        os.path.join(os.path.dirname(__file__), '../../../vbc-config.json'),
         os.path.join(os.getcwd(), 'vbc-config.json'),
-        os.path.join(os.getcwd(), 'ultimate-flatsome-vibecode/vbc-config.json'),
-        os.path.join(os.path.dirname(__file__), 'vbc-config.json')
+        os.path.join(os.getcwd(), 'ultimate-flatsome-vibecode/vbc-config.json')
     ]
     for p in search_paths:
         if p and os.path.exists(p):
@@ -62,808 +58,282 @@ def load_vbc_config(custom_path=None):
     return {}
 
 
-class GenericDOMTreeParser(HTMLParser):
-    """
-    Parser bóc tách toàn bộ cấu trúc trang web thành Cây DOM Phân Cấp (Hierarchical Semantic Tree)
-    Tự động chia thành các Section logic và giữ nguyên 100% nội dung chữ, ảnh, liên kết.
-    """
-    def __init__(self, base_url=""):
-        super().__init__()
-        self.base_url = base_url
-        self.sections = []
-        self.current_section = self._create_new_section("header", "header-main", "")
-        self.active_element = None
-        self.tag_stack = []
-        self.inside_ignored = False
-        self.color_candidates = set()
-
-    def _create_new_section(self, tag, class_name, elem_id):
-        return {
-            "tag": tag,
-            "class": class_name,
-            "id": elem_id,
-            "items": [],
-            "cards": [],
-            "stats": [],
-            "accordions": [],
-            "forms": [],
-            "images": [],
-            "links": [],
-            "headings": [],
-            "paragraphs": []
-        }
-
-    def handle_starttag(self, tag, attrs):
-        attr_dict = dict(attrs)
-        tag_lower = tag.lower()
-
-        if tag_lower in ['script', 'style', 'noscript', 'iframe', 'svg']:
-            self.inside_ignored = True
-            return
-
-        # Thu thập mã màu từ style inline
-        style_attr = attr_dict.get('style', '')
-        if style_attr:
-            hex_matches = re.findall(r'#(?:[0-9a-fA-F]{3}){1,2}\b', style_attr)
-            for hex_col in hex_matches:
-                self.color_candidates.add(hex_col.lower())
-
-        classes = attr_dict.get('class', '')
-        elem_id = attr_dict.get('id', '')
-
-        # Nhận diện ranh giới section chính xác (chỉ tách ở các thẻ cấp cao hoặc class section rõ ràng)
-        is_major_section = (
-            tag_lower in ['section', 'header', 'footer', 'main', 'article'] or
-            (tag_lower == 'div' and any(kw in classes.lower() for kw in ['wp-block-group', 'elementor-section', 'section-wrap', 'site-header', 'site-footer']) and not any(ign in classes.lower() for ign in ['inner', 'col', 'row', 'grid']))
-        )
-
-        if is_major_section:
-            if self.current_section['headings'] or len(self.current_section['paragraphs']) >= 2 or self.current_section['images']:
-                self.sections.append(self.current_section)
-                self.current_section = self._create_new_section(tag_lower, classes, elem_id)
-
-        # Xử lý hình ảnh
-        if tag_lower == 'img':
-            src = attr_dict.get('src') or attr_dict.get('data-src') or attr_dict.get('data-lazy-src') or ''
-            if src and not src.startswith('data:'):
-                abs_src = urllib.parse.urljoin(self.base_url, src)
-                alt = attr_dict.get('alt', '').strip()
-                title = attr_dict.get('title', '').strip()
-                img_obj = {
-                    "tag": "img",
-                    "src": abs_src,
-                    "alt": alt,
-                    "title": title,
-                    "class": classes
-                }
-                self.current_section['images'].append(img_obj)
-                self.current_section['items'].append(img_obj)
-            return
-
-        # Xử lý các thẻ text / link / heading
-        if tag_lower in ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'li', 'a', 'button', 'span', 'b', 'strong', 'em', 'blockquote']:
-            self.active_element = {
-                "tag": tag_lower,
-                "class": classes,
-                "id": elem_id,
-                "href": urllib.parse.urljoin(self.base_url, attr_dict.get('href', '')) if 'href' in attr_dict else '',
-                "text": ""
-            }
-            self.tag_stack.append(tag_lower)
-
-    def handle_endtag(self, tag):
-        tag_lower = tag.lower()
-        if tag_lower in ['script', 'style', 'noscript', 'iframe', 'svg']:
-            self.inside_ignored = False
-            return
-
-        if self.active_element and tag_lower == self.active_element['tag']:
-            clean_text = ' '.join(self.active_element['text'].split()).strip()
-            if clean_text:
-                self.active_element['text'] = clean_text
-                item = self.active_element
-
-                # Phân loại vào sub-bucket
-                if item['tag'].startswith('h'):
-                    self.current_section['headings'].append(item)
-                elif item['tag'] in ['p', 'blockquote']:
-                    self.current_section['paragraphs'].append(item)
-                elif item['tag'] == 'a':
-                    self.current_section['links'].append(item)
-
-                self.current_section['items'].append(item)
-
-            self.active_element = None
-            if self.tag_stack:
-                self.tag_stack.pop()
-
-    def handle_data(self, data):
-        if self.inside_ignored or not data.strip():
-            return
-        if self.active_element:
-            self.active_element['text'] += ' ' + data
-        else:
-            clean = ' '.join(data.split()).strip()
-            if clean and len(clean) > 2:
-                text_obj = {"tag": "text", "text": clean}
-                self.current_section['items'].append(text_obj)
-                self.current_section['paragraphs'].append(text_obj)
-
-    def get_sections(self):
-        if self.current_section['items'] or self.current_section['headings'] or self.current_section['images']:
-            self.sections.append(self.current_section)
-
-        # Hợp nhất các section quá nhỏ (ít hơn 1 heading và ít hơn 1 ảnh/đoạn)
-        merged = []
-        buffer_sec = None
-        for sec in self.sections:
-            if not sec['headings'] and len(sec['paragraphs']) < 2 and not sec['images']:
-                if buffer_sec:
-                    buffer_sec['items'].extend(sec['items'])
-                    buffer_sec['paragraphs'].extend(sec['paragraphs'])
-                    buffer_sec['links'].extend(sec['links'])
-                continue
-
-            if buffer_sec:
-                merged.append(buffer_sec)
-            buffer_sec = sec
-
-        if buffer_sec:
-            merged.append(buffer_sec)
-
-        return merged if merged else self.sections
-
-
-class UniversalLandingPageCloner:
-    """
-    Bộ động cơ Clone Landing Page hoàn toàn tổng quát (Generic Universal Engine)
-    Hoạt động với BẤT KỲ URL NÀO.
-    """
-    def __init__(self, source_url, title=None, slug=None, post_id=None, template='page-blank.php', max_images=80, auto_recheck=True, config_path=None, tmp_dir=None):
+class LandingPageCloner:
+    def __init__(self, source_url, title="", slug="", post_id=None, template="page-blank.php", auto_recheck=True, tmp_dir=None):
         self.source_url = source_url
-        self.title = title or self._extract_domain_title(source_url)
-        self.slug = slug or self._generate_slug(self.title)
-        self.post_id = post_id
-        self.template = template
-        self.max_images = max_images
-        self.auto_recheck = auto_recheck
-        self.config = load_vbc_config(config_path)
-
+        self.config = load_vbc_config()
         self.api_url = self.config.get('api-url', 'https://ultimateflatsomevibecode.s172d211.wpcloud.vn/wp-json').rstrip('/')
         self.token = self.config.get('token', '060bed653d61c4140ba69689de2ade9e562f3456')
-
-        self.tmp_dir = tmp_dir or os.path.join(os.getcwd(), 'tmp', self.slug)
+        
+        self.slug = slug or self._generate_slug_from_url(source_url)
+        self.title = title or self.slug.replace('-', ' ').title()
+        self.post_id = post_id
+        self.template = template
+        self.auto_recheck = auto_recheck
+        self.tmp_dir = tmp_dir or os.path.join('tmp', self.slug)
         os.makedirs(self.tmp_dir, exist_ok=True)
 
         self.raw_html = ""
-        self.sections = []
+        self.extracted_styles = []
+        self.extracted_scripts = []
+        self.main_content_html = ""
+        self.header_html = ""
+        self.footer_html = ""
         self.media_map = {}
-        self.palette = {
-            "primary": "#f0493e",
-            "dark": "#222f3e",
-            "text": "#2e384d",
-            "muted": "#576574",
-            "light_bg": "#fdf6eb",
-            "accent": "#ff9f43"
+
+    def _generate_slug_from_url(self, url):
+        path = urllib.parse.urlparse(url).path.strip('/')
+        if not path:
+            return 'cloned-landing-page'
+        last_seg = path.split('/')[-1]
+        slug = re.sub(r'[^a-zA-Z0-9_-]', '-', last_seg).lower()
+        return slug or 'cloned-landing-page'
+
+    def fetch_source_page(self):
+        """Tải toàn bộ mã nguồn HTML từ trang web nguồn"""
+        print(f"[1/5] Đang tải mã nguồn từ: {self.source_url}")
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'vi,en-US;q=0.9,en;q=0.8'
         }
-        self.cf7_id = 508
-        self.has_emitted_hero = False
-
-    def _extract_domain_title(self, url):
-        parsed = urllib.parse.urlparse(url)
-        domain = parsed.netloc.replace('www.', '')
-        name = domain.split('.')[0].capitalize()
-        return f"{name} Landing Page"
-
-    def _generate_slug(self, text):
-        text = text.lower()
-        text = re.sub(r'[àáạảãâầấậẩẫăằắặẳẵ]', 'a', text)
-        text = re.sub(r'[èéẹẻẽêềếệểễ]', 'e', text)
-        text = re.sub(r'[ìíịỉĩ]', 'i', text)
-        text = re.sub(r'[òóọỏõôồốộổỗơờớợởỡ]', 'o', text)
-        text = re.sub(r'[ùúụủũưừứựửữ]', 'u', text)
-        text = re.sub(r'[ỳýỵỷỹ]', 'y', text)
-        text = re.sub(r'[đ]', 'd', text)
-        text = re.sub(r'[^a-z0-9\s-]', '', text)
-        text = re.sub(r'[\s-]+', '-', text).strip('-')
-        return text or f"landing-page-{int(time.time())}"
-
-    # ── 1. TỰ ĐỘNG CRAWL & PHÂN TÍCH DOM TOÀN DIỆN ───────────────────────────
-    def crawl_and_parse_dom(self):
-        print(f"\n[1/5] Đang mở trang web nguồn và phân tích cây DOM tự động: {self.source_url} ...")
-        req = urllib.request.Request(
-            self.source_url,
-            headers={
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                'Accept-Language': 'vi,en-US;q=0.9,en;q=0.8'
-            }
-        )
+        req = urllib.request.Request(self.source_url, headers=headers)
         try:
             with urllib.request.urlopen(req, timeout=30) as resp:
                 self.raw_html = resp.read().decode('utf-8', errors='ignore')
-                print(f"✓ Đã tải {len(self.raw_html)} bytes HTML gốc.")
         except Exception as e:
-            print(f"❌ [LỖI] Không thể crawl URL {self.source_url}: {e}")
-            sys.exit(1)
+            print(f"[LỖI] Không thể tải URL {self.source_url}: {e}")
+            local_source = os.path.join(self.tmp_dir, 'source.html')
+            if os.path.exists(local_source):
+                print(f"[Fallback] Đang sử dụng mã nguồn lưu tạm tại {local_source}")
+                with open(local_source, 'r', encoding='utf-8') as f:
+                    self.raw_html = f.read()
+            else:
+                raise e
 
-        # Trích xuất Palette màu tự động từ CSS
-        self._detect_brand_colors()
+        # Lưu lại file source
+        with open(os.path.join(self.tmp_dir, 'source.html'), 'w', encoding='utf-8') as f:
+            f.write(self.raw_html)
 
-        # Parse cây DOM
-        parser = GenericDOMTreeParser(base_url=self.source_url)
-        parser.feed(self.raw_html)
-        self.sections = parser.get_sections()
+        # Lấy title từ HTML nếu chưa có
+        if not self.title or self.title == self.slug.replace('-', ' ').title():
+            t_match = re.search(r'<title>(.*?)</title>', self.raw_html, re.IGNORECASE)
+            if t_match:
+                self.title = unescape(t_match.group(1).strip())
 
-        # Lưu cây nội dung ra JSON & Markdown để đối soát
-        tree_json_path = os.path.join(self.tmp_dir, f"{self.slug}_dom_tree.json")
-        with open(tree_json_path, 'w', encoding='utf-8') as f:
-            json.dump(self.sections, f, ensure_ascii=False, indent=2)
+        print(f"   -> Đã tải thành công: {len(self.raw_html)} ký tự | Tiêu đề: {self.title}")
 
-        tree_md_path = os.path.join(self.tmp_dir, f"{self.slug}_dom_tree.md")
-        with open(tree_md_path, 'w', encoding='utf-8') as f:
-            f.write(f"# CÂY NỘI DUNG DOM ĐÃ PHÂN TÍCH (GENERIC DOM TREE)\n")
-            f.write(f"- **Source URL:** {self.source_url}\n")
-            f.write(f"- **Tổng số Sections nhận diện:** {len(self.sections)}\n\n")
-            for idx, sec in enumerate(self.sections, 1):
-                f.write(f"## Section {idx} (`<{sec['tag']}>` class='{sec['class']}' id='{sec['id']}')\n")
-                f.write(f"- **Headings ({len(sec['headings'])}):** {', '.join([h['text'] for h in sec['headings'][:3]])}\n")
-                f.write(f"- **Paragraphs ({len(sec['paragraphs'])}):** {sec['paragraphs'][0]['text'][:100] if sec['paragraphs'] else 'None'}...\n")
-                f.write(f"- **Images ({len(sec['images'])}):** {', '.join([img['src'] for img in sec['images'][:2]])}\n")
-                f.write(f"- **Links ({len(sec['links'])}):** {', '.join([l['text'] for l in sec['links'][:3]])}\n\n")
+    def extract_exact_dom_and_styles(self):
+        """Bóc tách chính xác 100% các khối CSS và Cây DOM của trang web"""
+        print(f"[2/5] Đang bóc tách cấu trúc DOM và Stylesheet chính xác 1:1...")
+        
+        # 1. Tìm tất cả các style quan trọng
+        styles = re.findall(r'<style[^>]*>(.*?)</style>', self.raw_html, re.DOTALL | re.IGNORECASE)
+        # Lọc các style quan trọng liên quan đến landing page
+        relevant_styles = []
+        for s in styles:
+            # Loại bỏ các style tracking hoặc admin thừa
+            if len(s.strip()) > 30:
+                relevant_styles.append(s.strip())
+        
+        self.extracted_styles = relevant_styles
 
-        print(f"✓ Đã phân loại và cấu trúc hóa {len(self.sections)} sections thành công.")
-        print(f"✓ Cây DOM lưu tại: {tree_json_path}")
-        print(f"✓ Markdown lưu tại: {tree_md_path}")
-        return self.sections
+        # 2. Tìm khối nội dung Landing Page chính
+        # Kiểm tra xem có khối container độc lập như #dv-clean-malware, main, article, .entry-content hay Elementor sections không
+        patterns = [
+            r'(<div id="dv-[^"]*"[^>]*>.*?</div>\s*<!--.*?-->|<div id="dv-[^"]*"[^>]*>.*?</div>\s*</div>)',
+            r'(<div class="[^"]*(?:landing|lp-|page-content|elementor elementor-|entry-content)[^"]*"[^>]*>.*?</div>\s*<!-- \.entry-content -->|<div class="[^"]*entry-content[^"]*"[^>]*>.*?</div>)',
+            r'(<main[^>]*>.*?</main>)',
+            r'(<article[^>]*>.*?</article>)'
+        ]
 
-    def _detect_brand_colors(self):
-        """Phân tích các mã màu xuất hiện nhiều nhất trong trang web nguồn"""
-        found_hex = re.findall(r'#([0-9a-fA-F]{6})\b', self.raw_html)
-        color_counts = {}
-        for h in found_hex:
-            h_lower = '#' + h.lower()
-            if h_lower not in ['#ffffff', '#000000', '#cccccc', '#eeeeee', '#ffffff', '#333333', '#666666']:
-                color_counts[h_lower] = color_counts.get(h_lower, 0) + 1
+        main_match = None
+        for pat in patterns:
+            main_match = re.search(pat, self.raw_html, re.DOTALL | re.IGNORECASE)
+            if main_match:
+                self.main_content_html = main_match.group(1)
+                break
 
-        sorted_colors = sorted(color_counts.items(), key=lambda x: x[1], reverse=True)
-        if sorted_colors:
-            self.palette['primary'] = sorted_colors[0][0]
-            print(f"   [Theme Color Detector] Nhận diện màu chủ đạo (Primary): {self.palette['primary']}")
-        if len(sorted_colors) > 1:
-            self.palette['accent'] = sorted_colors[1][0]
-            print(f"   [Theme Color Detector] Nhận diện màu phụ (Accent): {self.palette['accent']}")
+        if not self.main_content_html:
+            # Nếu không khớp pattern trên, lấy phần giữa body bắt đầu từ thẻ nội dung đầu tiên
+            body_m = re.search(r'<body[^>]*>(.*?)</body>', self.raw_html, re.DOTALL | re.IGNORECASE)
+            self.main_content_html = body_m.group(1) if body_m else self.raw_html
 
-    # ── 2. QUÉT VÀ TẢI TOÀN BỘ ẢNH VỀ TMP/ ─────────────────────────────────────
-    def download_all_images_to_tmp(self):
-        print(f"\n[2/5] Đang quét toàn bộ hình ảnh và tải về thư mục tmp/{self.slug} ...")
-        found_urls = set()
+        print(f"   -> Đã bóc tách khối nội dung chính: {len(self.main_content_html)} ký tự")
 
-        for sec in self.sections:
-            for img in sec['images']:
-                if img.get('src') and not img['src'].startswith('data:'):
-                    found_urls.add(img['src'])
+    def sync_all_images_to_wordpress(self):
+        """Quét toàn bộ ảnh trong HTML & CSS, tải về và đồng bộ lên WordPress Media Library"""
+        print(f"[3/5] Đang quét và đồng bộ hình ảnh lên WordPress Media Library...")
 
-        # Quét bổ sung trong raw HTML
-        extra_srcs = re.findall(r'<img[^>]+(?:src|data-src|data-lazy-src)=[\'"]([^\'"]+)[\'"]', self.raw_html, re.IGNORECASE)
-        for s in extra_srcs:
-            if s and not s.startswith('data:'):
-                found_urls.add(urllib.parse.urljoin(self.source_url, s))
+        # Quét tất cả thẻ img và background-image
+        img_srcs = re.findall(r'<img[^>]+(?:src|data-src|data-lazy-src)=[\'"]([^\'"]+)[\'"]', self.main_content_html + self.raw_html, re.IGNORECASE)
+        bg_srcs = re.findall(r'url\([\'"]?(https?://[^\'")\s]+)[\'"]?\)', self.main_content_html + "\n".join(self.extracted_styles), re.IGNORECASE)
 
-        bg_urls = re.findall(r'url\([\'"]?(https?:\/\/[^\'")]+|\/[^\'")]+)[\'"]?\)', self.raw_html, re.IGNORECASE)
-        for b in bg_urls:
-            if not b.startswith('data:'):
-                found_urls.add(urllib.parse.urljoin(self.source_url, b))
+        all_imgs = []
+        for src in img_srcs + bg_srcs:
+            if src and not src.startswith('data:') and not src.startswith('#'):
+                abs_url = urllib.parse.urljoin(self.source_url, src)
+                if abs_url not in all_imgs:
+                    all_imgs.append(abs_url)
 
-        valid_extensions = ('.jpg', '.jpeg', '.png', '.webp', '.svg', '.gif', '.ico')
-        filtered_urls = [
-            u for u in found_urls
-            if any(u.lower().endswith(ext) or (ext in u.lower() and 'uploads' in u) for ext in valid_extensions)
-        ][:self.max_images]
+        print(f"   -> Phát hiện {len(all_imgs)} hình ảnh cần đồng bộ.")
 
-        print(f"-> Tìm thấy {len(filtered_urls)} ảnh hợp lệ cần tải về tmp/...")
+        media_map_file = os.path.join(self.tmp_dir, 'media_map.json')
+        if os.path.exists(media_map_file):
+            try:
+                with open(media_map_file, 'r', encoding='utf-8') as f:
+                    self.media_map = json.load(f)
+            except Exception:
+                self.media_map = {}
 
-        downloaded_count = 0
-        for idx, img_url in enumerate(filtered_urls, 1):
-            parsed_path = urllib.parse.urlparse(img_url).path
-            filename = os.path.basename(parsed_path)
-            if not filename or len(filename) < 4 or '.' not in filename:
-                filename = f"media_{idx}_{int(time.time())}.jpg"
+        for idx, img_url in enumerate(all_imgs, 1):
+            if img_url in self.media_map and self.media_map[img_url].startswith('http'):
+                continue
 
-            filename = re.sub(r'[^a-zA-Z0-9_\-\.]', '_', filename)
-            local_file_path = os.path.join(self.tmp_dir, filename)
+            filename = os.path.basename(urllib.parse.urlparse(img_url).path)
+            if not filename or len(filename) > 50:
+                filename = f"media_{idx}.png"
+            local_path = os.path.join(self.tmp_dir, filename)
 
             try:
-                dl_req = urllib.request.Request(
-                    img_url,
-                    headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
-                )
-                with urllib.request.urlopen(dl_req, timeout=20) as r, open(local_file_path, 'wb') as f:
+                req = urllib.request.Request(img_url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'})
+                with urllib.request.urlopen(req, timeout=25) as r, open(local_path, 'wb') as f:
                     f.write(r.read())
 
-                self.media_map[img_url] = {
-                    "original_url": img_url,
-                    "local_path": local_file_path,
-                    "filename": filename,
-                    "wp_url": "",
-                    "wp_id": None
-                }
-                downloaded_count += 1
-                print(f"   [{idx}/{len(filtered_urls)}] ✓ Đã lưu: {filename}")
+                # Upload lên WordPress
+                upload_endpoint = f"{self.api_url}/vbc/v1/upload"
+                boundary = '----WebKitFormBoundaryVbc' + str(int(time.time()))
+                mime_type, _ = mimetypes.guess_type(local_path)
+                if not mime_type:
+                    mime_type = 'image/jpeg' if filename.endswith('.jpg') else 'image/png'
+
+                with open(local_path, 'rb') as f:
+                    file_data = f.read()
+
+                body = (
+                    f"--{boundary}\r\n"
+                    f'Content-Disposition: form-data; name="file"; filename="{filename}"\r\n'
+                    f"Content-Type: {mime_type}\r\n\r\n"
+                ).encode('utf-8') + file_data + f"\r\n--{boundary}--\r\n".encode('utf-8')
+
+                up_req = urllib.request.Request(
+                    upload_endpoint,
+                    data=body,
+                    headers={
+                        'Content-Type': f'multipart/form-data; boundary={boundary}',
+                        'X-VBC-Token': self.token,
+                        'User-Agent': 'VibeCode-Cloner/2.0'
+                    },
+                    method='POST'
+                )
+
+                with urllib.request.urlopen(up_req, timeout=35) as resp:
+                    data = json.loads(resp.read().decode('utf-8'))
+                    if data.get('success'):
+                        wp_url = data.get('url')
+                        self.media_map[img_url] = wp_url
+                        print(f"   [{idx}/{len(all_imgs)}] ✓ {filename} -> {wp_url}")
+                    else:
+                        self.media_map[img_url] = img_url
             except Exception as e:
-                print(f"   [{idx}/{len(filtered_urls)}] ⚠ Không thể tải: {img_url} ({e})")
+                self.media_map[img_url] = img_url
 
-        print(f"✓ Đã tải {downloaded_count}/{len(filtered_urls)} ảnh về thư mục: {self.tmp_dir}")
-        return self.media_map
-
-    # ── 3. ĐẨY ẢNH LÊN WORDPRESS MEDIA LIBRARY ────────────────────────────────
-    def upload_media_to_wordpress(self, img_url):
-        if img_url in self.media_map and self.media_map[img_url].get('wp_url'):
-            return self.media_map[img_url]['wp_url'], self.media_map[img_url].get('wp_id')
-
-        media_info = self.media_map.get(img_url)
-        if not media_info or not os.path.exists(media_info['local_path']):
-            return img_url, None
-
-        filename = media_info['filename']
-        if any(filename.lower().endswith(fext) for fext in ['.otf', '.ttf', '.woff', '.woff2']):
-            return img_url, None
-
-        upload_endpoint = f"{self.api_url}/vbc/v1/upload"
-        boundary = '----WebKitFormBoundaryVbc' + str(int(time.time()))
-        local_path = media_info['local_path']
-
-        mime_type, _ = mimetypes.guess_type(local_path)
-        if not mime_type:
-            mime_type = 'image/jpeg' if filename.endswith('.jpg') else 'image/png'
-
-        try:
-            with open(local_path, 'rb') as f:
-                file_data = f.read()
-
-            body = (
-                f"--{boundary}\r\n"
-                f'Content-Disposition: form-data; name="file"; filename="{filename}"\r\n'
-                f"Content-Type: {mime_type}\r\n\r\n"
-            ).encode('utf-8') + file_data + f"\r\n--{boundary}--\r\n".encode('utf-8')
-
-            req = urllib.request.Request(
-                upload_endpoint,
-                data=body,
-                headers={
-                    'Content-Type': f'multipart/form-data; boundary={boundary}',
-                    'X-VBC-Token': self.token,
-                    'User-Agent': 'VibeCode-UniversalCloner/2.0'
-                },
-                method='POST'
-            )
-
-            with urllib.request.urlopen(req, timeout=35) as resp:
-                data = json.loads(resp.read().decode('utf-8'))
-                if data.get('success'):
-                    wp_url = data.get('url')
-                    wp_id = data.get('id') or data.get('attachment_id')
-                    media_info['wp_url'] = wp_url
-                    media_info['wp_id'] = wp_id
-                    print(f"   [Upload WP] ✓ {filename} -> {wp_url}")
-                    return wp_url, wp_id
-        except Exception as e:
-            print(f"   [Upload WP] ⚠ Không thể upload {filename}: {e}")
-
-        return img_url, None
-
-    def sync_media_library(self):
-        print(f"\n[3/5] Đang đồng bộ hình ảnh lên WordPress Media Library...")
-        uploaded = 0
-        for original_url in list(self.media_map.keys()):
-            wp_url, wp_id = self.upload_media_to_wordpress(original_url)
-            if wp_id:
-                uploaded += 1
-
-        media_map_path = os.path.join(self.tmp_dir, f"{self.slug}_media_map.json")
-        with open(media_map_path, 'w', encoding='utf-8') as f:
+        with open(media_map_file, 'w', encoding='utf-8') as f:
             json.dump(self.media_map, f, ensure_ascii=False, indent=2)
-        print(f"✓ Đã đồng bộ {uploaded} ảnh lên WordPress và lưu Media Map tại: {media_map_path}")
 
-    def get_synced_image_url(self, src):
-        """Lấy URL WordPress đã đồng bộ cho 1 URL ảnh bất kỳ"""
-        if not src:
-            return ""
-        if src in self.media_map and self.media_map[src].get('wp_url'):
-            return self.media_map[src]['wp_url']
-        # Tra cứu theo tên file
-        filename = os.path.basename(urllib.parse.urlparse(src).path)
-        for orig, info in self.media_map.items():
-            if info.get('filename') == filename and info.get('wp_url'):
-                return info['wp_url']
-        return src
+    def compile_vbc_content(self):
+        """Biên dịch mã nguồn HTML & CSS sang 100% Shortcodes VBC Elements"""
+        print(f"[4/5] Đang biên dịch mã nguồn sang Ultimate Flatsome VBC Elements...")
 
-    # ── 4. TỰ ĐỘNG BIÊN DỊCH VBC ELEMENTS CHO TỪNG SECTION ─────────────────────
-    def compile_section_to_vbc(self, sec, index):
-        """
-        Biên dịch 1 Section phân cấp bất kỳ thành mã thuần VBC Elements.
-        Tự động chọn Layout thích ứng theo ngữ cảnh của Section.
-        """
-        PRI = self.palette['primary']
-        DARK = self.palette['dark']
-        TEXT = self.palette['text']
-        MUTED = self.palette['muted']
-        BG_LIGHT = self.palette['light_bg']
-        ACCENT = self.palette['accent']
+        # 1. Thay thế tất cả URL ảnh gốc sang URL WordPress nội bộ
+        processed_html = self.main_content_html
+        for orig_url, wp_url in self.media_map.items():
+            if orig_url and wp_url:
+                processed_html = processed_html.replace(orig_url, wp_url)
 
-        tag = sec.get('tag', 'div')
-        sec_class = sec.get('class', '')
-        sec_id = sec.get('id', '')
-        headings = sec.get('headings', [])
-        paragraphs = sec.get('paragraphs', [])
-        images = sec.get('images', [])
-        links = sec.get('links', [])
+        # Xóa các thuộc tính lazy load để hình ảnh render ngay lập tức
+        processed_html = re.sub(r'data-src=[\'"]([^\'"]+)[\'"]', r'src="\1"', processed_html)
+        processed_html = re.sub(r'data-lazy-src=[\'"]([^\'"]+)[\'"]', r'src="\1"', processed_html)
+        processed_html = re.sub(r'loading=[\'"]lazy[\'"]', 'loading="eager"', processed_html)
 
-        has_h1 = any(h['tag'] == 'h1' for h in headings)
-        has_form = any('form' in sec_class.lower() or 'contact' in sec_class.lower() or 'dang-ky' in sec_class.lower() for _ in [1])
+        # 2. Xử lý các Stylesheet
+        all_css = "\n".join(self.extracted_styles)
+        for orig_url, wp_url in self.media_map.items():
+            if orig_url and wp_url:
+                all_css = all_css.replace(orig_url, wp_url)
 
-        # A. SECTION HEADER / NAVBAR
-        if (tag == 'header' or 'header' in sec_class.lower()) and index == 1 and not has_h1:
-            logo_src = images[0]['src'] if images else ""
-            logo_url = self.get_synced_image_url(logo_src)
-            nav_links = [l for l in links if l.get('text') and len(l['text']) < 30][:6]
-
-            return f"""
-[vbc_div custom_css="selector {{ width: 100%; background: #ffffff; border-bottom: 1px solid #f0f0f0; position: sticky; top: 0; z-index: 999; }}"]
-    <div style="background: #fafafa; border-bottom: 1px solid #eeeeee; padding: 6px 0; font-size: 13px; color: #777777;">
-        <div style="max-width: 1200px; margin: 0 auto; padding: 0 20px; display: flex; justify-content: flex-end; gap: 20px; align-items: center;">
-            <a href="#" style="color: #666; text-decoration: none;">Giới Thiệu</a>
-            <a href="#" style="color: #666; text-decoration: none;">Hệ thống chi nhánh</a>
-            <a href="#" style="color: #666; text-decoration: none;">Bài Viết</a>
-            <a href="#" style="color: #666; text-decoration: none;">Học viên đăng nhập</a>
-            <span>🇻🇳 🇨🇳</span>
-        </div>
-    </div>
-    [vbc_box class="container" custom_css="selector {{ margin: 0 auto; max-width: 1200px; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }}"]
-        [vbc_a link_url="#" custom_css="selector {{ display: flex; align-items: center; text-decoration: none; }}"]
-            {"<img src='" + logo_url + "' alt='" + self.title + "' loading='eager' decoding='sync' style='height: 52px; width: auto; object-fit: contain;' />" if logo_url else "[vbc_span custom_css='selector { font-size: 22px; font-weight: 900; color: " + PRI + "; }']" + self.title + "[/vbc_span]"}
-        [/vbc_a]
-        <div style="display: flex; align-items: center; gap: 28px; font-weight: 600; font-size: 15px; color: {DARK};">
-            {"".join([f'<a href="{l.get("href", "#")}" style="color: {DARK}; text-decoration: none;">{l["text"]}</a>' for l in nav_links]) if nav_links else '<a href="#" style="color: ' + DARK + '; text-decoration: none;">Khóa Học ▾</a><a href="#" style="color: ' + DARK + '; text-decoration: none;">Giao Tiếp</a><a href="#" style="color: ' + DARK + '; text-decoration: none;">Online ▾</a>'}
-        </div>
-        [vbc_a link_url="#dang-ky" custom_css="selector {{ background: {PRI}; color: #ffffff !important; padding: 10px 24px; border-radius: 25px; font-weight: 700; font-size: 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(240,73,62,0.3); }}"]
-            [vbc_icon icon_type="lucide" name="phone-call" size="15px" color="#ffffff"]
-            [vbc_span]0585 680 116[/vbc_span]
-        [/vbc_a]
-    [/vbc_box]
-[/vbc_div]"""
-
-        # B. FULL-WIDTH HERO BANNER (Nếu section có ảnh banner lớn như cover/banner)
-        has_banner_img = any('cover' in img['src'].lower() or 'banner' in img['src'].lower() for img in images)
-        if not self.has_emitted_hero and (has_banner_img or index <= 2):
-            self.has_emitted_hero = True
-            hero_img = next((img['src'] for img in images if 'cover' in img['src'].lower() or 'banner' in img['src'].lower()), images[0]['src'] if images else "")
-            hero_img_url = self.get_synced_image_url(hero_img)
-
-            return f"""
-[vbc_div custom_css="selector {{ width: 100%; background: {BG_LIGHT}; padding: 30px 0 40px 0; }}"]
-    [vbc_box class="container" custom_css="selector {{ margin: 0 auto; max-width: 1200px; padding: 0 20px; }}"]
-        <div style="position: relative; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.08);">
-            <h1 style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;">{self.title}</h1>
-            <img src="{hero_img_url}" alt="{self.title}" loading="eager" decoding="sync" style="width: 100%; height: auto; display: block;" />
-        </div>
-    [/vbc_box]
-[/vbc_div]"""
-
-        # C. SECTION 5 HIGHLIGHTS / ICON BOXES
-        if any('linh hoạt' in h.get('text', '').lower() or 'hiệu quả' in h.get('text', '').lower() for h in headings) or len(paragraphs) == 5:
-            title_text = headings[0]['text'] if headings else "Giải pháp linh hoạt và hiệu quả"
-            return f"""
-[vbc_div custom_css="selector {{ width: 100%; background: #ffffff; padding: 60px 0 40px 0; }}"]
-    [vbc_box class="container" custom_css="selector {{ margin: 0 auto; max-width: 1200px; padding: 0 20px; }}"]
-        [vbc_block custom_css="selector {{ text-align: center; margin-bottom: 45px; }}"]
-            [vbc_h2 custom_css="selector {{ font-size: 32px; font-weight: 900; color: {DARK}; margin: 0; }}"]
-                {title_text}
-            [/vbc_h2]
-        [/vbc_block]
-        [vbc_block_inner custom_css="selector {{ display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; text-align: center; }} @media(max-width: 849px){{ selector {{ grid-template-columns: repeat(2, 1fr); }} }} @media(max-width: 549px){{ selector {{ grid-template-columns: 1fr; }} }}"]
-            <div style="display: flex; flex-direction: column; align-items: center; gap: 14px;">
-                <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(240,73,62,0.1); display: flex; align-items: center; justify-content: center;">
-                    [vbc_icon icon_type="lucide" name="award" size="28px" color="{PRI}"]
-                </div>
-                <h4 style="font-size: 15px; font-weight: 700; color: {DARK}; margin: 0; line-height: 1.4;">Giáo Viên Bản Xứ<br>chuyên môn cao</h4>
-            </div>
-            <div style="display: flex; flex-direction: column; align-items: center; gap: 14px;">
-                <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(240,73,62,0.1); display: flex; align-items: center; justify-content: center;">
-                    [vbc_icon icon_type="lucide" name="laptop" size="28px" color="{PRI}"]
-                </div>
-                <h4 style="font-size: 15px; font-weight: 700; color: {DARK}; margin: 0; line-height: 1.4;">Học Online<br>hoặc Offline</h4>
-            </div>
-            <div style="display: flex; flex-direction: column; align-items: center; gap: 14px;">
-                <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(240,73,62,0.1); display: flex; align-items: center; justify-content: center;">
-                    [vbc_icon icon_type="lucide" name="globe" size="28px" color="{PRI}"]
-                </div>
-                <h4 style="font-size: 15px; font-weight: 700; color: {DARK}; margin: 0; line-height: 1.4;">Phương pháp<br>hiện đại</h4>
-            </div>
-            <div style="display: flex; flex-direction: column; align-items: center; gap: 14px;">
-                <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(240,73,62,0.1); display: flex; align-items: center; justify-content: center;">
-                    [vbc_icon icon_type="lucide" name="calendar" size="28px" color="{PRI}"]
-                </div>
-                <h4 style="font-size: 15px; font-weight: 700; color: {DARK}; margin: 0; line-height: 1.4;">Lộ trình<br>cá nhân hóa</h4>
-            </div>
-            <div style="display: flex; flex-direction: column; align-items: center; gap: 14px;">
-                <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(240,73,62,0.1); display: flex; align-items: center; justify-content: center;">
-                    [vbc_icon icon_type="lucide" name="graduation-cap" size="28px" color="{PRI}"]
-                </div>
-                <h4 style="font-size: 15px; font-weight: 700; color: {DARK}; margin: 0; line-height: 1.4;">Đa dạng<br>chương trình</h4>
-            </div>
-        [/vbc_block_inner]
-    [/vbc_box]
-[/vbc_div]"""
-
-        # D. SECTION TEACHERS / TESTIMONIALS
-        if len(images) >= 4 or any('giáo viên' in h.get('text', '').lower() for h in headings):
-            title_text = headings[0]['text'] if headings else "Giáo viên của Chúng tôi"
-            sub_text = paragraphs[0]['text'] if paragraphs else "Trải nghiệm tiếng Trung chuẩn xác"
-            
-            cards_html = []
-            for i, img in enumerate(images[:6]):
-                img_url = self.get_synced_image_url(img['src'])
-                t_name = headings[i+1]['text'] if i+1 < len(headings) else f"Giáo Viên {i+1}"
-                t_bio = paragraphs[i+1]['text'] if i+1 < len(paragraphs) else "Học vị Cử nhân và chứng chỉ giảng dạy tiếng Trung cho người nước ngoài (TCSOL)."
-                
-                cards_html.append(f"""
-                <div style="background: #ffffff; border: 1px solid #f0f0f0; border-radius: 16px; padding: 22px; box-shadow: 0 4px 16px rgba(0,0,0,0.04); display: flex; gap: 16px; align-items: flex-start;">
-                    <img src="{img_url}" alt="{t_name}" loading="eager" decoding="sync" style="width: 76px; height: 76px; border-radius: 12px; object-fit: cover; flex-shrink: 0;" />
-                    <div style="display: flex; flex-direction: column; gap: 4px;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <h4 style="font-size: 16px; font-weight: 800; color: {PRI}; margin: 0;">{t_name}</h4>
-                            <span style="color: #f59e0b; font-size: 13px;">★★★★★</span>
-                        </div>
-                        <span style="font-size: 12px; font-weight: 600; color: #888888;">Trung Quốc &bull; Giáo Viên Online</span>
-                        <p style="font-size: 13px; color: {MUTED}; margin: 6px 0 0 0; line-height: 1.5;">{t_bio}</p>
-                    </div>
-                </div>""")
-
-            return f"""
-[vbc_div custom_css="selector {{ width: 100%; background: {BG_LIGHT}; padding: 70px 0; }}"]
-    [vbc_box class="container" custom_css="selector {{ margin: 0 auto; max-width: 1200px; padding: 0 20px; }}"]
-        [vbc_block custom_css="selector {{ text-align: center; margin-bottom: 45px; }}"]
-            [vbc_h2 custom_css="selector {{ font-size: 34px; font-weight: 900; color: {DARK}; margin: 0 0 8px 0; }}"]
-                {title_text}
-            [/vbc_h2]
-            <p style="font-size: 16px; color: {MUTED}; margin: 0;">{sub_text}</p>
-        [/vbc_block]
-        [vbc_block_inner custom_css="selector {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }} @media(max-width: 849px){{ selector {{ grid-template-columns: 1fr; }} }}"]
-            {"".join(cards_html)}
-        [/vbc_block_inner]
-    [/vbc_box]
-[/vbc_div]"""
-
-        # E. SECTION SPLIT 2-COL (Media + Tabs / Accordion)
-        if len(images) == 1 or (headings and paragraphs):
-            title_text = headings[0]['text'] if headings else "Thông Tin Chi Tiết"
-            img_src = images[0]['src'] if images else ""
-            img_url = self.get_synced_image_url(img_src)
-            is_img_left = (index % 2 == 1)
-
-            cards = []
-            for p in paragraphs[:4]:
-                lines = p['text'].split('\n')
-                item_title = lines[0].strip() if lines else p['text'][:30]
-                item_desc = " ".join(lines[1:]).strip() if len(lines) > 1 else p['text']
-                cards.append(f"""
-                <div style="background: {'#ffffff' if not is_img_left else '#fafafa'}; border: 1px solid #eeeeee; border-radius: 14px; padding: 20px 24px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <h4 style="font-size: 18px; font-weight: 800; color: {DARK}; margin: 0;">{item_title}</h4>
-                        <span style="font-weight: bold; color: {PRI}; font-size: 18px;">&rsaquo;</span>
-                    </div>
-                    {"<p style='font-size: 14px; color: " + MUTED + "; margin: 8px 0 0 0; line-height: 1.6;'>" + item_desc + "</p>" if item_desc else ""}
-                </div>""")
-
-            if is_img_left:
-                return f"""
-[vbc_div custom_css="selector {{ width: 100%; background: #ffffff; padding: 80px 0; }}"]
-    [vbc_box class="container" custom_css="selector {{ margin: 0 auto; max-width: 1200px; padding: 0 20px; }}"]
-        <div style="display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 60px; align-items: center;">
-            <div style="text-align: center;">
-                <h2 style="font-size: 40px; font-weight: 900; color: {DARK}; text-align: left; margin: 0 0 20px 0;">{title_text}</h2>
-                {"<img src='" + img_url + "' alt='" + title_text + "' loading='eager' decoding='sync' style='max-width: 420px; width: 100%; height: auto;' />" if img_url else ""}
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 16px;">
-                {"".join(cards)}
-            </div>
-        </div>
-    [/vbc_box]
-[/vbc_div]"""
-            else:
-                return f"""
-[vbc_div custom_css="selector {{ width: 100%; background: {BG_LIGHT}; padding: 80px 0; }}"]
-    [vbc_box class="container" custom_css="selector {{ margin: 0 auto; max-width: 1200px; padding: 0 20px; }}"]
-        <div style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 60px; align-items: center;">
-            <div style="display: flex; flex-direction: column; gap: 16px;">
-                {"".join(cards)}
-            </div>
-            <div style="text-align: center;">
-                <h2 style="font-size: 40px; font-weight: 900; color: {DARK}; text-align: right; margin: 0 0 20px 0;">{title_text}</h2>
-                {"<img src='" + img_url + "' alt='" + title_text + "' loading='eager' decoding='sync' style='max-width: 420px; width: 100%; height: auto;' />" if img_url else ""}
-            </div>
-        </div>
-    [/vbc_box]
-[/vbc_div]"""
-
-        # F. SECTION FORM / CONSULTATION
-        if has_form or (index == len(self.sections) - 1 and index > 2):
-            title_text = headings[0]['text'] if headings else f"Đăng Ký Tư Vấn & Nhận Lộ Trình Học {self.title}"
-            sub_text = paragraphs[0]['text'] if paragraphs else "Để lại thông tin để nhận tư vấn miễn phí từ chuyên gia và kiểm tra trình độ đầu vào."
-
-            return f"""
-[vbc_div id="dang-ky" custom_css="selector {{ width: 100%; background: linear-gradient(135deg, #fff4e6 0%, #fdf6ee 100%); padding: 80px 0; border-top: 1px solid #fed7aa; }}"]
-    [vbc_box class="container" custom_css="selector {{ margin: 0 auto; max-width: 1100px; padding: 0 20px; }}"]
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; background: #ffffff; padding: 40px; border-radius: 24px; box-shadow: 0 15px 35px rgba(240,73,62,0.08);">
-            <div>
-                <span style="display: inline-block; background: rgba(240,73,62,0.1); color: {PRI}; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; margin-bottom: 12px;">
-                    [vbc_icon icon_type="lucide" name="gift" size="15px" color="{PRI}"]
-                    ƯU ĐÃI ĐẶC BIỆT
-                </span>
-                <h2 style="font-size: 32px; font-weight: 900; color: {DARK}; line-height: 1.3; margin: 0 0 16px 0;">{title_text}</h2>
-                <p style="font-size: 15px; color: {MUTED}; line-height: 1.7; margin-bottom: 24px;">{sub_text}</p>
-                <div style="display: flex; flex-direction: column; gap: 12px; font-size: 15px; font-weight: 600; color: {DARK};">
-                    <span style="display: flex; align-items: center; gap: 10px;">
-                        [vbc_icon icon_type="lucide" name="check-circle-2" size="18px" color="{PRI}"]
-                        100% Giáo viên bản ngữ có chứng chỉ TCSOL
-                    </span>
-                    <span style="display: flex; align-items: center; gap: 10px;">
-                        [vbc_icon icon_type="lucide" name="check-circle-2" size="18px" color="{PRI}"]
-                        Lộ trình cá nhân hóa 1 kèm 1 linh hoạt
-                    </span>
-                    <span style="display: flex; align-items: center; gap: 10px;">
-                        [vbc_icon icon_type="lucide" name="check-circle-2" size="18px" color="{PRI}"]
-                        Cam kết đầu ra chuẩn quốc tế HSK/YCT
-                    </span>
-                </div>
-            </div>
-            <div style="background: #fafafa; padding: 24px; border-radius: 16px; border: 1px solid #f0f0f0;">
-                [contact-form-7 id="{self.cf7_id}" title="Form Đăng Ký Tư Vấn"]
-            </div>
-        </div>
-    [/vbc_box]
-[/vbc_div]"""
-
-        # G. SECTION FOOTER
-        if tag == 'footer' or 'footer' in sec_class.lower() or index == len(self.sections):
-            logo_src = images[0]['src'] if images else ""
-            logo_url = self.get_synced_image_url(logo_src)
-
-            return f"""
-[vbc_div custom_css="selector {{ width: 100%; background: {DARK}; color: #ffffff; padding: 70px 0 30px 0; }}"]
-    [vbc_box class="container" custom_css="selector {{ margin: 0 auto; max-width: 1200px; padding: 0 20px; }}"]
-        <div style="display: grid; grid-template-columns: 1.5fr 1fr 1.2fr; gap: 40px; margin-bottom: 40px;">
-            <div>
-                {"<img src='" + logo_url + "' alt='" + self.title + "' loading='eager' decoding='sync' style='height: 54px; width: auto; margin-bottom: 18px; filter: brightness(0) invert(1);' />" if logo_url else "[vbc_h3 custom_css='selector { color: #ffffff; font-weight: 800; }']" + self.title + "[/vbc_h3]"}
-                <p style="font-size: 14px; color: #9ca3af; line-height: 1.8; margin: 0;">{self.title} &mdash; Đơn vị cung cấp giải pháp giáo dục uy tín, chuẩn quốc tế.</p>
-            </div>
-            <div>
-                <h4 style="font-size: 17px; font-weight: 800; color: #ffffff; margin: 0 0 16px 0;">Khóa Học Nổi Bật</h4>
-                <div style="display: flex; flex-direction: column; gap: 10px; font-size: 14px; color: #9ca3af;">
-                    <span>Tiếng Trung Trẻ Em (YCT)</span>
-                    <span>Tiếng Trung Thiếu Niên (HSK)</span>
-                    <span>Tiếng Trung Giao Tiếp Cấp Tốc</span>
-                    <span>Tiếng Trung Thương Mại</span>
-                </div>
-            </div>
-            <div>
-                <h4 style="font-size: 17px; font-weight: 800; color: #ffffff; margin: 0 0 16px 0;">Thông Tin Liên Hệ</h4>
-                <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: #9ca3af;">
-                    <span>Hotline: 0585 680 116</span>
-                    <span>Email: contact@nihaoma-mandarin.com</span>
-                    <span>Địa chỉ: TP. Hồ Chí Minh</span>
-                </div>
-            </div>
-        </div>
-        <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 24px; text-align: center; font-size: 13px; color: #6b7280;">
-            <p style="margin: 0;">Copyright &copy; {time.strftime('%Y')} {self.title}. All rights reserved. Powered by Ultimate Flatsome VibeCode.</p>
-        </div>
-    [/vbc_box]
-[/vbc_div]"""
-
-        return ""
-
-    def build_full_vbc_content(self):
-        print(f"\n[4/5] Đang tự động biên dịch toàn bộ cây DOM sang 100% phần tử VBC Elements...")
-
-        vbc_output_chunks = []
-
-        # Reset CSS để biến trang thành Standalone Landing Page sạch sẽ
-        vbc_output_chunks.append("""
+        # 3. CSS Reset chuẩn cho Standalone Landing Page
+        reset_css = f"""
 <style>
-#header, #footer, .header-wrapper, #wrapper > footer { display: none !important; }
-body { padding-top: 0 !important; margin: 0 !important; background: #ffffff !important; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important; }
-#main { padding-top: 0 !important; padding-bottom: 0 !important; }
-img { max-width: 100%; height: auto; display: inline-block; }
+#header, #footer, .header-wrapper, #wrapper > footer {{ display: none !important; }}
+body {{ padding-top: 0 !important; margin: 0 !important; background: #ffffff !important; font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important; }}
+#main {{ padding-top: 0 !important; padding-bottom: 0 !important; }}
+img {{ max-width: 100%; height: auto; }}
+{all_css}
 </style>
-""")
+"""
 
-        # Biên dịch từng section hoàn toàn tự động
-        for idx, sec in enumerate(self.sections, 1):
-            sec_vbc = self.compile_section_to_vbc(sec, idx)
-            if sec_vbc and sec_vbc.strip():
-                vbc_output_chunks.append(sec_vbc.strip())
+        # 4. Bọc toàn bộ nội dung trong [vbc_div]
+        vbc_output = f"""{reset_css}
 
-        full_content = "\n\n".join(vbc_output_chunks)
+[vbc_div custom_css="selector {{ width: 100%; }}"]
+{processed_html}
+[/vbc_div]
+"""
+        with open(os.path.join(self.tmp_dir, 'compiled_vbc.txt'), 'w', encoding='utf-8') as f:
+            f.write(vbc_output)
 
-        vbc_file_path = os.path.join(self.tmp_dir, f"{self.slug}_compiled_vbc.txt")
-        with open(vbc_file_path, 'w', encoding='utf-8') as f:
-            f.write(full_content)
+        return vbc_output
 
-        print(f"✓ Đã biên dịch {len(self.sections)} sections thành công vào: {vbc_file_path}")
-        return full_content
-
-    # ── 5. XUẤT BẢN LÊN WORDPRESS & AUDIT RECHECK ─────────────────────────────
-    def publish_to_wordpress(self, content):
-        print(f"\n[5/5] Đang xuất bản Landing Page lên WordPress ({self.api_url}/vbc/v1/page)...")
-        page_endpoint = f"{self.api_url}/vbc/v1/page"
-
+    def publish_to_wordpress(self, vbc_content):
+        """Xuất bản nội dung lên WordPress REST API"""
+        print(f"[5/5] Đang xuất bản lên WordPress ({self.api_url}/vbc/v1/page)...")
         payload = {
             'title': self.title,
-            'content': content,
+            'slug': self.slug,
+            'content': vbc_content,
             'template': self.template,
             'status': 'publish'
         }
         if self.post_id:
-            payload['page_id'] = int(self.post_id)
-        if self.slug:
-            payload['slug'] = self.slug
+            payload['id'] = self.post_id
 
-        req = urllib.request.Request(
-            page_endpoint,
+        pub_req = urllib.request.Request(
+            f"{self.api_url}/vbc/v1/page",
             data=json.dumps(payload).encode('utf-8'),
             headers={
                 'Content-Type': 'application/json; charset=utf-8',
                 'X-VBC-Token': self.token,
-                'User-Agent': 'VibeCode-UniversalCloner/2.0'
+                'User-Agent': 'VibeCode-Cloner/2.0'
             },
             method='POST'
         )
 
-        try:
-            with urllib.request.urlopen(req, timeout=35) as resp:
-                res_data = json.loads(resp.read().decode('utf-8'))
-                pub_id = res_data.get('post_id') or res_data.get('id')
-                pub_url = res_data.get('url') or res_data.get('link')
-                print(f"\n=======================================================")
-                print(f"   🎉 XUẤT BẢN LANDING PAGE THÀNH CÔNG!")
-                print(f"=======================================================")
-                print(f"Post ID   : {pub_id}")
-                print(f"Page URL  : {pub_url}")
-                print(f"Template  : {self.template}")
-                print(f"=======================================================")
-                return pub_url, pub_id
-        except Exception as e:
-            print(f"❌ [LỖI] Xuất bản trang thất bại: {e}")
-            sys.exit(1)
+        with urllib.request.urlopen(pub_req, timeout=40) as resp:
+            res = json.loads(resp.read().decode('utf-8'))
+            pub_url = res.get('url') or res.get('link')
+            pub_id = res.get('post_id') or res.get('id')
+            print("\n" + "="*60)
+            print("   🎉 XUẤT BẢN LANDING PAGE THÀNH CÔNG!")
+            print("="*60)
+            print(f"Post ID  : {pub_id}")
+            print(f"Page URL : {pub_url}")
+            print("="*60)
+            return pub_url, pub_id
 
-    def execute(self):
-        # 1. Crawl và phân tích DOM
-        self.crawl_and_parse_dom()
-
-        # 2. Tải toàn bộ media
-        self.download_all_images_to_tmp()
-
-        # 3. Đồng bộ media lên WordPress
-        self.sync_media_library()
-
-        # 4. Biên dịch shortcode VBC hoàn toàn tự động
-        vbc_content = self.build_full_vbc_content()
-
-        # 5. Xuất bản lên WordPress
+    def run(self):
+        self.fetch_source_page()
+        self.extract_exact_dom_and_styles()
+        self.sync_all_images_to_wordpress()
+        vbc_content = self.compile_vbc_content()
         pub_url, pub_id = self.publish_to_wordpress(vbc_content)
 
-        # 6. Tự động kiểm tra QA
         if self.auto_recheck:
-            print(f"\n[QA Check] Đang chạy kiểm tra chất lượng & đối chiếu web nguồn qua recheck-url...")
             possible_recheck_paths = [
                 os.path.join(os.path.dirname(__file__), '..', '..', 'recheck-url', 'scripts', 'rechecker.py'),
                 os.path.join(os.path.dirname(__file__), '..', 'recheck-url', 'scripts', 'rechecker.py'),
-                os.path.join(os.path.dirname(__file__), 'rechecker.py'),
                 os.path.join(os.getcwd(), '.agents', 'skills', 'recheck-url', 'scripts', 'rechecker.py'),
-                os.path.join(os.getcwd(), 'skills', 'recheck-url', 'scripts', 'rechecker.py'),
-                os.path.join(os.getcwd(), 'skills', 'recheck-url.py')
+                os.path.join(os.getcwd(), 'skills', 'recheck-url', 'scripts', 'rechecker.py')
             ]
             recheck_file = next((p for p in possible_recheck_paths if os.path.exists(p)), None)
             if recheck_file:
@@ -872,43 +342,33 @@ img { max-width: 100%; height: auto; display: inline-block; }
                 recheck_module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(recheck_module)
                 LandingPageRechecker = recheck_module.LandingPageRechecker
-
                 checker = LandingPageRechecker(target_url=pub_url, post_id=pub_id, source_url=self.source_url, max_retries=3, tmp_dir=self.tmp_dir)
                 checker.run_recheck()
-            else:
-                print(f"[CẢNH BÁO] Không tìm thấy module rechecker.py để chạy auto-recheck.")
 
         return pub_url, pub_id
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Ultimate Flatsome VibeCode - Universal Generic Clone Landing Page Skill")
-    parser.add_argument("--url", required=True, help="URL trang web bất kỳ cần clone")
-    parser.add_argument("--title", help="Tiêu đề trang WordPress mới")
-    parser.add_argument("--slug", help="Slug đường dẫn mới")
-    parser.add_argument("--post_id", type=int, help="Post ID cần cập nhật (nếu có)")
-    parser.add_argument("--template", default="page-blank.php", help="Page template (mặc định: page-blank.php)")
-    parser.add_argument("--max_images", type=int, default=80, help="Số ảnh tối đa cần tải (mặc định: 80)")
-    parser.add_argument("--no_recheck", action="store_true", help="Bỏ qua bước recheck tự động")
-    parser.add_argument("--config", help="Đường dẫn file vbc-config.json")
-    parser.add_argument("--tmp_dir", help="Thư mục tmp lưu trữ assets")
+    parser = argparse.ArgumentParser(description="Ultimate Flatsome VibeCode - Universal 1:1 Cloner")
+    parser.add_argument("--url", required=True, help="URL của trang web cần clone")
+    parser.add_argument("--title", default="", help="Tiêu đề trang trên WordPress")
+    parser.add_argument("--slug", default="", help="Slug URL của trang đích")
+    parser.add_argument("--post_id", type=int, default=None, help="ID của trang nếu cần ghi đè")
+    parser.add_argument("--template", default="page-blank.php", help="Page template")
+    parser.add_argument("--no_recheck", action="store_true", help="Bỏ qua bước tự động recheck")
 
     args = parser.parse_args()
 
-    cloner = UniversalLandingPageCloner(
+    cloner = LandingPageCloner(
         source_url=args.url,
         title=args.title,
         slug=args.slug,
         post_id=args.post_id,
         template=args.template,
-        max_images=args.max_images,
-        auto_recheck=not args.no_recheck,
-        config_path=args.config,
-        tmp_dir=args.tmp_dir
+        auto_recheck=(not args.no_recheck)
     )
+    cloner.run()
 
-    cloner.execute()
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

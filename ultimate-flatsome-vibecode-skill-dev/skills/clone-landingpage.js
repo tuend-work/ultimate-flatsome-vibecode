@@ -26,6 +26,7 @@ const http = require('http');
 const https = require('https');
 const { URL } = require('url');
 const { compileHtmlToVbc, decodeHtmlEntities } = require('./html-to-vbc-compiler');
+const { fetchRenderedHtmlWithBrowser } = require('./browser-fetcher');
 
 // ============================================================
 // 1. CẤU HÌNH & XÁC THỰC
@@ -51,9 +52,27 @@ function loadConfig() {
 // ============================================================
 
 /**
- * Tải nội dung text từ URL
+ * Tải nội dung HTML từ URL
+ * Mặc định: Dùng Headless Browser (Chrome/Edge) để thực thi JS, cuộn trang kích hoạt Lazy Load
+ * Tùy chọn fallback: Dùng https.get() nếu có cờ --no-browser hoặc môi trường không có trình duyệt
  */
-function fetchUrlContent(targetUrl) {
+async function fetchUrlContent(targetUrl, options = {}) {
+    if (!options['no-browser']) {
+        try {
+            const html = await fetchRenderedHtmlWithBrowser(targetUrl, {
+                waitTime: parseInt(options['wait'] || '1500', 10),
+                timeout: parseInt(options['timeout'] || '60000', 10)
+            });
+            return html;
+        } catch (err) {
+            console.warn(`  ⚠ Headless Browser không khả dụng (${err.message}). Đang chuyển sang chế độ tải trực tiếp qua HTTPS...`);
+        }
+    }
+
+    return fetchUrlViaHttps(targetUrl);
+}
+
+function fetchUrlViaHttps(targetUrl) {
     return new Promise((resolve, reject) => {
         const parsed = new URL(targetUrl);
         const client = parsed.protocol === 'https:' ? https : http;
@@ -64,7 +83,7 @@ function fetchUrlContent(targetUrl) {
         }, (res) => {
             if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
                 const redirectUrl = new URL(res.headers.location, targetUrl).href;
-                return resolve(fetchUrlContent(redirectUrl));
+                return resolve(fetchUrlViaHttps(redirectUrl));
             }
             if (res.statusCode !== 200) {
                 return reject(new Error(`HTTP ${res.statusCode}: ${res.statusMessage}`));
@@ -821,7 +840,7 @@ async function main() {
     if (args.url) {
         console.log(`[1/4] Đang kết nối tới URL nguồn: \x1b[36m${args.url}\x1b[0m...`);
         try {
-            const fetchedHtml = await fetchUrlContent(args.url);
+            const fetchedHtml = await fetchUrlContent(args.url, args);
             console.log(`  ✓ Tải thành công ${Buffer.byteLength(fetchedHtml)} bytes HTML từ trang gốc.`);
 
             // Tự động quét và tải toàn bộ ảnh nếu không bị tắt bởi --no-crawl

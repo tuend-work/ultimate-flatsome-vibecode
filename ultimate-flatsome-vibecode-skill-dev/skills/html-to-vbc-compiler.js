@@ -415,17 +415,61 @@ function convertBlock($el, $, urlMapping, depth = 0) {
     return `[${vbcTag}${attrs}]${children}[/${vbcTag}]`;
 }
 
-// ============================================================
-// MAIN CONTENT EXTRACTOR
-// Trích xuất phần nội dung chính (bỏ header/footer theme)
-// ============================================================
+/**
+ * Loại bỏ các phần tử theme không liên quan đến nội dung trang:
+ * header, nav, footer, sidebar, floating buttons, modal, scripts...
+ */
+function stripThemeNoise($) {
+    const noiseSelectors = [
+        // Navigation & Header
+        'header', 'nav', '.site-header', '.page-header', '.header-wrap',
+        '.penci-header-wrap', '.header-style-header-3', '.header-3',
+        '.nav-menu', '.navigation', '.main-nav', '.primary-nav',
+        '.topbar', '.top-bar', '.penci-top-bar',
+        '.hamburger', '.penci-menu-hbg', '.mobile-menu',
+        // Footer
+        'footer', '.site-footer', '.footer-widget', '.footer-widgets',
+        '.footer-bottom', '.footer-top', '.copyright',
+        // Sidebar
+        '.sidebar', '.widget-area', '.widget', '#sidebar',
+        // Breadcrumbs
+        '.breadcrumbs', '.breadcrumb', '.penci-breadcrumb',
+        // Floating & Overlay UI
+        '.box_fixRight', '.tv-glow-button', '.tv-mobile-bar',
+        '.crystal-wrapper', '.premium-popup', '.dtk-modal',
+        '.cookie-notice', '.cookie-banner', '.gdpr',
+        '.rd-progress-container', '.scroll-to-top', '.back-to-top',
+        // Comment section
+        '#comments', '.comments-area', '.comment-form',
+        // Related posts
+        '.related-posts', '.penci-related-posts',
+        // Social share
+        '.social-share', '.share-buttons', '.penci-social-share',
+        // Post meta
+        '.post-meta', '.entry-meta', '.penci-post-tags',
+        // Newsletter popup
+        '.newsletter-popup', '.subscribe-popup',
+        // Scripts & invisible
+        'script', 'style', 'noscript', 'template',
+        'link[rel="stylesheet"]', 'meta',
+    ];
+
+    let removed = 0;
+    for (const sel of noiseSelectors) {
+        const count = $(sel).length;
+        $(sel).remove();
+        removed += count;
+    }
+    
+    console.log(`  ✓ Đã loại bỏ ${removed} phần tử theme noise (header/nav/footer/popup...)`);
+}
 
 /**
  * Xác định vùng content chính của trang
  * Hỗ trợ các theme: Flatsome, Penci, GeneratePress, Astra, OceanWP...
  */
 function extractMainContent($) {
-    // Thu tự ưu tiên selector - từ cụ thể đến tổng quát
+    // Thứ tự ưu tiên selector - từ cụ thể đến tổng quát
     const selectors = [
         // Flatsome
         'main .entry-content',
@@ -521,12 +565,51 @@ function compileHtmlToVbc(htmlContent, urlMapping = new Map(), idMapping = new M
     
     const $ = cheerio.load(htmlContent, { decodeEntities: false });
     
-    // Lấy metadata
+    // Lấy metadata TRƯỚC khi strip (title/desc cần lấy sớm)
     const pageTitle = $('title').text() || 'Cloned Page';
     console.log(`  ✓ Tiêu đề trang: ${pageTitle}`);
+
+    // 1. Xóa noise NGOÀI content (header, footer, nav của toàn trang)
+    // KHÔNG xóa wrapper nội dung - chỉ xóa các element nằm ngoài
+    const outerNoiseSelectors = [
+        'header', 'nav', 'footer',
+        '.box_fixRight', '.tv-glow-button', '.tv-mobile-bar',
+        '.crystal-wrapper', '.premium-popup', '.dtk-modal',
+        '.rd-progress-container', '.cookie-notice', '.cookie-banner',
+    ];
+    let outerRemoved = 0;
+    for (const sel of outerNoiseSelectors) {
+        const count = $(sel).length;
+        $(sel).remove();
+        outerRemoved += count;
+    }
     
-    // Trích xuất content chính
+    // 2. Trích xuất content chính
     let $main = extractMainContent($);
+    
+    // 3. Xóa noise BÊN TRONG content (topbar, share, tags, comments nằm trong wrapper)
+    const innerNoiseSelectors = [
+        '.penci-header-wrap', '.penci-top-bar', '.penci-menu-hbg',
+        '.penci-menu-hbg-overlay', '.header-style-header-3',
+        '.penci-breadcrumb', '.breadcrumbs', '.breadcrumb',
+        '#comments', '.comments-area', '.comment-form',
+        '.related-posts', '.penci-related-posts', '.penci-post-tags',
+        '.social-share', '.penci-social-share',
+        '.penci-footer', '.footer-widget', '.footer-bottom',
+        '.newsletter-popup', '.subscribe-popup',
+    ];
+    let innerRemoved = 0;
+    for (const sel of innerNoiseSelectors) {
+        const found = $main.find(sel);
+        innerRemoved += found.length;
+        found.remove();
+        // Cũng xóa nếu $main CHÍNH là element này
+        if ($main.is(sel)) {
+            innerRemoved++;
+        }
+    }
+    
+    console.log(`  ✓ Đã loại bỏ ${outerRemoved} outer + ${innerRemoved} inner theme noise elements`);
     
     // Nếu chỉ có 1 child duy nhất, drill down thêm 1 level
     const blockTags = ['div', 'section', 'article', 'header', 'footer', 'aside', 'nav', 'figure', 'main'];

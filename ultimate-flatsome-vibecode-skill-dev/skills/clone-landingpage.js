@@ -25,6 +25,7 @@ const path = require('path');
 const http = require('http');
 const https = require('https');
 const { URL } = require('url');
+const { compileHtmlToVbc, decodeHtmlEntities } = require('./html-to-vbc-compiler');
 
 // ============================================================
 // 1. CẤU HÌNH & XÁC THỰC
@@ -699,6 +700,8 @@ function migrateTagsToContentAttribute(content) {
 }
 
 function sanitizeShortcodeContent(content) {
+    // Decode HTML entities trước (fix &amp;#038; → &)
+    content = decodeHtmlEntities(content);
     console.log('\n\x1b[35m[CLONE SANITIZER] Đang kiểm tra và chuẩn hóa cấu trúc VibeCode...\x1b[0m');
     
     const unsuppResult = fixUnsupportedVbcShortcodes(content);
@@ -832,27 +835,17 @@ async function main() {
                 console.log(`  ✓ Nạp khung Shortcode tùy biến cao cấp từ: ${args.file}`);
                 rawContent = fs.readFileSync(args.file, 'utf8');
             } else {
-                // Sử dụng raw content từ file hoặc template
-                rawContent = fetchedHtml;
-            }
+                // ✅ COMPILER MỚI: Biên dịch HTML → VBC shortcodes thực sự
+                // Thay vì paste raw HTML, dùng cheerio để parse DOM và sinh VBC shortcodes
+                const urlMapping = assetData.urlMapping || new Map();
+                const idMapping = assetData.idMapping || new Map();
 
-            // Thay thế URL ảnh gốc thành URL ảnh WordPress Media và Attachment ID cho [section bg="..."]
-            const urlMapping = assetData.urlMapping || new Map();
-            const idMapping = assetData.idMapping || new Map();
-
-            if (urlMapping.size > 0 || idMapping.size > 0) {
-                console.log(`\n\x1b[32m[URL MAPPER] Đang ánh xạ ${urlMapping.size} liên kết media và ${idMapping.size} background ID sang WP Media...\x1b[0m`);
-                
-                // 1. Thay thế background ID cho shortcode [section bg="..."]
-                for (const [origin, attId] of idMapping.entries()) {
-                    const bgRegex = new RegExp(`(\\[section[^\\]]*?\\bbg=["'])${escapeRegExp(origin)}(["'])`, 'gi');
-                    rawContent = rawContent.replace(bgRegex, `$1${attId}$2`);
+                if (urlMapping.size > 0 || idMapping.size > 0) {
+                    console.log(`\n\x1b[32m[URL MAPPER] Đang ánh xạ ${urlMapping.size} liên kết media và ${idMapping.size} background ID sang WP Media...\x1b[0m`);
                 }
 
-                // 2. Thay thế toàn bộ URL ảnh gốc sang WP Media URL
-                for (const [origin, uploaded] of urlMapping.entries()) {
-                    rawContent = rawContent.split(origin).join(uploaded);
-                }
+                // Compile HTML → Flatsome [section][row][col] + VBC shortcodes
+                rawContent = compileHtmlToVbc(fetchedHtml, urlMapping, idMapping);
             }
         } catch (err) {
             console.error('\x1b[31m[LỖI] Không thể tải URL:\x1b[0m', err.message);

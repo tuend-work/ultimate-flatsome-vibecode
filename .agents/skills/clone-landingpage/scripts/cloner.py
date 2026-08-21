@@ -2,18 +2,21 @@
 # -*- coding: utf-8 -*-
 """
 ===============================================================================
-ULTIMATE FLATSOME VIBECODE - 1:1 EXACT DOM CLONE LANDING PAGE ENGINE
+ULTIMATE FLATSOME VIBECODE - ADVANCED 1:1 CLONER ENGINE (TABS & DYNAMIC POSTS)
 ===============================================================================
 File: cloner.py
 Description:
-  Bộ công cụ Clone Landing Page CHÍNH XÁC 1:1 theo Cây DOM Thực Tế (High-Fidelity):
-  - Bóc tách 100% cấu trúc HTML, thẻ tiêu đề (H1-H6), đoạn văn, danh sách, bảng giá,
-    quy trình, đánh giá, câu hỏi thường gặp, form và layout nguyên bản từ trang nguồn.
-  - Tuyệt đối không tự ý rút gọn hay thay thế nội dung gốc bằng các mẫu tổng quát.
-  - Quét & Tải toàn bộ ảnh, icons, background-image về thư mục tmp/{slug}/.
-  - Đẩy ảnh lên WordPress Media Library qua REST API (/vbc/v1/upload) và map lại 100% link.
-  - Tự động bọc các Section vào các container VBC Elements ([vbc_div], [vbc_box]).
-  - Xuất bản lên WordPress qua /vbc/v1/page và tự động chạy recheck-url để đo lường VSI >= 90%.
+  - Bóc tách 100% cấu trúc HTML DOM sang Native Shortcodes VBC Elements.
+  - TỰ ĐỘNG NHẬN DIỆN & CHUYỂN ĐỔI TAB:
+      * Nhận diện Bootstrap tabs (.nav-tabs / .tab-content), Elementor tabs, Flatsome tabbed content, ARIA tabs.
+      * Biên dịch tự động sang [vbc_tabs] [vbc_tab title="..."] ... [/vbc_tab] [/vbc_tabs].
+  - TỰ ĐỘNG NHẬN DIỆN & TRUY VẤN BÀI VIẾT / SẢN PHẨM TỪ BACKEND:
+      * Nhận diện danh sách bài viết (.blog-posts, article.post, .penci-grid, v.v.)
+      * Nhận diện danh sách sản phẩm WooCommerce (.woocommerce ul.products, .product-item, v.v.)
+      * Tự động thay thế khối tĩnh bằng [vbc_post post_type="post|product" posts_per_page="X" columns="Y" layout="grid"]
+        để lấy dữ liệu động trực tiếp từ WordPress database.
+  - Quét & Tải toàn bộ ảnh, icons, background-image về tmp/{slug}/ và upload lên WP Media Library (/vbc/v1/upload).
+  - Tự động xuất bản qua /vbc/v1/page và chạy recheck AI để kiểm định VSI >= 90%.
 ===============================================================================
 """
 
@@ -58,6 +61,234 @@ def load_vbc_config(custom_path=None):
     return {}
 
 
+# Tag mapping from HTML to VBC Elements
+TAG_MAP = {
+    'div': 'div', 'section': 'div', 'header': 'div', 'footer': 'div',
+    'main': 'div', 'article': 'div', 'aside': 'div', 'nav': 'div',
+    'h1': 'h1', 'h2': 'h2', 'h3': 'h3', 'h4': 'h4', 'h5': 'h5', 'h6': 'h6',
+    'p': 'p', 'span': 'span', 'i': 'i', 'a': 'a',
+    'ul': 'ul', 'ol': 'ol', 'li': 'li',
+    'b': 'b', 'strong': 'strong', 'em': 'em', 'u': 'u',
+    'table': 'table', 'tr': 'tr', 'td': 'td', 'th': 'th',
+    'img': 'img', 'hr': 'hr', 'br': 'br',
+}
+
+DIV_ALIASES = [
+    'div', 'box', 'block', 'container',
+    'block_inner', 'container_inner',
+    'div_inner', 'box_inner',
+    'div_inner_1', 'box_inner_1', 'block_inner_1', 'container_inner_1'
+]
+
+
+class Node:
+    def __init__(self, tag, attrs=None):
+        self.tag = tag.lower() if tag else ""
+        self.attrs = dict(attrs) if attrs else {}
+        self.children = []
+        self.text = ""
+        self.is_text_node = False
+
+
+class DOMBuilder(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.root = Node("root")
+        self.stack = [self.root]
+        self.ignored_tags = {'script', 'noscript'}
+        self.current_ignored = None
+
+    def handle_starttag(self, tag, attrs):
+        t = tag.lower()
+        if t in self.ignored_tags:
+            self.current_ignored = t
+            return
+        if self.current_ignored:
+            return
+
+        node = Node(t, attrs)
+        self.stack[-1].children.append(node)
+        
+        if t not in ['img', 'br', 'hr', 'input', 'meta', 'link']:
+            self.stack.append(node)
+
+    def handle_endtag(self, tag):
+        t = tag.lower()
+        if self.current_ignored:
+            if t == self.current_ignored:
+                self.current_ignored = None
+            return
+
+        for i in range(len(self.stack)-1, 0, -1):
+            if self.stack[i].tag == t:
+                self.stack = self.stack[:i]
+                break
+
+    def handle_data(self, data):
+        if self.current_ignored:
+            return
+        if data:
+            text_node = Node("#text")
+            text_node.is_text_node = True
+            text_node.text = data
+            self.stack[-1].children.append(text_node)
+
+
+def render_raw_svg(node):
+    if node.is_text_node:
+        return node.text
+    attrs_str = "".join([f' {k}="{v}"' for k, v in node.attrs.items()])
+    if node.tag in ['path', 'circle', 'rect', 'line', 'polygon', 'polyline']:
+        return f"<{node.tag}{attrs_str}/>"
+    inner = "".join([render_raw_svg(c) for c in node.children])
+    return f"<{node.tag}{attrs_str}>{inner}</{node.tag}>"
+
+
+def convert_node_to_vbc(node, tag_counts=None):
+    if tag_counts is None:
+        tag_counts = {}
+
+    if node.is_text_node:
+        return node.text
+
+    tag = node.tag
+    attrs = node.attrs
+    
+    if tag == 'svg':
+        return render_raw_svg(node)
+
+    # 1. TỰ ĐỘNG NHẬN DIỆN KHỐI BÀI VIẾT / SẢN PHẨM -> Chuyển thành [vbc_post] backend
+    classes = attrs.get('class', '').lower()
+    tag_id = attrs.get('id', '').lower()
+
+    # Kiểm tra danh sách sản phẩm WooCommerce
+    if any(k in classes for k in ['products', 'woocommerce-products', 'product-grid', 'shop-products']) and not classes.startswith('product '):
+        product_items = [c for c in node.children if 'product' in c.attrs.get('class', '').lower()]
+        count = len(product_items) if product_items else 8
+        cols = 4
+        if 'columns-3' in classes or 'col-3' in classes: cols = 3
+        elif 'columns-2' in classes or 'col-2' in classes: cols = 2
+        elif 'columns-5' in classes or 'col-5' in classes: cols = 5
+        return f'\n[vbc_post post_type="product" posts_per_page="{count}" columns="{cols}" layout="grid" title_size="16px"]\n'
+
+    # Kiểm tra danh sách bài viết Blog / Tin tức
+    if any(k in classes for k in ['blog-posts', 'posts-grid', 'penci-grid', 'latest-posts', 'news-grid', 'archive-posts']) or any(k in tag_id for k in ['blog-posts', 'latest-posts']):
+        post_items = [c for c in node.children if any(p in c.attrs.get('class', '').lower() for p in ['post', 'article', 'entry', 'grid-item'])]
+        count = len(post_items) if post_items else 6
+        cols = 3
+        if 'columns-2' in classes or 'col-2' in classes or 'two-columns' in classes: cols = 2
+        elif 'columns-4' in classes or 'col-4' in classes or 'four-columns' in classes: cols = 4
+        return f'\n[vbc_post post_type="post" posts_per_page="{count}" columns="{cols}" layout="grid" title_size="18px"]\n'
+
+    # 2. TỰ ĐỘNG NHẬN DIỆN HỆ THỐNG TABS -> Chuyển thành [vbc_tabs] & [vbc_tab]
+    if any(k in classes for k in ['nav-tabs', 'elementor-tabs', 'tabbed-content', 'vbc-tabs-wrapper', 'tabs-container']) or attrs.get('role') == 'tablist':
+        # Xử lý các tab items con
+        tab_titles = []
+        tab_contents = []
+        # Tìm tiêu đề tabs và panels
+        # Duyệt cây DOM con để gom title và content tương ứng
+        return convert_tabs_to_vbc(node, tag_counts)
+
+    base_type = TAG_MAP.get(tag)
+    if not base_type:
+        inner = "".join([convert_node_to_vbc(c, tag_counts) for c in node.children])
+        return inner
+
+    current_count = tag_counts.get(base_type, 0)
+    
+    if base_type == 'div':
+        alias_name = DIV_ALIASES[current_count % len(DIV_ALIASES)]
+        vbc_shortcode = f"vbc_{alias_name}"
+    else:
+        if current_count == 0:
+            vbc_shortcode = f"vbc_{base_type}"
+        elif current_count == 1:
+            vbc_shortcode = f"vbc_{base_type}_inner"
+        else:
+            suffix_num = min(current_count - 1, 5)
+            vbc_shortcode = f"vbc_{base_type}_inner_{suffix_num}"
+
+    atts = []
+    if 'id' in attrs and attrs['id']:
+        atts.append(f'id="{attrs["id"]}"')
+    if 'class' in attrs and attrs['class']:
+        atts.append(f'class="{attrs["class"]}"')
+    
+    if 'style' in attrs and attrs['style']:
+        css_style = attrs['style'].strip().rstrip(';')
+        clean_css = f"selector {{ {css_style}; }}"
+        clean_css = clean_css.replace('"', "'")
+        atts.append(f'custom_css="{clean_css}"')
+
+    if tag == 'a':
+        link_url = attrs.get('href', '#')
+        target = attrs.get('target', '_self')
+        atts.append(f'link_url="{link_url}"')
+        if target != '_self':
+            atts.append(f'link_target="{target}"')
+    elif tag == 'img':
+        img_url = attrs.get('src') or attrs.get('data-src') or attrs.get('data-lazy-src') or ''
+        alt = attrs.get('alt', '')
+        atts.append('img_source="manual"')
+        atts.append(f'img_url="{img_url}"')
+        if alt:
+            atts.append(f'alt="{alt}"')
+        att_str = " " + " ".join(atts) if atts else ""
+        return f"[{vbc_shortcode}{att_str}]"
+    elif tag in ['hr', 'br']:
+        att_str = " " + " ".join(atts) if atts else ""
+        return f"[{vbc_shortcode}{att_str}]"
+
+    att_str = " " + " ".join(atts) if atts else ""
+    
+    new_counts = tag_counts.copy()
+    new_counts[base_type] = current_count + 1
+    
+    inner_content = "".join([convert_node_to_vbc(c, new_counts) for c in node.children])
+    
+    return f"[{vbc_shortcode}{att_str}]{inner_content}[/{vbc_shortcode}]"
+
+
+def convert_tabs_to_vbc(node, tag_counts):
+    """Bóc tách cấu trúc Tab đa dạng sang [vbc_tabs] chuẩn"""
+    tabs_output = ['[vbc_tabs style="pills" align="left"]']
+    
+    # Tìm các tab-item hoặc tab-pane
+    tab_panes = []
+    def find_panes(n):
+        c_cls = n.attrs.get('class', '').lower()
+        if any(k in c_cls for k in ['tab-pane', 'elementor-tab-content', 'tab-panel']) or n.attrs.get('role') == 'tabpanel':
+            tab_panes.append(n)
+        for c in n.children:
+            find_panes(c)
+    find_panes(node)
+
+    if tab_panes:
+        for idx, pane in enumerate(tab_panes, 1):
+            title = pane.attrs.get('data-title') or pane.attrs.get('aria-label') or f"Tab {idx}"
+            content_vbc = "".join([convert_node_to_vbc(c, tag_counts) for c in pane.children])
+            tabs_output.append(f'  [vbc_tab title="{title}"]\n{content_vbc}\n  [/vbc_tab]')
+    else:
+        # Fallback render children
+        for c in node.children:
+            tabs_output.append(convert_node_to_vbc(c, tag_counts))
+
+    tabs_output.append('[/vbc_tabs]')
+    return "\n".join(tabs_output)
+
+
+def convert_html_to_vbc_ast(html_code):
+    """Compile HTML tree to Native VBC Shortcodes AST"""
+    parser = DOMBuilder()
+    parser.feed(html_code)
+    
+    vbc_parts = []
+    for top_child in parser.root.children:
+        vbc_parts.append(convert_node_to_vbc(top_child))
+    
+    return "\n".join(vbc_parts)
+
+
 class LandingPageCloner:
     def __init__(self, source_url, title="", slug="", post_id=None, template="page-blank.php", auto_recheck=True, tmp_dir=None):
         self.source_url = source_url
@@ -77,8 +308,6 @@ class LandingPageCloner:
         self.extracted_styles = []
         self.extracted_scripts = []
         self.main_content_html = ""
-        self.header_html = ""
-        self.footer_html = ""
         self.media_map = {}
 
     def _generate_slug_from_url(self, url):
@@ -111,11 +340,9 @@ class LandingPageCloner:
             else:
                 raise e
 
-        # Lưu lại file source
         with open(os.path.join(self.tmp_dir, 'source.html'), 'w', encoding='utf-8') as f:
             f.write(self.raw_html)
 
-        # Lấy title từ HTML nếu chưa có
         if not self.title or self.title == self.slug.replace('-', ' ').title():
             t_match = re.search(r'<title>(.*?)</title>', self.raw_html, re.IGNORECASE)
             if t_match:
@@ -127,19 +354,14 @@ class LandingPageCloner:
         """Bóc tách chính xác 100% các khối CSS và Cây DOM của trang web"""
         print(f"[2/5] Đang bóc tách cấu trúc DOM và Stylesheet chính xác 1:1...")
         
-        # 1. Tìm tất cả các style quan trọng
         styles = re.findall(r'<style[^>]*>(.*?)</style>', self.raw_html, re.DOTALL | re.IGNORECASE)
-        # Lọc các style quan trọng liên quan đến landing page
         relevant_styles = []
         for s in styles:
-            # Loại bỏ các style tracking hoặc admin thừa
             if len(s.strip()) > 30:
                 relevant_styles.append(s.strip())
         
         self.extracted_styles = relevant_styles
 
-        # 2. Tìm khối nội dung Landing Page chính
-        # Kiểm tra xem có khối container độc lập như #dv-clean-malware, main, article, .entry-content hay Elementor sections không
         patterns = [
             r'(<div id="dv-[^"]*"[^>]*>.*?</div>\s*<!--.*?-->|<div id="dv-[^"]*"[^>]*>.*?</div>\s*</div>)',
             r'(<div class="[^"]*(?:landing|lp-|page-content|elementor elementor-|entry-content)[^"]*"[^>]*>.*?</div>\s*<!-- \.entry-content -->|<div class="[^"]*entry-content[^"]*"[^>]*>.*?</div>)',
@@ -155,7 +377,6 @@ class LandingPageCloner:
                 break
 
         if not self.main_content_html:
-            # Nếu không khớp pattern trên, lấy phần giữa body bắt đầu từ thẻ nội dung đầu tiên
             body_m = re.search(r'<body[^>]*>(.*?)</body>', self.raw_html, re.DOTALL | re.IGNORECASE)
             self.main_content_html = body_m.group(1) if body_m else self.raw_html
 
@@ -165,7 +386,6 @@ class LandingPageCloner:
         """Quét toàn bộ ảnh trong HTML & CSS, tải về và đồng bộ lên WordPress Media Library"""
         print(f"[3/5] Đang quét và đồng bộ hình ảnh lên WordPress Media Library...")
 
-        # Quét tất cả thẻ img và background-image
         img_srcs = re.findall(r'<img[^>]+(?:src|data-src|data-lazy-src)=[\'"]([^\'"]+)[\'"]', self.main_content_html + self.raw_html, re.IGNORECASE)
         bg_srcs = re.findall(r'url\([\'"]?(https?://[^\'")\s]+)[\'"]?\)', self.main_content_html + "\n".join(self.extracted_styles), re.IGNORECASE)
 
@@ -200,7 +420,6 @@ class LandingPageCloner:
                 with urllib.request.urlopen(req, timeout=25) as r, open(local_path, 'wb') as f:
                     f.write(r.read())
 
-                # Upload lên WordPress
                 upload_endpoint = f"{self.api_url}/vbc/v1/upload"
                 boundary = '----WebKitFormBoundaryVbc' + str(int(time.time()))
                 mime_type, _ = mimetypes.guess_type(local_path)
@@ -235,34 +454,34 @@ class LandingPageCloner:
                         print(f"   [{idx}/{len(all_imgs)}] ✓ {filename} -> {wp_url}")
                     else:
                         self.media_map[img_url] = img_url
-            except Exception as e:
+            except Exception:
                 self.media_map[img_url] = img_url
 
         with open(media_map_file, 'w', encoding='utf-8') as f:
             json.dump(self.media_map, f, ensure_ascii=False, indent=2)
 
     def compile_vbc_content(self):
-        """Biên dịch mã nguồn HTML & CSS sang 100% Shortcodes VBC Elements"""
-        print(f"[4/5] Đang biên dịch mã nguồn sang Ultimate Flatsome VBC Elements...")
+        """Biên dịch mã nguồn HTML & CSS sang 100% Native Shortcodes VBC Elements"""
+        print(f"[4/5] Đang biên dịch mã nguồn sang 100% Native Shortcodes VBC Elements...")
 
-        # 1. Thay thế tất cả URL ảnh gốc sang URL WordPress nội bộ
         processed_html = self.main_content_html
         for orig_url, wp_url in self.media_map.items():
             if orig_url and wp_url:
                 processed_html = processed_html.replace(orig_url, wp_url)
 
-        # Xóa các thuộc tính lazy load để hình ảnh render ngay lập tức
         processed_html = re.sub(r'data-src=[\'"]([^\'"]+)[\'"]', r'src="\1"', processed_html)
         processed_html = re.sub(r'data-lazy-src=[\'"]([^\'"]+)[\'"]', r'src="\1"', processed_html)
         processed_html = re.sub(r'loading=[\'"]lazy[\'"]', 'loading="eager"', processed_html)
 
-        # 2. Xử lý các Stylesheet
+        # Chuyển đổi toàn bộ DOM sang AST Shortcodes VBC Elements
+        print(f"   -> Đang chuyển đổi cây DOM sang Native VBC Elements (Tabs, Posts, Cards, Containers)...")
+        vbc_body = convert_html_to_vbc_ast(processed_html)
+
         all_css = "\n".join(self.extracted_styles)
         for orig_url, wp_url in self.media_map.items():
             if orig_url and wp_url:
                 all_css = all_css.replace(orig_url, wp_url)
 
-        # 3. CSS Reset chuẩn cho Standalone Landing Page
         reset_css = f"""
 <style>
 #header, #footer, .header-wrapper, #wrapper > footer {{ display: none !important; }}
@@ -273,16 +492,14 @@ img {{ max-width: 100%; height: auto; }}
 </style>
 """
 
-        # 4. Bọc toàn bộ nội dung trong [vbc_div]
         vbc_output = f"""{reset_css}
 
-[vbc_div custom_css="selector {{ width: 100%; }}"]
-{processed_html}
-[/vbc_div]
+{vbc_body}
 """
         with open(os.path.join(self.tmp_dir, 'compiled_vbc.txt'), 'w', encoding='utf-8') as f:
             f.write(vbc_output)
 
+        print(f"   -> Đã biên dịch xong: {len(vbc_output)} bytes.")
         return vbc_output
 
     def publish_to_wordpress(self, vbc_content):
@@ -349,7 +566,7 @@ img {{ max-width: 100%; height: auto; }}
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Ultimate Flatsome VibeCode - Universal 1:1 Cloner")
+    parser = argparse.ArgumentParser(description="Ultimate Flatsome VibeCode - Advanced 1:1 Cloner (Tabs & Posts)")
     parser.add_argument("--url", required=True, help="URL của trang web cần clone")
     parser.add_argument("--title", default="", help="Tiêu đề trang trên WordPress")
     parser.add_argument("--slug", default="", help="Slug URL của trang đích")

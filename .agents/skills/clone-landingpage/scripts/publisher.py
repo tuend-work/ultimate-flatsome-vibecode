@@ -44,7 +44,7 @@ def publish_page(title, slug, content_file_or_text, post_id=None, template="page
 
     # Clean header reset CSS if not present
     if '#header' not in content:
-        reset_prefix = "<style>#header, #footer, .header-wrapper, #wrapper > footer { display: none !important; } body { padding-top: 0 !important; margin: 0 !important; background: #ffffff !important; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; } #main { padding-top: 0 !important; padding-bottom: 0 !important; }</style>\n\n"
+        reset_prefix = "<style>#header, #footer, .header-wrapper, #wrapper > footer { display: none !important; } body { padding-top: 0 !important; margin: 0 !important; background: #ffffff !important; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; } #main { padding-top: 0 !important; padding-bottom: 0 !important; }</style>"
         content = reset_prefix + content
 
     payload = {

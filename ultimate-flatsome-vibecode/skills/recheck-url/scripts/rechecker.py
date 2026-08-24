@@ -209,8 +209,8 @@ class LandingPageRechecker:
 
     def check_unparsed_shortcodes(self, html):
         """Kiểm tra các shortcode thô bị lộ ra ngoài giao diện"""
-        raw_tags = re.findall(r'\[\/?vbc_[^\]]*\]', html)
-        unparsed_flatsome = re.findall(r'\[\/?(?:row|col|accordion|accordion-item|ux_banner|ux_image)[^\]]*\]', html)
+        raw_tags = re.findall(r'\[\/?vbc_[a-zA-Z0-9_\-]+[^\]]*\]', html)
+        unparsed_flatsome = re.findall(r'\[\/?(?:row|col|accordion|accordion-item|ux_banner|ux_image)\b[^\]]*\]', html)
         all_unparsed = raw_tags + unparsed_flatsome
         self.stats['unparsed_shortcodes'] = len(all_unparsed)
         
@@ -222,7 +222,8 @@ class LandingPageRechecker:
 
     def check_style_tag_corruption(self, html):
         """Kiểm tra thẻ style có bị wpautop chèn lỗi không"""
-        corrupted_styles = re.findall(r'<style[^>]*>[\s\S]*?(?:<p>|<br\s*\/?>)[\s\S]*?<\/style>', html, re.IGNORECASE)
+        style_blocks = re.findall(r'<style[^>]*>(.*?)</style>', html, re.DOTALL | re.IGNORECASE)
+        corrupted_styles = [s for s in style_blocks if re.search(r'<p\b|<br\s*/?>|</p>', s, re.IGNORECASE)]
         self.stats['corrupted_style_tags'] = len(corrupted_styles)
         if corrupted_styles:
             self.issues.append(f"Phát hiện {len(corrupted_styles)} thẻ <style> bị lỗi chèn thẻ <p>/<br> bởi wpautop.")

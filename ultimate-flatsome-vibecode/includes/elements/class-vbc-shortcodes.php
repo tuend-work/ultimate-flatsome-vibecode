@@ -219,6 +219,7 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
         'img_url' => '',
         'img_src' => '',
         'src' => '',
+        'url' => '',
         'img_meta_key' => '',
         'img_acf_key' => '',
         'alt' => '',
@@ -282,6 +283,8 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
                     $img_url = $atts['img_src'];
                 } elseif (!empty($atts['src'])) {
                     $img_url = $atts['src'];
+                } elseif (!empty($atts['url'])) {
+                    $img_url = $atts['url'];
                 }
             } elseif ($atts['img_source'] === 'post_meta') {
                 $meta_key = $atts['img_meta_key'];

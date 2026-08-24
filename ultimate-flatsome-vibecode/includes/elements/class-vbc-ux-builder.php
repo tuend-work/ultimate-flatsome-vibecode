@@ -12,50 +12,118 @@ if ( ! defined( 'ABSPATH' ) ) {
 add_action('ux_builder_setup', 'vbc_register_ux_builder_elements');
 
 /**
- * Inject CSS vào UX Builder iframe để uxb-wrapper divs không phá vỡ Flexbox/Grid layout.
+ * Fix UX Builder uxb-wrapper layout disruption.
  *
- * Vấn đề: UX Builder bọc mỗi element với <div class="uxb-wrapper uxb-wrapper--vbc_div uxb-draggable">.
- * Wrapper này là display:block, làm hỏng layout khi parent dùng display:flex hoặc display:grid
- * vì uxb-wrapper trở thành flex/grid child thay vì element thực.
+ * Vấn đề: UX Builder bọc mỗi shortcode trong <div class="uxb-wrapper uxb-wrapper--vbc_div">.
+ * Wrapper mặc định là display:block, phá vỡ flex/grid layout của parent container.
  *
- * Giải pháp: display:contents làm cho uxb-wrapper "vô hình" với layout engine,
- * cho phép element thực trở thành direct flex/grid child — giống hệt frontend.
- * Drag handles và selection overlay vẫn hoạt động vì chúng dùng position:absolute.
+ * Giải pháp:
+ *  1. CSS display:contents (khai báo trước, bảo vệ initial render)
+ *  2. JS MutationObserver (enforce sau khi UX Builder's JS chạy xong, immune to override)
  */
 add_action('wp_head', function() {
-    if (!isset($_GET['uxb_iframe'])) {
-        return;
+    if (!isset($_GET['uxb_iframe'])) return;
+    echo '<style id="vbc-uxbuilder-wrapper-fix">
+[class*="uxb-wrapper--vbc_"] {
+    display: contents !important;
+}
+</style>' . "\n";
+}, 5);
+
+add_action('wp_footer', function() {
+    if (!isset($_GET['uxb_iframe'])) return;
+    ?>
+<script id="vbc-uxbuilder-layout-fix">
+(function() {
+    'use strict';
+
+    // Kiểm tra nếu class của element là uxb-wrapper cho VBC element
+    function isVbcWrapper(el) {
+        if (!el || el.nodeType !== 1) return false;
+        for (var i = 0; i < el.classList.length; i++) {
+            var cls = el.classList[i];
+            if (cls.indexOf('uxb-wrapper--vbc_') === 0) return true;
+        }
+        return false;
     }
-    // Danh sách tất cả VBC element types cần fix
-    $vbc_tags = array(
-        'div', 'box', 'block', 'container',
-        'p', 'span', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-        'li', 'ul', 'ol', 'table', 'tr', 'td', 'th',
-        'b', 'strong', 'em', 'u', 'i',
-        'hr', 'br', 'img', 'section',
-    );
-    $selectors = array();
-    foreach ($vbc_tags as $tag) {
-        $selectors[] = '.uxb-wrapper--vbc_' . $tag;
-        $selectors[] = '.uxb-wrapper--vbc_' . $tag . '_inner';
-        for ($i = 1; $i <= 10; $i++) {
-            $selectors[] = '.uxb-wrapper--vbc_' . $tag . '_inner_' . $i;
+
+    // Áp dụng display:contents lên một wrapper
+    function fixWrapper(el) {
+        if (!isVbcWrapper(el)) return;
+        // Chỉ override nếu display hiện tại KHÔNG phải contents
+        if (el.style.display !== 'contents') {
+            el.style.setProperty('display', 'contents', 'important');
         }
     }
-    echo '<style id="vbc-uxbuilder-wrapper-fix">' . "\n";
-    // display:contents → uxb-wrapper biến mất với layout engine, element thực là flex/grid child
-    echo implode(",\n", $selectors) . " {\n";
-    echo "    display: contents !important;\n";
-    echo "}\n";
-    // Nhưng khi element ĐANG ĐƯỢC CHỌN (uxb-selected), cần restore để selection box hoạt động
-    $selected_selectors = array_map(function($s) { return $s . '.uxb-selected'; }, $selectors);
-    $selected_selectors2 = array_map(function($s) { return $s . '.uxb-draggable-active'; }, $selectors);
-    echo implode(",\n", array_merge($selected_selectors, $selected_selectors2)) . " {\n";
-    echo "    display: block !important;\n";
-    echo "    position: relative !important;\n";
-    echo "}\n";
-    echo '</style>' . "\n";
+
+    // Fix tất cả wrappers hiện có
+    function fixAllWrappers(root) {
+        var els = (root || document).querySelectorAll('[class*="uxb-wrapper--vbc_"]');
+        for (var i = 0; i < els.length; i++) {
+            fixWrapper(els[i]);
+        }
+    }
+
+    // MutationObserver: watch DOM changes từ UX Builder
+    function startObserver() {
+        var target = document.querySelector('.post-content') || document.body;
+        var observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                // Nodes được thêm mới
+                mutation.addedNodes.forEach(function(node) {
+                    if (node.nodeType !== 1) return;
+                    if (isVbcWrapper(node)) {
+                        fixWrapper(node);
+                    }
+                    // Fix các wrapper con bên trong
+                    var inner = node.querySelectorAll ? node.querySelectorAll('[class*="uxb-wrapper--vbc_"]') : [];
+                    for (var i = 0; i < inner.length; i++) {
+                        fixWrapper(inner[i]);
+                    }
+                });
+
+                // Nếu attributes thay đổi trên chính wrapper (UX Builder có thể reset style)
+                if (mutation.type === 'attributes' &&
+                    mutation.attributeName === 'style' &&
+                    isVbcWrapper(mutation.target)) {
+                    var el = mutation.target;
+                    if (el.style.display !== 'contents') {
+                        el.style.setProperty('display', 'contents', 'important');
+                    }
+                }
+            });
+        });
+
+        observer.observe(target, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['style', 'class']
+        });
+
+        return observer;
+    }
+
+    // Run ngay sau khi DOM sẵn sàng
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            fixAllWrappers();
+            startObserver();
+        });
+    } else {
+        fixAllWrappers();
+        startObserver();
+    }
+
+    // Chạy lại sau 500ms và 1500ms để bắt các element do UX Builder JS render trễ
+    setTimeout(fixAllWrappers, 500);
+    setTimeout(fixAllWrappers, 1500);
+    setTimeout(fixAllWrappers, 3000);
+})();
+</script>
+    <?php
 }, 99);
+
 
 
 function vbc_get_common_options($tag_type) {

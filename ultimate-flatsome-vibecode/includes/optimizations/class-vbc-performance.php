@@ -41,8 +41,19 @@ function vbc_disable_emojis_dns_prefetch($urls, $relation_type) {
  * (Các phần tử đã được đăng ký đầy đủ và tối ưu trong vbc_register_ux_builder_elements)
  */
 
-// Filter dọn dẹp các thẻ p và br tự động sinh quanh các shortcodes
+// Vô hiệu hóa wptexturize để chống tự ý đổi ngoặc kép " thành ngoặc cong phá vỡ shortcodes
+add_action('init', function() {
+    remove_filter('the_content', 'wptexturize');
+    remove_filter('the_excerpt', 'wptexturize');
+});
+
+// Filter dọn dẹp các thẻ p, br và chuẩn hóa ngoặc kép quanh các shortcodes
 function vbc_clean_shortcode_html($content) {
+    if (empty($content)) {
+        return '';
+    }
+    $content = str_replace(array('&#8220;', '&#8221;', '“', '”'), '"', $content);
+    $content = str_replace(array('&#8216;', '&#8217;', '‘', '’'), "'", $content);
     $array = array(
         '<p>[' => '[',
         ']</p>' => ']',
@@ -53,7 +64,14 @@ function vbc_clean_shortcode_html($content) {
     );
     return strtr($content, $array);
 }
-add_filter('the_content', 'vbc_clean_shortcode_html', 100);
+add_filter('the_content', 'vbc_clean_shortcode_html', 1);
+
+add_filter('the_content', function($content) {
+    if (strpos($content, '[vbc_') !== false) {
+        $content = do_shortcode($content);
+    }
+    return $content;
+}, 11);
 
 /**
  * 8. INJECT ACCORDION FAQ CARD STYLES

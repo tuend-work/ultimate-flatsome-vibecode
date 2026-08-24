@@ -132,6 +132,12 @@ def convert_node_to_vbc(node, depth_map=None):
     classes = attrs.get('class', '').lower()
     tag_id = attrs.get('id', '').lower()
 
+    if any(k in classes for k in ['countriesarea', 'grouplistcountry', 'animatearea', 'styles_wrapperflagleft']):
+        return ''
+
+    if any(k in classes for k in ['flag', 'country-list', 'dial-code-list']) and len(node.children) > 20:
+        return ''
+
     if any(k in classes for k in ['products', 'woocommerce-products', 'product-grid', 'shop-products']) and not classes.startswith('product '):
         product_items = [c for c in node.children if 'product' in c.attrs.get('class', '').lower()]
         count = len(product_items) if product_items else 8
@@ -154,12 +160,25 @@ def convert_node_to_vbc(node, depth_map=None):
         return convert_tabs_to_vbc(node, depth_map)
 
     # 3. CONTAINER TAGS HIERARCHY
-    if tag == 'div' or tag in ['section', 'main', 'article', 'header', 'footer', 'aside', 'nav']:
-        d_count = depth_map.get('div', 0)
-        alias = DIV_ALIASES[d_count % len(DIV_ALIASES)]
-        shortcode = f"vbc_{alias}"
+    if tag in ['div', 'section', 'main', 'article', 'header', 'footer', 'aside', 'nav']:
+        if any(k in classes for k in ['container', 'wrapper', 'wrap', 'content-box']):
+            base_tag = 'box'
+        elif any(k in classes for k in ['row', 'grid', 'flex', 'd-flex', 'layout']):
+            base_tag = 'block'
+        elif any(k in classes for k in ['col', 'column', 'card', 'item', 'box-item']):
+            base_tag = 'container'
+        else:
+            base_tag = 'div'
+
+        t_count = depth_map.get(base_tag, 0)
+        if t_count == 0:
+            shortcode = f"vbc_{base_tag}"
+        elif t_count == 1:
+            shortcode = f"vbc_{base_tag}_inner"
+        else:
+            shortcode = f"vbc_{base_tag}_inner_{min(t_count - 1, 10)}"
         new_depth = depth_map.copy()
-        new_depth['div'] = d_count + 1
+        new_depth[base_tag] = t_count + 1
     elif tag in ['span', 'p', 'i', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'ul', 'ol', 'b', 'strong', 'em', 'u', 'table', 'tr', 'td', 'th']:
         t_count = depth_map.get(tag, 0)
         if t_count == 0:
@@ -167,7 +186,7 @@ def convert_node_to_vbc(node, depth_map=None):
         elif t_count == 1:
             shortcode = f"vbc_{tag}_inner"
         else:
-            shortcode = f"vbc_{tag}_inner_{min(t_count, 5)}"
+            shortcode = f"vbc_{tag}_inner_{min(t_count - 1, 10)}"
         new_depth = depth_map.copy()
         new_depth[tag] = t_count + 1
     elif tag == 'img':

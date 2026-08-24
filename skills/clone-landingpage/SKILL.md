@@ -39,6 +39,7 @@ AI viết trực tiếp file mã nguồn VBC Elements lưu tại `tmp/<slug>/com
   - Gắn thuộc tính trực tiếp vào shortcode: `bg_color="..."`, `color="..."`, `font_size="..."`, `font_weight="..."`, `padding="..."`, `margin="..."`, `border_radius="..."`, `box_shadow="..."`, `display="flex|grid"`, `gap="..."`, `grid_columns="..."`, `text_align="..."`.
   - Thay thế 100% link ảnh bằng URL WordPress từ `media_map.json`.
   - **Nội dung Động (Dynamic Posts/Products)**: Khi phân đoạn là danh sách bài viết blog, tin tức kiến thức hoặc sản phẩm, PHẢI dùng `[vbc_post post_type="post|product" posts_per_page="..." columns="..." fields="thumbnail:100%, title:100%, excerpt:100%, button:100%"]` để lấy trực tiếp dữ liệu động từ website.
+  - **Truyền nội dung qua input (`text="..."` / `content="..."`)**: Tuyệt đối không lồng thẻ thô hoặc `<img>` vào giữa cặp thẻ `[vbc_p]...[/vbc_p]` hay `[vbc_h1]-[vbc_h6]`, vì WordPress `wpautop` sẽ tự động chèn thẻ `<p>` rác làm vỡ layout. Thay vào đó, hãy truyền nội dung vào input `text="..."` hoặc tách thành các phần tử nguyên tử (`[vbc_img]` + `[vbc_p]`) bên trong Flex container.
   - Giữ cấu trúc phân cấp lồng nhau chuẩn xác: dùng `_inner_1`, `_inner_2` cho các thẻ con bên trong để đảm bảo **0 unparsed shortcodes**.
 
 ### Bước 4: Xuất bản Lên WordPress Qua REST API

@@ -134,6 +134,8 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
 
     $defaults = array(
         'content' => '',
+        'text' => '',
+        'title' => '',
         'class' => '',
         'custom_class' => '',
         'custom_css' => '',
@@ -406,7 +408,7 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
         $dynamic_content = strval($dynamic_content);
     }
 
-    $inner_content_to_render = !empty($atts['content']) ? $atts['content'] : $content;
+    $inner_content_to_render = !empty($atts['content']) ? $atts['content'] : (!empty($atts['text']) ? $atts['text'] : (!empty($atts['title']) && in_array($html_tag, array('h1','h2','h3','h4','h5','h6','a','span','p','b','strong')) ? $atts['title'] : $content));
     $inner_content_to_render = vbc_clean_inner_content($inner_content_to_render);
 
     // Tự động thay thế placeholders động nếu có: {{post_title}}, {{title}}, {{post_excerpt}}, {{date}}, {{permalink}}, {{meta:key}}, {{acf:key}}

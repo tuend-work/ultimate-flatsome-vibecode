@@ -22,7 +22,31 @@ Bảng quy tắc chuyển đổi thẻ HTML chuẩn sang Shortcodes của **Ulti
 | `<i>` / `<svg>` | `[vbc_icon]` | `[vbc_icon icon_type="lucide" name="check-circle" size="20px" color="#10b981"]` | — |
 | `<details>`, `<div class="accordion">` | `[vbc_accordion]` / `[accordion]` | `[vbc_accordion]` hoặc `[accordion]` chứa các `[accordion-item]` / `[vbc_box_inner_X]` phân tầng | — |
 | `<div>` Blog List / Products Grid | `[vbc_post]` | `[vbc_post post_type="post" posts_per_page="3" columns="3" columns__sm="1" fields="thumbnail:100%, title:100%, excerpt:100%, button:100%"]` *(Lấy nội dung động từ DB)* | `[vbc_post custom_css="..."]` |
-| `<form>` | `[contact-form-7]` | `[contact-form-7 id="508" title="Form Tư Vấn"]` | — |
+---
+
+## 🚨 QUY TẮC BẮT BUỘC: TRUYỀN NỘI DUNG VÀO INPUT CỦA SHORTCODE (CHỐNG LỖI WPAUTOP)
+
+> ⚠️ **TUYỆT ĐỐI KHÔNG** truyền nội dung bằng cách lồng thẻ thô `<img ...>` hoặc HTML vào giữa cặp thẻ `[vbc_p]...[/vbc_p]` hay `[vbc_h1]-[vbc_h6]`, vì bộ xử lý `wpautop` của WordPress sẽ tự động nhồi thẻ `<p>` rác vào trong làm vỡ bố cục giao diện.
+
+### ❌ CÁCH VIẾT SAI (BỊ WPAUTOP INJECT THẺ P):
+```html
+<!-- SAI: Nhét trực tiếp thẻ img vào giữa cặp thẻ vbc_p -->
+[vbc_p color="#1e293b" font_size="16px" font_weight="600" margin="0 0 12px 0"]<img src="https://.../icon-check.png" width="18px" height="18px" style="vertical-align:middle; margin-right:8px;"> Học 1 kèm 1, sửa lỗi ngay lập tức.[/vbc_p]
+```
+
+### ✅ CÁCH VIẾT ĐÚNG CHUẨN 100%:
+**Cách 1: Truyền nội dung qua thuộc tính `text="..."` hoặc `content="..."`**
+```html
+[vbc_p text="Học 1 kèm 1, sửa lỗi ngay lập tức." color="#1e293b" font_size="16px" font_weight="600" margin="0 0 12px 0"]
+```
+
+**Cách 2: Tách biệt Icon/Image và Text trong Flex Container**
+```html
+[vbc_block display="flex" align_items="center" gap="10px" margin="0 0 12px 0"]
+  [vbc_img src="https://.../icon-check.png" width="18px" height="18px"]
+  [vbc_p text="Học 1 kèm 1, sửa lỗi ngay lập tức." color="#1e293b" font_size="16px" font_weight="600" margin="0"]
+[/vbc_block]
+```
 
 ---
 

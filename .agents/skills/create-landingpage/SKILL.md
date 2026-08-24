@@ -33,6 +33,7 @@ AI xác định:
 AI trực tiếp viết mã nguồn VBC Elements lưu tại `tmp/<slug>/created_vbc.txt`.
 - Sử dụng đầy đủ các thẻ: `[vbc_div]`, `[vbc_box]`, `[vbc_block]`, `[vbc_container]`, `[vbc_h1]-[vbc_h6]`, `[vbc_p]`, `[vbc_a]`, `[vbc_img]`, `[vbc_icon]`, `[vbc_card]`, `[vbc_tabs]`, `[vbc_accordion]`, `[contact-form-7]`, `[vbc_post]`.
 - Gắn trực tiếp thuộc tính: `bg_color="..."`, `color="..."`, `font_size="..."`, `font_weight="..."`, `padding="..."`, `margin="..."`, `border_radius="..."`, `box_shadow="..."`, `display="flex|grid"`, `gap="..."`, `grid_columns="..."`, `text_align="..."`.
+- **Truyền nội dung qua input (`text="..."` / `content="..."`)**: Tuyệt đối không lồng thẻ thô hoặc `<img>` vào giữa cặp thẻ `[vbc_p]...[/vbc_p]` hay `[vbc_h1]-[vbc_h6]`, vì WordPress `wpautop` sẽ tự động chèn thẻ `<p>` rác làm vỡ layout. Thay vào đó, hãy truyền nội dung vào input `text="..."` hoặc tách thành các phần tử nguyên tử (`[vbc_img]` + `[vbc_p]`) bên trong Flex container.
 - Cấu trúc phân cấp lồng nhau chuẩn: dùng `_inner_1`, `_inner_2` để đảm bảo **0 lỗi shortcode**.
 
 ### Bước 3: Xuất bản Lên WordPress Qua REST API

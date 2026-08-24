@@ -476,28 +476,31 @@ function vbc_register_ux_builder_elements() {
                 'type' => 'group',
                 'heading' => 'Hình ảnh (Image Settings)',
                 'options' => array(
-                    'img_source' => array(
-                        'type' => 'select',
-                        'heading' => 'Nguồn Ảnh',
-                        'default' => 'default',
-                        'options' => array(
-                            'default' => 'Thư viện (Media Library)',
-                            'manual' => 'URL trực tiếp',
-                            'post_meta' => 'WP Post Meta (ID/URL)',
-                            'acf' => 'ACF Field (ID/URL)',
-                        ),
+                    'src' => array(
+                        'type' => 'textfield',
+                        'heading' => 'URL ảnh (src)',
+                        'default' => '',
                     ),
                     'img_attachment' => array(
                         'type' => 'image',
-                        'heading' => 'Chọn ảnh',
+                        'heading' => 'Chọn ảnh từ thư viện',
                         'default' => '',
-                        'conditions' => 'img_source === "default"',
                     ),
-                    'img_url' => array(
+                    'alt' => array(
                         'type' => 'textfield',
-                        'heading' => 'URL ảnh',
+                        'heading' => 'Alt text',
                         'default' => '',
-                        'conditions' => 'img_source === "manual"',
+                    ),
+                    'img_source' => array(
+                        'type' => 'select',
+                        'heading' => 'Nguồn Ảnh',
+                        'default' => 'manual',
+                        'options' => array(
+                            'manual' => 'URL trực tiếp (src)',
+                            'default' => 'Thư viện (Media Library)',
+                            'post_meta' => 'WP Post Meta (ID/URL)',
+                            'acf' => 'ACF Field (ID/URL)',
+                        ),
                     ),
                     'img_meta_key' => array(
                         'type' => 'textfield',
@@ -510,11 +513,6 @@ function vbc_register_ux_builder_elements() {
                         'heading' => 'ACF Field Key',
                         'default' => '',
                         'conditions' => 'img_source === "acf"',
-                    ),
-                    'alt' => array(
-                        'type' => 'textfield',
-                        'heading' => 'Alt text',
-                        'default' => '',
                     ),
                 ),
             );
@@ -572,7 +570,35 @@ function vbc_register_ux_builder_elements() {
         }
 
         add_ux_builder_shortcode('vbc_' . $tag, $args);
+        add_ux_builder_shortcode('vbc_' . $tag . '_inner', $args);
+        for ($i = 1; $i <= 10; $i++) {
+            add_ux_builder_shortcode('vbc_' . $tag . '_inner_' . $i, $args);
+        }
     }
+
+    // Đăng ký vbc_section
+    add_ux_builder_shortcode('vbc_section', array(
+        'name' => 'VBC Section',
+        'category' => 'VibeCode Layout',
+        'type' => 'container',
+        'options' => array(
+            'id' => array(
+                'type' => 'textfield',
+                'heading' => 'Section ID',
+                'default' => '',
+            ),
+            'class' => array(
+                'type' => 'textfield',
+                'heading' => 'CSS Class',
+                'default' => '',
+            ),
+            'custom_css' => array(
+                'type' => 'textarea',
+                'heading' => 'Custom CSS (selector)',
+                'default' => '',
+            ),
+        ),
+    ));
 
     // Đăng ký các Advanced Components vào UX Builder
     add_ux_builder_shortcode('vbc_card', array(

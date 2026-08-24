@@ -268,27 +268,25 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
         if ($html_tag === 'img') {
             $img_url = '';
             $img_id = 0;
-            if ($atts['img_source'] === 'default') {
+
+            if (!empty($atts['src'])) {
+                $img_url = $atts['src'];
+            } elseif (!empty($atts['img_url'])) {
+                $img_url = $atts['img_url'];
+            } elseif (!empty($atts['img_src'])) {
+                $img_url = $atts['img_src'];
+            } elseif (!empty($atts['url'])) {
+                $img_url = $atts['url'];
+            } elseif ($atts['img_source'] === 'default' && !empty($atts['img_attachment'])) {
                 $img_id = intval($atts['img_attachment']);
                 if ($img_id > 0) {
                     $img_url = wp_get_attachment_image_url($img_id, 'full');
                 }
-            } elseif ($atts['img_source'] === 'manual') {
+            } elseif ($atts['img_source'] === 'manual' && !empty($atts['img_url'])) {
                 $img_url = $atts['img_url'];
             }
             
-            // Fallback tự động nhận diện URL
-            if (empty($img_url)) {
-                if (!empty($atts['img_url'])) {
-                    $img_url = $atts['img_url'];
-                } elseif (!empty($atts['img_src'])) {
-                    $img_url = $atts['img_src'];
-                } elseif (!empty($atts['src'])) {
-                    $img_url = $atts['src'];
-                } elseif (!empty($atts['url'])) {
-                    $img_url = $atts['url'];
-                }
-            } elseif ($atts['img_source'] === 'post_meta') {
+            if ($atts['img_source'] === 'post_meta') {
                 $meta_key = $atts['img_meta_key'];
                 if (!empty($meta_key)) {
                     $val = get_post_meta(get_the_ID(), $meta_key, true);

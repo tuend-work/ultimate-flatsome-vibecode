@@ -14,12 +14,19 @@ add_action('ux_builder_setup', 'vbc_register_ux_builder_elements');
 function vbc_get_common_options($tag_type) {
     $options = array();
 
-    if ($tag_type === 'container') {
+    if ($tag_type === 'text') {
+        $options['text'] = array(
+            'type' => 'textarea',
+            'heading' => 'Nội dung (Text / HTML)',
+            'default' => '',
+            'description' => 'Nhập chữ, HTML hoặc shortcode (như [vbc_icon]).',
+        );
+    } elseif ($tag_type === 'container') {
         $options['content'] = array(
             'type' => 'textarea',
-            'heading' => 'Nội dung (Text/HTML/Shortcode)',
+            'heading' => 'Nội dung trực tiếp (Content)',
             'default' => '',
-            'description' => 'Nhập chữ, HTML hoặc shortcode (như [vbc_icon]). Nhập ở đây sẽ hiển thị trực tiếp và không bị Flatsome tự ý bọc thẻ p/text.',
+            'description' => 'Nhập chữ, HTML hoặc shortcode nếu không dùng các khối con kéo thả.',
         );
     }
 
@@ -385,16 +392,16 @@ function vbc_register_ux_builder_elements() {
         'box' => array('name' => 'VBC Box (Div)', 'type' => 'container'),
         'block' => array('name' => 'VBC Block (Div)', 'type' => 'container'),
         'container' => array('name' => 'VBC Container (Div)', 'type' => 'container'),
-        'p' => array('name' => 'VBC Paragraph', 'type' => 'container'),
-        'i' => array('name' => 'VBC Italic', 'type' => 'container'),
-        'span' => array('name' => 'VBC Span', 'type' => 'container'),
-        'a' => array('name' => 'VBC Link', 'type' => 'container'),
-        'h1' => array('name' => 'VBC H1', 'type' => 'container'),
-        'h2' => array('name' => 'VBC H2', 'type' => 'container'),
-        'h3' => array('name' => 'VBC H3', 'type' => 'container'),
-        'h4' => array('name' => 'VBC H4', 'type' => 'container'),
-        'h5' => array('name' => 'VBC H5', 'type' => 'container'),
-        'h6' => array('name' => 'VBC H6', 'type' => 'container'),
+        'p' => array('name' => 'VBC Paragraph', 'type' => 'text'),
+        'i' => array('name' => 'VBC Italic', 'type' => 'text'),
+        'span' => array('name' => 'VBC Span', 'type' => 'text'),
+        'a' => array('name' => 'VBC Link', 'type' => 'text'),
+        'h1' => array('name' => 'VBC H1', 'type' => 'text'),
+        'h2' => array('name' => 'VBC H2', 'type' => 'text'),
+        'h3' => array('name' => 'VBC H3', 'type' => 'text'),
+        'h4' => array('name' => 'VBC H4', 'type' => 'text'),
+        'h5' => array('name' => 'VBC H5', 'type' => 'text'),
+        'h6' => array('name' => 'VBC H6', 'type' => 'text'),
         'li' => array('name' => 'VBC List Item', 'type' => 'container'),
         'ul' => array('name' => 'VBC Unordered List', 'type' => 'container'),
         'ol' => array('name' => 'VBC Ordered List', 'type' => 'container'),
@@ -402,10 +409,10 @@ function vbc_register_ux_builder_elements() {
         'tr' => array('name' => 'VBC Table Row', 'type' => 'container'),
         'td' => array('name' => 'VBC Table Cell', 'type' => 'container'),
         'th' => array('name' => 'VBC Table Header', 'type' => 'container'),
-        'b' => array('name' => 'VBC Bold', 'type' => 'container'),
-        'strong' => array('name' => 'VBC Strong', 'type' => 'container'),
-        'em' => array('name' => 'VBC Emphasis', 'type' => 'container'),
-        'u' => array('name' => 'VBC Underline', 'type' => 'container'),
+        'b' => array('name' => 'VBC Bold', 'type' => 'text'),
+        'strong' => array('name' => 'VBC Strong', 'type' => 'text'),
+        'em' => array('name' => 'VBC Emphasis', 'type' => 'text'),
+        'u' => array('name' => 'VBC Underline', 'type' => 'text'),
         'hr' => array('name' => 'VBC Horizontal Rule', 'type' => 'void'),
         'br' => array('name' => 'VBC Line Break', 'type' => 'void'),
         'img' => array('name' => 'VBC Image', 'type' => 'void'),

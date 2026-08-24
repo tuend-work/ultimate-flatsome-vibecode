@@ -1,0 +1,26 @@
+{
+    "api-url": "https://your-domain.com/wp-json",
+    "token": "YOUR_VBC_API_TOKEN_HERE",
+    "ftp": {
+        "host": "your-ftp-host.com",
+        "user": "your-ftp-username",
+        "password": "your-ftp-password",
+        "path": "/public_html",
+        "root_path": "/public_html",
+        "plugins_path": "/public_html/wp-content/plugins"
+    },
+    "website_context": {
+        "site_name": "My Flatsome Site",
+        "site_tagline": "WordPress Landing Page",
+        "site_url": "https://your-domain.com",
+        "language": "vi",
+        "timezone": "+07:00",
+        "contact": {
+            "phone": "0123456789",
+            "email": "contact@your-domain.com",
+            "address": "Vietnam",
+            "zalo": "https://zalo.me/0123456789",
+            "working_hours": "8:00 - 18:00"
+        }
+    }
+}

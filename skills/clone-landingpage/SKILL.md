@@ -26,7 +26,9 @@ Tự động bóc tách cấu trúc DOM, phân tích ngữ cảnh từng Section
 
 4. **Biên dịch Shortcode VBC Elements**:
    - Sinh shortcodes thuần `[vbc_div]`, `[vbc_box]`, `[vbc_block]`, `[vbc_container]`, `[vbc_h1]-[vbc_h6]`, `[vbc_p]`, `[vbc_a]`, `[vbc_icon]`, `[contact-form-7]`.
-   - Áp dụng CSS Responsive hoàn chỉnh, không để sót bất kỳ unparsed tags nào.
+   - **Tự động nhận diện & Clone Tab**: Chuyển đổi toàn bộ cấu trúc tab (Bootstrap, Elementor, Flatsome, ARIA) sang `[vbc_tabs]` và `[vbc_tab title="..."]`.
+   - **Tự động nhận diện Danh sách Bài viết / Sản phẩm**: Nhận diện danh sách bài viết (`.blog-posts`, `article.post`, `.penci-grid`) hoặc sản phẩm WooCommerce (`.woocommerce ul.products`, `.product-item`) và tự động chuyển đổi thành shortcode động `[vbc_post post_type="post|product" posts_per_page="X" columns="Y" layout="grid"]` để truy vấn dữ liệu thời gian thực từ database backend.
+   - Áp dụng CSS Responsive hoàn chỉnh, phân cấp shortcode lồng nhau chặt chẽ, không để sót bất kỳ unparsed tags nào.
 
 5. **Xuất bản & Tự động Đối soát**:
    - Xuất bản lên WordPress qua REST API `/vbc/v1/page`.

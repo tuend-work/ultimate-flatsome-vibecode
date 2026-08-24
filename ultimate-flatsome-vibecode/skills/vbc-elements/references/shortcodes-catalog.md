@@ -47,3 +47,29 @@ Bảng tra cứu đầy đủ các thuộc tính và cách dùng của từng sh
   ```html
   [vbc_icon icon_type="lucide" name="star" size="18px" color="#f59e0b"]
   ```
+
+### 9. `[vbc_tabs]` & `[vbc_tab]`
+- **Mô tả:** Hệ thống Tabs chuyển đổi nội dung tương tác (Responsive Tabbed Navigation & Content Panes).
+- **Thuộc tính `[vbc_tabs]`:** `style` (`pills`, `underline`, `cards`, `glass`), `align` (`left`, `center`, `right`, `justify`), `active_tab` (`1`, `2`, ...), `tab_bg`, `tab_active_bg`, `tab_color`, `tab_active_color`, `class`, `custom_css`.
+- **Thuộc tính `[vbc_tab]`:** `title`, `icon`, `tab_id`, `custom_class`.
+- **Ví dụ:**
+  ```html
+  [vbc_tabs style="pills" align="center" active_tab="1"]
+    [vbc_tab title="Tổng Quan" icon="fa fa-info-circle"]
+      [vbc_p]Nội dung giới thiệu tổng quan dịch vụ...[/vbc_p]
+    [/vbc_tab]
+    [vbc_tab title="Bảng Giá" icon="fa fa-tag"]
+      [vbc_p]Bảng giá chi tiết các gói...[/vbc_p]
+    [/vbc_tab]
+  [/vbc_tabs]
+  ```
+
+### 10. `[vbc_post]`
+- **Mô tả:** Truy vấn động danh sách Bài viết (Blog posts) hoặc Sản phẩm (WooCommerce products) trực tiếp từ database backend WordPress.
+- **Thuộc tính:** `post_type` (`post` / `product` / CPT), `posts_per_page`, `columns` (`2`, `3`, `4`, `5`), `layout` (`grid`, `list`, `table`), `orderby`, `order`, `taxonomy`, `terms`, `title_size`, `title_color`.
+- **Ví dụ:**
+  ```html
+  [vbc_post post_type="post" posts_per_page="6" columns="3" layout="grid"]
+  [vbc_post post_type="product" posts_per_page="8" columns="4" layout="grid"]
+  ```
+

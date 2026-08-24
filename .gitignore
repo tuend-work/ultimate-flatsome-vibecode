@@ -1,4 +1,31 @@
+# Credentials & config
 vbc-config.json
+vbc-config.local.json
+ultimate-flatsome-vibecode/vbc-config.json
+ultimate-flatsome-vibecode-skill-dev/vbc-config.json
+
+# Binary installers and archives
+*.msi
+*.exe
+*.zip
+*.tar.gz
+
+# Temporary folders & scratch
 tmp/
+scratch/
+.cache_media/
+
+# Python caches
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+
+# Node / JS
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS artifacts
+.DS_Store
+Thumbs.db

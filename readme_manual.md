@@ -31,27 +31,31 @@ Hệ thống được chia thành 3 cấu phần lõi và 1 thư mục dữ li�
 
 ```
 ultimate-flatsome-vibecode/
-├── ultimate-flatsome-vibecode/         # [1] Plugin WordPress cốt lõi (Bán cho khách / Cài trên web đích)
+├── ultimate-flatsome-vibecode/         # [1] Plugin WordPress cốt lõi (v2.3.0 Modular Architecture)
 │   ├── assets/                         # CSS, JS Icon Picker, hình ảnh demo
 │   │   ├── vbc-icon-picker.js          # Modal chọn Icon & Media cho UX Builder
 │   │   └── vbc-icon-picker.css         # Styling cho Modal Icon Picker
-│   └── ultimate-flatsome-vibecode.php  # Mã nguồn chính của Plugin Server (PHP)
+│   ├── includes/                       # Kiến trúc module hóa tách biệt
+│   │   ├── class-vbc-core.php          # Singleton Loader & Bootstrap
+│   │   ├── core/                       # CSS Engine & Responsive Compiler
+│   │   ├── elements/                   # UX Builder Schemas & HTML Shortcodes
+│   │   │   └── components/             # Card, Testimonial, Accordion, Tabs, Button, Slider, Fullpage, Post
+│   │   ├── icons/                      # Quản lý 5 bộ icon & lazy loading
+│   │   ├── api/                        # REST API (/upload, /page, /cf7)
+│   │   ├── admin/                      # Admin Settings & Project Exporter (Zip đệ quy)
+│   │   └── optimizations/              # Tắt WP Emoji, dọn HTML rác
+│   ├── skills/                         # Thư mục Skills đóng gói theo chuẩn Google Antigravity
+│   └── ultimate-flatsome-vibecode.php  # Entrypoint bootstrap plugin
 │
-├── ultimate-flatsome-skill/            # [2] Bộ công cụ AI CLI Skills (Dành cho Agent AI / Antigravity)
-│   ├── vbc-config.json                 # Cấu hình API URL, Token & FTP Hosting
-│   ├── readme_manual.md                # Hướng dẫn kỹ thuật nhanh
-│   └── skills/
-│       ├── create-landing-page.js      # CLI xuất bản trang kèm bộ Linter & Sanitizer
-│       ├── clone-landingpage.js        # CLI clone 99% từ URL/HTML/ZIP/Ảnh
-│       ├── ftp-upload.js               # Script truyền file FTP tự động cập nhật plugin
-│       └── readme.md                   # Bộ quy chuẩn thiết kế, bảng màu & Shortcodes
+├── .agents/skills/                     # [2] Bộ công cụ AI Skills chuẩn Google Antigravity (Source of Truth)
+│   ├── clone-landingpage/              # Skill tự động clone 99%
+│   ├── create-landingpage/             # Skill tạo landing page mới
+│   ├── recheck-url/                    # Skill QA audit và đo độ giống
+│   └── vbc-elements/                   # Cẩm nang tra cứu VBC Shortcodes
 │
-├── ultimate-flatsome-vibecode-client/  # [3] Phần mở rộng SaaS Private (AI Backend Gemini)
-│   └── readme.md                       # Mô tả kiến trúc SaaS Auto-Clone & Import
-│
-└── Example/                            # [4] Dữ liệu mẫu & Fixtures kiểm thử
-    ├── shortcode before save           # Định dạng Shortcode trước khi lưu vào UX Builder
-    └── shortcode after save on uxbuilder# Định dạng Shortcode sau khi UX Builder tự format
+├── vbc-config.sample.json              # [3] Mẫu file cấu hình API Token & FTP
+├── ultimate-flatsome-vibecode-client/  # [4] Phần mở rộng SaaS Private (AI Backend Gemini)
+└── Example/                            # [5] Dữ liệu mẫu & Fixtures kiểm thử
 ```
 
 ---

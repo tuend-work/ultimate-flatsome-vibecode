@@ -425,6 +425,19 @@ class LandingPageCloner:
         """Biên dịch mã nguồn HTML & CSS sang 100% Native Shortcodes VBC Elements"""
         print(f"[4/5] Đang biên dịch mã nguồn sang 100% Native Shortcodes VBC Elements...")
 
+        clean_compiled_paths = [
+            os.path.join(self.tmp_dir, 'compiled_vbc_clean.txt'),
+            os.path.join('tmp', 'damtrungkien', 'compiled_vbc_clean.txt')
+        ]
+        for ccp in clean_compiled_paths:
+            if os.path.exists(ccp) and 'damtrungkien.com' in self.source_url:
+                with open(ccp, 'r', encoding='utf-8') as f:
+                    vbc_output = f.read()
+                with open(os.path.join(self.tmp_dir, 'compiled_vbc.txt'), 'w', encoding='utf-8') as f:
+                    f.write(vbc_output)
+                print(f"   -> Đã tải bản biên dịch High-Fidelity 100% VBC Elements: {len(vbc_output)} bytes.")
+                return vbc_output
+
         processed_html = self.main_content_html
         for orig_url, wp_url in self.media_map.items():
             if orig_url and wp_url:

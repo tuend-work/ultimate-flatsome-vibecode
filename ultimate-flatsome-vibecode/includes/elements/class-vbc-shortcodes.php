@@ -111,25 +111,71 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
         $html_tag = 'div';
     }
 
-    $atts = shortcode_atts(array(
+    $defaults = array(
         'content' => '',
-        // Common Styling Options
         'class' => '',
         'custom_class' => '',
         'custom_css' => '',
         'custom_attributes' => '',
         'font_family' => '',
-        
-        // Responsive Options (được tự động ánh xạ bằng __md và __sm)
+
+        // Dimensions & Box Model
         'width' => '', 'width__md' => '', 'width__sm' => '',
         'height' => '', 'height__md' => '', 'height__sm' => '',
+        'max_width' => '', 'max_width__md' => '', 'max_width__sm' => '',
+        'min_width' => '', 'min_width__md' => '', 'min_width__sm' => '',
+        'max_height' => '', 'max_height__md' => '', 'max_height__sm' => '',
+        'min_height' => '', 'min_height__md' => '', 'min_height__sm' => '',
         'margin' => '', 'margin__md' => '', 'margin__sm' => '',
         'padding' => '', 'padding__md' => '', 'padding__sm' => '',
-        'font_size' => '', 'font_size__md' => '', 'font_size__sm' => '',
-        'font_weight' => '',
-        'text_align' => '', 'text_align__md' => '', 'text_align__sm' => '',
         'display' => '', 'display__md' => '', 'display__sm' => '',
+        'overflow' => '', 'overflow__md' => '', 'overflow__sm' => '',
+
+        // Colors & Backgrounds
+        'color' => '', 'color__md' => '', 'color__sm' => '',
         'background_color' => '', 'background_color__md' => '', 'background_color__sm' => '',
+        'bg_color' => '', 'bg_color__md' => '', 'bg_color__sm' => '',
+        'background' => '', 'background__md' => '', 'background__sm' => '',
+        'bg_gradient' => '', 'bg_gradient__md' => '', 'bg_gradient__sm' => '',
+        'bg_image' => '', 'bg_image__md' => '', 'bg_image__sm' => '',
+
+        // Typography
+        'font_size' => '', 'font_size__md' => '', 'font_size__sm' => '',
+        'font_weight' => '', 'font_weight__md' => '', 'font_weight__sm' => '',
+        'line_height' => '', 'line_height__md' => '', 'line_height__sm' => '',
+        'letter_spacing' => '', 'letter_spacing__md' => '', 'letter_spacing__sm' => '',
+        'text_align' => '', 'text_align__md' => '', 'text_align__sm' => '',
+        'text_transform' => '', 'text_transform__md' => '', 'text_transform__sm' => '',
+        'text_decoration' => '', 'text_decoration__md' => '', 'text_decoration__sm' => '',
+
+        // Flexbox & Grid
+        'flex_direction' => '', 'flex_direction__md' => '', 'flex_direction__sm' => '',
+        'justify_content' => '', 'justify_content__md' => '', 'justify_content__sm' => '',
+        'align_items' => '', 'align_items__md' => '', 'align_items__sm' => '',
+        'flex_wrap' => '', 'flex_wrap__md' => '', 'flex_wrap__sm' => '',
+        'gap' => '', 'gap__md' => '', 'gap__sm' => '',
+        'grid_template_columns' => '', 'grid_template_columns__md' => '', 'grid_template_columns__sm' => '',
+        'grid_columns' => '', 'grid_columns__md' => '', 'grid_columns__sm' => '',
+        'grid_gap' => '', 'grid_gap__md' => '', 'grid_gap__sm' => '',
+
+        // Borders & Shapes
+        'border' => '', 'border__md' => '', 'border__sm' => '',
+        'border_radius' => '', 'border_radius__md' => '', 'border_radius__sm' => '',
+        'border_color' => '', 'border_color__md' => '', 'border_color__sm' => '',
+        'border_width' => '', 'border_width__md' => '', 'border_width__sm' => '',
+        'border_style' => '', 'border_style__md' => '', 'border_style__sm' => '',
+        'box_shadow' => '', 'box_shadow__md' => '', 'box_shadow__sm' => '',
+
+        // Positioning & Effects
+        'position' => '', 'position__md' => '', 'position__sm' => '',
+        'top' => '', 'top__md' => '', 'top__sm' => '',
+        'bottom' => '', 'bottom__md' => '', 'bottom__sm' => '',
+        'left' => '', 'left__md' => '', 'left__sm' => '',
+        'right' => '', 'right__md' => '', 'right__sm' => '',
+        'z_index' => '', 'z_index__md' => '', 'z_index__sm' => '',
+        'opacity' => '', 'opacity__md' => '', 'opacity__sm' => '',
+        'cursor' => '', 'cursor__md' => '', 'cursor__sm' => '',
+        'transition' => '', 'transform' => '',
 
         // Container-specific Options
         'content_source' => 'default',
@@ -150,6 +196,8 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
         'img_source' => 'default',
         'img_attachment' => '',
         'img_url' => '',
+        'img_src' => '',
+        'src' => '',
         'img_meta_key' => '',
         'img_acf_key' => '',
         'alt' => '',
@@ -161,113 +209,18 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
         // ol-specific
         'ol_type' => '1',
         'ol_start' => '',
-    ), $atts, $tag);
+    );
+
+    $atts = shortcode_atts($defaults, $atts, $tag);
 
     if (empty($atts['custom_class']) && !empty($atts['class'])) {
         $atts['custom_class'] = $atts['class'];
     }
 
-    // Biên dịch Responsive CSS
-    $styles_desktop = array();
-    $styles_tablet = array();
-    $styles_mobile = array();
-
-    $responsive_props = array(
-        'width' => 'width',
-        'height' => 'height',
-        'margin' => 'margin',
-        'padding' => 'padding',
-        'font_size' => 'font-size',
-        'font_weight' => 'font-weight',
-        'text_align' => 'text-align',
-        'display' => 'display',
-        'background_color' => 'background-color',
-    );
-
-    foreach ($responsive_props as $attr_key => $css_prop) {
-        // Desktop
-        if (isset($atts[$attr_key]) && $atts[$attr_key] !== '') {
-            $val = $atts[$attr_key];
-            if ($css_prop === 'background-color' && strpos($val, '#') !== 0 && !preg_match('/^(rgb|hsl)/', $val)) {
-                // Colorpicker của Flatsome đôi khi trả về mã hexa trần
-                $val = '#' . $val;
-            }
-            $styles_desktop[] = $css_prop . ': ' . $val . ';';
-        }
-        // Tablet (__md)
-        $md_key = $attr_key . '__md';
-        if (isset($atts[$md_key]) && $atts[$md_key] !== '') {
-            $val = $atts[$md_key];
-            if ($css_prop === 'background-color' && strpos($val, '#') !== 0 && !preg_match('/^(rgb|hsl)/', $val)) {
-                $val = '#' . $val;
-            }
-            $styles_tablet[] = $css_prop . ': ' . $val . ';';
-        }
-        // Mobile (__sm)
-        $sm_key = $attr_key . '__sm';
-        if (isset($atts[$sm_key]) && $atts[$sm_key] !== '') {
-            $val = $atts[$sm_key];
-            if ($css_prop === 'background-color' && strpos($val, '#') !== 0 && !preg_match('/^(rgb|hsl)/', $val)) {
-                $val = '#' . $val;
-            }
-            $styles_mobile[] = $css_prop . ': ' . $val . ';';
-        }
-    }
-
-    if (!empty($atts['font_family'])) {
-        $styles_desktop[] = 'font-family: \'' . esc_attr($atts['font_family']) . '\', sans-serif;';
-    }
-
-    $compiled_css = '';
-    $class_attr = $atts['custom_class'];
-
-    if (!empty($styles_desktop) || !empty($styles_tablet) || !empty($styles_mobile) || !empty($atts['custom_css'])) {
-        $random_id = wp_generate_password(8, false);
-        $unique_class = 'vbc-css-' . $random_id;
-        
-        $css_rules = '';
-        
-        // Desktop rules
-        if (!empty($styles_desktop)) {
-            $css_rules .= '.' . $unique_class . ' { ' . implode(' ', $styles_desktop) . ' }' . "\n";
-        }
-        
-        // Tablet rules (max-width: 849px)
-        if (!empty($styles_tablet)) {
-            $css_rules .= '@media (max-width: 849px) { .' . $unique_class . ' { ' . implode(' ', $styles_tablet) . ' } }' . "\n";
-        }
-        
-        // Mobile rules (max-width: 549px)
-        if (!empty($styles_mobile)) {
-            $css_rules .= '@media (max-width: 549px) { .' . $unique_class . ' { ' . implode(' ', $styles_mobile) . ' } }' . "\n";
-        }
-        
-        // Custom CSS block
-        if (!empty($atts['custom_css'])) {
-            $raw_css = trim($atts['custom_css']);
-            if (strpos($raw_css, '{') === false) {
-                $css_rules .= '.' . $unique_class . ' { ' . $raw_css . ' }' . "\n";
-            } else {
-                $css_rules .= str_replace('selector', '.' . $unique_class, $raw_css) . "\n";
-            }
-        }
-        
-        // Compress CSS to prevent wpautop from adding <br> tags
-        $css_rules = str_replace(array("\r", "\n"), ' ', $css_rules);
-        $css_rules = preg_replace('/\s+/', ' ', $css_rules);
-        
-        if (vbc_should_inline_css()) {
-            $compiled_css = '<style>' . $css_rules . '</style>';
-        } else {
-            global $vbc_accumulated_css;
-            if (!is_array($vbc_accumulated_css)) {
-                $vbc_accumulated_css = array();
-            }
-            $vbc_accumulated_css[] = $css_rules;
-            $compiled_css = '';
-        }
-        $class_attr = trim($class_attr . ' ' . $unique_class);
-    }
+    // Biên dịch Responsive CSS & Inputs
+    $compiled = vbc_compile_element_css($atts, 'vbc-css');
+    $class_attr = trim($atts['custom_class'] . ' ' . $compiled['class']);
+    $compiled_css = $compiled['css'];
 
     $class_attr_str = !empty($class_attr) ? ' class="' . esc_attr($class_attr) . '"' : '';
     $custom_attrs = !empty($atts['custom_attributes']) ? ' ' . trim($atts['custom_attributes']) : '';

@@ -263,7 +263,12 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
             return '<br>';
         }
         if ($html_tag === 'hr') {
-            return $compiled_css . '<hr' . $class_attr_str . $custom_attrs . '>';
+            if (vbc_should_inline_css() && !empty($compiled_css)) {
+                global $vbc_accumulated_css;
+                if (!is_array($vbc_accumulated_css)) $vbc_accumulated_css = array();
+                $vbc_accumulated_css[] = strip_tags($compiled_css);
+            }
+            return '<hr' . $class_attr_str . $custom_attrs . '>';
         }
         if ($html_tag === 'img') {
             $img_url = '';
@@ -331,14 +336,20 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
                 $alt = esc_attr(get_post_meta($img_id, '_wp_attachment_image_alt', true));
             }
             
+            if (vbc_should_inline_css() && !empty($compiled_css)) {
+                global $vbc_accumulated_css;
+                if (!is_array($vbc_accumulated_css)) $vbc_accumulated_css = array();
+                $vbc_accumulated_css[] = strip_tags($compiled_css);
+            }
+
             if (empty($img_url)) {
                 if (is_user_logged_in() && (is_admin() || is_customize_preview() || isset($_GET['uxb_iframe']))) {
-                    return $compiled_css . '<div style="background:#f3f3f3;padding:15px;text-align:center;border:1px dashed #ccc;font-size:11px;"' . $class_attr_str . $custom_attrs . '>VBC Image (No Source Selected)</div>';
+                    return '<div style="background:#f3f3f3;padding:15px;text-align:center;border:1px dashed #ccc;font-size:11px;"' . $class_attr_str . $custom_attrs . '>VBC Image (No Source Selected)</div>';
                 }
                 return '';
             }
 
-            return $compiled_css . '<img src="' . $img_url . '" alt="' . $alt . '"' . $class_attr_str . $custom_attrs . '>';
+            return '<img src="' . $img_url . '" alt="' . $alt . '"' . $class_attr_str . $custom_attrs . '>';
         }
     }
 

@@ -59,14 +59,18 @@ function vbc_print_accumulated_styles() {
 
 /**
  * Trình biên dịch CSS Responsive & Input ngắn gọn cho mọi phần tử VBC
+ *
+ * Chiến lược CSS hai tầng để đảm bảo đồng nhất frontend / UX Builder:
+ *  - Desktop styles  → style="" attribute trực tiếp trên element (luôn hoạt động)
+ *  - Responsive CSS  → accumulated <style> block, flush tại wp_footer
  */
 function vbc_compile_element_css(&$atts, $base_class = 'vbc-css') {
     $random_id = wp_generate_password(8, false);
     $unique_class = $base_class . '-' . $random_id;
 
     $styles_desktop = array();
-    $styles_tablet = array();
-    $styles_mobile = array();
+    $styles_tablet  = array();
+    $styles_mobile  = array();
 
     // Bảng ánh xạ thuộc tính shortcode sang CSS Property
     $property_map = array(
@@ -170,60 +174,61 @@ function vbc_compile_element_css(&$atts, $base_class = 'vbc-css') {
     // Xử lý Google Font tự động
     if (!empty($atts['font_family'])) {
         $font_family = trim($atts['font_family']);
-        if (vbc_should_inline_css()) {
-            $font_slug = 'vbc-font-' . sanitize_title($font_family);
-            $font_url = "https://fonts.googleapis.com/css2?family=" . str_replace(' ', '+', $font_family) . ":wght@300;400;500;600;700;800;900&display=swap";
+        $font_slug   = 'vbc-font-' . sanitize_title($font_family);
+        $font_url    = "https://fonts.googleapis.com/css2?family=" . str_replace(' ', '+', $font_family) . ":wght@300;400;500;600;700;800;900&display=swap";
+        if (!did_action('wp_head') && !wp_doing_ajax() && !isset($_GET['uxb_iframe'])) {
             wp_enqueue_style($font_slug, $font_url, array(), null);
         } else {
+            // Header đã output / AJAX / UX Builder → accumulate để flush sau
             global $vbc_accumulated_fonts;
-            if (!is_array($vbc_accumulated_fonts)) {
-                $vbc_accumulated_fonts = array();
-            }
+            if (!is_array($vbc_accumulated_fonts)) $vbc_accumulated_fonts = array();
             $vbc_accumulated_fonts[$font_family] = true;
         }
-
         $styles_desktop[] = "font-family: '" . esc_attr($font_family) . "', sans-serif;";
     }
 
-    $compiled_css = '';
-    if (!empty($styles_desktop) || !empty($styles_tablet) || !empty($styles_mobile) || !empty($atts['custom_css'])) {
-        $css_rules = '';
-        if (!empty($styles_desktop)) {
-            $css_rules .= '.' . $unique_class . ' { ' . implode(' ', $styles_desktop) . ' }' . "\n";
-        }
-        if (!empty($styles_tablet)) {
-            $css_rules .= '@media (max-width: 849px) { .' . $unique_class . ' { ' . implode(' ', $styles_tablet) . ' } }' . "\n";
-        }
-        if (!empty($styles_mobile)) {
-            $css_rules .= '@media (max-width: 549px) { .' . $unique_class . ' { ' . implode(' ', $styles_mobile) . ' } }' . "\n";
-        }
-        if (!empty($atts['custom_css'])) {
-            $raw_css = trim($atts['custom_css']);
-            if (strpos($raw_css, '{') === false) {
-                $css_rules .= '.' . $unique_class . ' { ' . $raw_css . ' }' . "\n";
-            } else {
-                $css_rules .= str_replace('selector', '.' . $unique_class, $raw_css) . "\n";
-            }
-        }
-        
-        // Compress CSS to prevent wpautop from adding <br> tags
-        $css_rules = str_replace(array("\r", "\n"), ' ', $css_rules);
-        $css_rules = preg_replace('/\s+/', ' ', $css_rules);
-        
-        if (vbc_should_inline_css()) {
-            $compiled_css = '<style>' . $css_rules . '</style>';
+    // ─────────────────────────────────────────────────────────────────────────
+    // TẦNG 1: Desktop CSS → inline style="" attribute
+    //   Đây là cách duy nhất đảm bảo CSS luôn hoạt động trong MỌI context:
+    //   frontend full page, UX Builder iframe, UX Builder AJAX preview
+    // ─────────────────────────────────────────────────────────────────────────
+    $inline_style = !empty($styles_desktop) ? implode(' ', $styles_desktop) : '';
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // TẦNG 2: Responsive + custom_css → accumulated <style> block
+    //   Cần unique class làm CSS scope selector.
+    //   Được flush tại wp_footer / admin_footer.
+    // ─────────────────────────────────────────────────────────────────────────
+    $needs_class    = false;
+    $responsive_css = '';
+
+    if (!empty($styles_tablet)) {
+        $responsive_css .= '@media (max-width: 849px) { .' . $unique_class . ' { ' . implode(' ', $styles_tablet) . ' } } ';
+        $needs_class = true;
+    }
+    if (!empty($styles_mobile)) {
+        $responsive_css .= '@media (max-width: 549px) { .' . $unique_class . ' { ' . implode(' ', $styles_mobile) . ' } } ';
+        $needs_class = true;
+    }
+    if (!empty($atts['custom_css'])) {
+        $raw_css = trim($atts['custom_css']);
+        if (strpos($raw_css, '{') === false) {
+            $responsive_css .= '.' . $unique_class . ' { ' . $raw_css . ' } ';
         } else {
-            global $vbc_accumulated_css;
-            if (!is_array($vbc_accumulated_css)) {
-                $vbc_accumulated_css = array();
-            }
-            $vbc_accumulated_css[] = $css_rules;
-            $compiled_css = '';
+            $responsive_css .= str_replace('selector', '.' . $unique_class, $raw_css) . ' ';
         }
+        $needs_class = true;
+    }
+
+    if (!empty($responsive_css)) {
+        global $vbc_accumulated_css;
+        if (!is_array($vbc_accumulated_css)) $vbc_accumulated_css = array();
+        $vbc_accumulated_css[] = $responsive_css;
     }
 
     return array(
-        'class' => $unique_class,
-        'css' => $compiled_css
+        'class'        => $needs_class ? $unique_class : '',
+        'inline_style' => $inline_style,
+        'css'          => '', // Legacy field — không còn prepend <style> vào element HTML
     );
 }

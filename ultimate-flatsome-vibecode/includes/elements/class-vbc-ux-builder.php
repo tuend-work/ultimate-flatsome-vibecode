@@ -15,21 +15,25 @@ add_action('ux_builder_setup', 'vbc_register_ux_builder_elements');
  * Fix UX Builder uxb-wrapper layout disruption.
  *
  * Vấn đề: UX Builder bọc mỗi shortcode trong <div class="uxb-wrapper uxb-wrapper--vbc_div">.
- * Wrapper mặc định là display:block, phá vỡ flex/grid layout của parent container.
+ * Wrapper display:block phá vỡ flex/grid layout của parent container.
  *
- * Giải pháp:
- *  1. CSS display:contents (khai báo trước, bảo vệ initial render)
- *  2. JS MutationObserver (enforce sau khi UX Builder's JS chạy xong, immune to override)
+ * Giải pháp 3 tầng — đảm bảo fix ngay cả khi UX Builder JS chạy sau:
+ *  1. CSS tại wp_footer priority 9999 (load SAU tất cả CSS Flatsome, thắng cascade)
+ *  2. JS inline setProperty (highest specificity — inline + !important)
+ *  3. setInterval 250ms/20s — brute-force catch bất kỳ timing nào của UX Builder JS
  */
-add_action('wp_head', function() {
+
+// TẦNG 1: CSS với priority CỰC CAO — load sau Flatsome, thắng cascade
+add_action('wp_footer', function() {
     if (!isset($_GET['uxb_iframe'])) return;
     echo '<style id="vbc-uxbuilder-wrapper-fix">
 [class*="uxb-wrapper--vbc_"] {
     display: contents !important;
 }
 </style>' . "\n";
-}, 5);
+}, 9999);
 
+// TẦNG 2 + 3: JavaScript — inline style setProperty + setInterval brute-force
 add_action('wp_footer', function() {
     if (!isset($_GET['uxb_iframe'])) return;
     ?>
@@ -37,92 +41,62 @@ add_action('wp_footer', function() {
 (function() {
     'use strict';
 
-    // Kiểm tra nếu class của element là uxb-wrapper cho VBC element
-    function isVbcWrapper(el) {
-        if (!el || el.nodeType !== 1) return false;
-        for (var i = 0; i < el.classList.length; i++) {
-            var cls = el.classList[i];
-            if (cls.indexOf('uxb-wrapper--vbc_') === 0) return true;
-        }
-        return false;
-    }
+    var _applying = false;
 
-    // Áp dụng display:contents lên một wrapper
-    function fixWrapper(el) {
-        if (!isVbcWrapper(el)) return;
-        // Chỉ override nếu display hiện tại KHÔNG phải contents
-        if (el.style.display !== 'contents') {
-            el.style.setProperty('display', 'contents', 'important');
+    function fixAllWrappers() {
+        if (_applying) return;
+        _applying = true;
+        try {
+            var els = document.querySelectorAll('[class*="uxb-wrapper--vbc_"]');
+            for (var i = 0; i < els.length; i++) {
+                // Inline style !important — highest possible CSS priority
+                // Wins over any class-based CSS including Flatsome's !important rules
+                els[i].style.setProperty('display', 'contents', 'important');
+            }
+        } finally {
+            _applying = false;
         }
     }
 
-    // Fix tất cả wrappers hiện có
-    function fixAllWrappers(root) {
-        var els = (root || document).querySelectorAll('[class*="uxb-wrapper--vbc_"]');
-        for (var i = 0; i < els.length; i++) {
-            fixWrapper(els[i]);
+    // MutationObserver: chỉ watch childList (KHÔNG watch attributes để tránh infinite loop)
+    // Khi UX Builder thêm element mới → fix ngay
+    var observer = new MutationObserver(function(mutations) {
+        var hasNewNodes = false;
+        for (var i = 0; i < mutations.length; i++) {
+            if (mutations[i].addedNodes.length > 0) {
+                hasNewNodes = true;
+                break;
+            }
         }
-    }
+        if (hasNewNodes) {
+            // Delay nhỏ để element được render xong trước khi fix
+            setTimeout(fixAllWrappers, 20);
+        }
+    });
 
-    // MutationObserver: watch DOM changes từ UX Builder
-    function startObserver() {
-        var target = document.querySelector('.post-content') || document.body;
-        var observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-                // Nodes được thêm mới
-                mutation.addedNodes.forEach(function(node) {
-                    if (node.nodeType !== 1) return;
-                    if (isVbcWrapper(node)) {
-                        fixWrapper(node);
-                    }
-                    // Fix các wrapper con bên trong
-                    var inner = node.querySelectorAll ? node.querySelectorAll('[class*="uxb-wrapper--vbc_"]') : [];
-                    for (var i = 0; i < inner.length; i++) {
-                        fixWrapper(inner[i]);
-                    }
-                });
-
-                // Nếu attributes thay đổi trên chính wrapper (UX Builder có thể reset style)
-                if (mutation.type === 'attributes' &&
-                    mutation.attributeName === 'style' &&
-                    isVbcWrapper(mutation.target)) {
-                    var el = mutation.target;
-                    if (el.style.display !== 'contents') {
-                        el.style.setProperty('display', 'contents', 'important');
-                    }
-                }
-            });
-        });
-
-        observer.observe(target, {
-            childList: true,
-            subtree: true,
-            attributes: true,
-            attributeFilter: ['style', 'class']
-        });
-
-        return observer;
-    }
-
-    // Run ngay sau khi DOM sẵn sàng
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function() {
-            fixAllWrappers();
-            startObserver();
-        });
-    } else {
+    function init() {
         fixAllWrappers();
-        startObserver();
+        observer.observe(document.body, { childList: true, subtree: true });
+
+        // setInterval brute-force: 250ms x 80 lần = 20 giây
+        // Đảm bảo fix kể cả khi UX Builder JS chạy sau và reset style
+        var count = 0;
+        var interval = setInterval(function() {
+            fixAllWrappers();
+            count++;
+            if (count >= 80) clearInterval(interval);
+        }, 250);
     }
 
-    // Chạy lại sau 500ms và 1500ms để bắt các element do UX Builder JS render trễ
-    setTimeout(fixAllWrappers, 500);
-    setTimeout(fixAllWrappers, 1500);
-    setTimeout(fixAllWrappers, 3000);
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
 })();
 </script>
-    <?php
-}, 99);
+
+}, 9998);
 
 
 

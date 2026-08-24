@@ -9,6 +9,8 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+add_action( 'rest_api_init', 'vbc_register_rest_routes' );
+
 function vbc_register_rest_routes() {
     register_rest_route('vbc/v1', '/upload', array(
         'methods' => 'POST',
@@ -523,9 +525,3 @@ function vbc_cf7_fallback_renderer($atts) {
 
     return '<div class="wpcf7 js" id="wpcf7-f' . $form_id . '-p0-o1" lang="vi" dir="ltr"><form action="#" method="post" class="wpcf7-form init ' . esc_attr($atts['html_class']) . '">' . $html . '</form></div>';
 }
-
-/**
- * 5. QUẢN LÝ THƯ VIỆN ICON THÔNG MINH (CONDITIONAL ICON LOADING)
- */
-add_action('wp_enqueue_scripts', 'vbc_register_icon_libraries');
-add_action('admin_enqueue_scripts', 'vbc_register_icon_libraries');

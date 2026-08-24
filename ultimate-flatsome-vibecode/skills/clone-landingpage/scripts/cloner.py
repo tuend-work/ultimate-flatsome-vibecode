@@ -331,16 +331,48 @@ class LandingPageCloner:
         print(f"   -> Đã tải thành công: {len(self.raw_html)} ký tự | Tiêu đề: {self.title}")
 
     def extract_exact_dom_and_styles(self):
-        """Bóc tách chính xác 100% các khối CSS và Cây DOM của trang web"""
+        """Bóc tách chính xác 100% các khối CSS (Inline + External Stylesheets) và Cây DOM của trang web"""
         print(f"[2/5] Đang bóc tách cấu trúc DOM và Stylesheet chính xác 1:1...")
         
-        styles = re.findall(r'<style[^>]*>(.*?)</style>', self.raw_html, re.DOTALL | re.IGNORECASE)
         relevant_styles = []
+
+        # 1. Bóc tách inline styles
+        styles = re.findall(r'<style[^>]*>(.*?)</style>', self.raw_html, re.DOTALL | re.IGNORECASE)
         for s in styles:
             if len(s.strip()) > 30:
                 relevant_styles.append(s.strip())
+
+        # 2. Tải toàn bộ External CSS Stylesheets (<link rel="stylesheet">)
+        css_links = re.findall(r'<link[^>]+href=[\'"]([^\'"]+\.css[^\'"]*)[\'"]', self.raw_html, re.IGNORECASE)
+        css_links += re.findall(r'<link[^>]+rel=[\'"]stylesheet[\'"][^>]+href=[\'"]([^\'"]+)[\'"]', self.raw_html, re.IGNORECASE)
         
+        seen_css = set()
+        for link in css_links:
+            if not link or link in seen_css or link.startswith('data:'):
+                continue
+            seen_css.add(link)
+            abs_css_url = urllib.parse.urljoin(self.source_url, link)
+            try:
+                print(f"   -> Đang tải External Stylesheet: {abs_css_url}...")
+                req = urllib.request.Request(abs_css_url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'})
+                with urllib.request.urlopen(req, timeout=20) as r:
+                    css_content = r.read().decode('utf-8', errors='ignore')
+                    if len(css_content.strip()) > 50:
+                        # Fix relative font/image URLs inside CSS to absolute URLs
+                        css_base = abs_css_url
+                        def fix_css_urls(match):
+                            raw_url = match.group(1).strip('\'"')
+                            if raw_url.startswith('data:') or raw_url.startswith('#') or raw_url.startswith('http'):
+                                return f"url('{raw_url}')"
+                            return f"url('{urllib.parse.urljoin(css_base, raw_url)}')"
+                        
+                        fixed_css = re.sub(r'url\((.*?)\)', fix_css_urls, css_content, flags=re.IGNORECASE)
+                        relevant_styles.append(fixed_css)
+            except Exception as e:
+                print(f"   [Cảnh báo] Không thể tải CSS từ {abs_css_url}: {e}")
+
         self.extracted_styles = relevant_styles
+        print(f"   -> Tổng cộng đã nạp {len(self.extracted_styles)} khối Stylesheet ({sum(len(s) for s in self.extracted_styles)} bytes CSS).")
 
         patterns = [
             r'(<div id="dv-[^"]*"[^>]*>.*?</div>\s*<!--.*?-->|<div id="dv-[^"]*"[^>]*>.*?</div>\s*</div>)',
@@ -474,15 +506,12 @@ class LandingPageCloner:
             if orig_url and wp_url:
                 all_css = all_css.replace(orig_url, wp_url)
 
-        reset_css = f"""
-<style>
-#header, #footer, .header-wrapper, #wrapper > footer {{ display: none !important; }}
-body {{ padding-top: 0 !important; margin: 0 !important; background: #ffffff !important; font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important; }}
-#main {{ padding-top: 0 !important; padding-bottom: 0 !important; }}
-img {{ max-width: 100%; height: auto; }}
-{all_css}
-</style>
-"""
+        # Minify CSS to prevent wpautop from adding <p> or <br> tags
+        clean_css = re.sub(r'/\*.*?\*/', '', all_css, flags=re.DOTALL)
+        clean_css = re.sub(r'\s*\n\s*', ' ', clean_css)
+        clean_css = re.sub(r'\s+', ' ', clean_css).strip()
+
+        reset_css = f"<style>#header, #footer, .header-wrapper, #wrapper > footer {{ display: none !important; }} body {{ padding-top: 0 !important; margin: 0 !important; background: #ffffff !important; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; }} #main {{ padding-top: 0 !important; padding-bottom: 0 !important; }} img {{ max-width: 100%; height: auto; }} {clean_css}</style>"
 
         vbc_output = f"""{reset_css}
 

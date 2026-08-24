@@ -9,6 +9,9 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+add_action('wp_enqueue_scripts', 'vbc_register_icon_libraries');
+add_action('admin_enqueue_scripts', 'vbc_register_icon_libraries');
+
 function vbc_register_icon_libraries() {
     // Đăng ký danh sách các CDN thư viện icon (Chỉ đăng ký, chưa nạp vào trang)
     wp_register_style('vbc-fontawesome6', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css', array(), '6.5.1');

@@ -11,6 +11,53 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 add_action('ux_builder_setup', 'vbc_register_ux_builder_elements');
 
+/**
+ * Inject CSS vào UX Builder iframe để uxb-wrapper divs không phá vỡ Flexbox/Grid layout.
+ *
+ * Vấn đề: UX Builder bọc mỗi element với <div class="uxb-wrapper uxb-wrapper--vbc_div uxb-draggable">.
+ * Wrapper này là display:block, làm hỏng layout khi parent dùng display:flex hoặc display:grid
+ * vì uxb-wrapper trở thành flex/grid child thay vì element thực.
+ *
+ * Giải pháp: display:contents làm cho uxb-wrapper "vô hình" với layout engine,
+ * cho phép element thực trở thành direct flex/grid child — giống hệt frontend.
+ * Drag handles và selection overlay vẫn hoạt động vì chúng dùng position:absolute.
+ */
+add_action('wp_head', function() {
+    if (!isset($_GET['uxb_iframe'])) {
+        return;
+    }
+    // Danh sách tất cả VBC element types cần fix
+    $vbc_tags = array(
+        'div', 'box', 'block', 'container',
+        'p', 'span', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+        'li', 'ul', 'ol', 'table', 'tr', 'td', 'th',
+        'b', 'strong', 'em', 'u', 'i',
+        'hr', 'br', 'img', 'section',
+    );
+    $selectors = array();
+    foreach ($vbc_tags as $tag) {
+        $selectors[] = '.uxb-wrapper--vbc_' . $tag;
+        $selectors[] = '.uxb-wrapper--vbc_' . $tag . '_inner';
+        for ($i = 1; $i <= 10; $i++) {
+            $selectors[] = '.uxb-wrapper--vbc_' . $tag . '_inner_' . $i;
+        }
+    }
+    echo '<style id="vbc-uxbuilder-wrapper-fix">' . "\n";
+    // display:contents → uxb-wrapper biến mất với layout engine, element thực là flex/grid child
+    echo implode(",\n", $selectors) . " {\n";
+    echo "    display: contents !important;\n";
+    echo "}\n";
+    // Nhưng khi element ĐANG ĐƯỢC CHỌN (uxb-selected), cần restore để selection box hoạt động
+    $selected_selectors = array_map(function($s) { return $s . '.uxb-selected'; }, $selectors);
+    $selected_selectors2 = array_map(function($s) { return $s . '.uxb-draggable-active'; }, $selectors);
+    echo implode(",\n", array_merge($selected_selectors, $selected_selectors2)) . " {\n";
+    echo "    display: block !important;\n";
+    echo "    position: relative !important;\n";
+    echo "}\n";
+    echo '</style>' . "\n";
+}, 99);
+
+
 function vbc_get_common_options($tag_type) {
     $options = array();
 

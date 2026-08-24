@@ -449,6 +449,13 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
         $children = do_shortcode($children);
     }
 
+    if ($html_tag === 'div') {
+        $children = preg_replace('/<p>\s*<\/p>/i', '', $children);
+        $children = preg_replace('/<p>\s*(<(?:div|section|article|aside|header|footer|nav|h[1-6]|ul|ol|table)\b)/i', '$1', $children);
+        $children = preg_replace('/(<\/(?:div|section|article|aside|header|footer|nav|h[1-6]|ul|ol|table)>)\s*<\/p>/i', '$1', $children);
+        $children = preg_replace('/<p>\s*$/i', '', $children);
+    }
+
     if ($atts['content_source'] === 'default') {
         $final_content = $children;
     } else {

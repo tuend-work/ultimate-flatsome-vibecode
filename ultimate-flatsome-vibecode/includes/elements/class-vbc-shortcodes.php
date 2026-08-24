@@ -548,7 +548,6 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
         $final_content = preg_replace('/<\/?p[^>]*>/i', '', $final_content);
         $final_content = preg_replace('/<\/?div[^>]*>/i', '', $final_content);
         $final_content = preg_replace('/^(<br\s*\/?>\s*)+|(<br\s*\/?>\s*)+$/i', '', $final_content);
-        $final_content = str_replace(array('<br>', '<br />'), '', $final_content);
     }
 
     return '<' . $html_tag . $class_attr_str . $tag_attrs . $custom_attrs . '>' . $compiled_css . $final_content . '</' . $html_tag . '>';

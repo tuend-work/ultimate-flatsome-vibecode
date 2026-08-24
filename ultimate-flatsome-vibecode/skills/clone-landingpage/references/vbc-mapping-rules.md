@@ -20,6 +20,7 @@ Bảng quy tắc chuyển đổi thẻ HTML chuẩn sang Shortcodes của **Ulti
 | `<span>` | `[vbc_span]` | `[vbc_span color="#2563eb" font_weight="700"]` | `[vbc_span custom_css="selector { ... }"]` |
 | `<img>` | `[vbc_img]` | `[vbc_img img_source="manual" img_url="https://.../img.png" max_width="500px" border_radius="12px"]` *(Tự đóng)* | `[vbc_img custom_css="selector { ... }"]` |
 | `<i>` / `<svg>` | `[vbc_icon]` | `[vbc_icon icon_type="lucide" name="check-circle" size="20px" color="#10b981"]` | — |
+| `<details>`, `<div class="accordion">` | `[vbc_accordion]` / `[accordion]` | `[vbc_accordion]` hoặc `[accordion]` chứa các `[accordion-item]` / `[vbc_box_inner_X]` phân tầng | — |
 | `<form>` | `[contact-form-7]` | `[contact-form-7 id="508" title="Form Tư Vấn"]` | — |
 
 ---

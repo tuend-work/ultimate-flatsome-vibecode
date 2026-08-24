@@ -13,6 +13,7 @@ Tài liệu hướng dẫn cách bóc tách cây DOM và phân loại các khố
 | **Highlights / Features Grid** | Danh sách 3-5 icon kèm tiêu đề ngắn, nền tròn/badge. | `[vbc_block_inner]` grid layout 4-5 cột, `[vbc_icon]` badge |
 | **Teacher / Testimonial Cards** | Danh sách thẻ chứa avatar tròn/vuông, tên, đánh giá sao (`★★★★★`), thông tin bio. | `[vbc_block_inner]` CSS grid 3 cột, thẻ card nền trắng có shadow |
 | **Split 2-Col (Media + Tabs / Checklist)** | 1 ảnh lớn/minh họa 1 bên, bên còn lại là danh sách tab hoặc checklist có icon tick. | `[vbc_block]` grid 2 cột (1.1fr 0.9fr hoặc 0.9fr 1.1fr) |
+| **Accordion / Collapsible List (01, 02, 03... / FAQ)** | Danh sách các dòng đánh số `01`, `02`, `03`... hoặc câu hỏi FAQ, có ký hiệu toggle `+`/`-` hoặc mũi tên, ngăn cách bởi đường kẻ ngang mỏng `border-bottom`. Một hàng mở rộng chứa ảnh + checklist và các hàng khác thu gọn. | Khối container pastel `[vbc_box]`, phân tầng các hàng `[vbc_box_inner_X]` với đường viền mỏng `border="0 0 1px solid #..."`, số thứ tự lớn màu thương hiệu `01`, tiêu đề và icon `+`/`—`, hoặc `[vbc_accordion]` / `[accordion]`. |
 | **Cam kết / Box Nổi bật** | Khung nền màu cam/be viền bo tròn ở giữa trang. | `[vbc_box]` centered, padding 30px, border-radius 20px |
 | **Form Tư vấn** | Khối chứa form nhập liệu `<form>`, input họ tên, sđt, email hoặc nút đăng ký. | `[vbc_div id="dang-ky"]` chứa form `[contact-form-7]` |
 | **Footer** | Thẻ `<footer>`, class `footer`, vị trí cuối trang. | `[vbc_div]` nền tối, 3-4 cột thông tin liên hệ và copyright |

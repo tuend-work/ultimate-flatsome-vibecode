@@ -24,18 +24,37 @@ add_action('ux_builder_setup', 'vbc_register_ux_builder_elements');
  */
 
 // TẦNG 1: CSS với priority CỰC CAO — load sau Flatsome, thắng cascade
-add_action('wp_footer', function() {
-    if (!isset($_GET['uxb_iframe'])) return;
+function vbc_inject_uxbuilder_wrapper_css() {
     echo '<style id="vbc-uxbuilder-wrapper-fix">
-[class*="uxb-wrapper--vbc_"] {
+.uxb-wrapper[class*="uxb-wrapper--vbc_"],
+[class*="uxb-wrapper--vbc_"],
+.uxb-wrapper--vbc_div,
+.uxb-wrapper--vbc_box,
+.uxb-wrapper--vbc_block,
+.uxb-wrapper--vbc_container,
+.uxb-wrapper--vbc_p,
+.uxb-wrapper--vbc_a,
+.uxb-wrapper--vbc_img,
+.uxb-wrapper--vbc_h1,
+.uxb-wrapper--vbc_h2,
+.uxb-wrapper--vbc_h3,
+.uxb-wrapper--vbc_h4,
+.uxb-wrapper--vbc_h5,
+.uxb-wrapper--vbc_h6,
+.uxb-wrapper--vbc_accordion,
+.uxb-wrapper--vbc_accordion_item {
     display: contents !important;
 }
 </style>' . "\n";
-}, 9999);
+}
+add_action('wp_head', 'vbc_inject_uxbuilder_wrapper_css', 9999);
+add_action('wp_footer', 'vbc_inject_uxbuilder_wrapper_css', 9999);
+add_action('admin_head', 'vbc_inject_uxbuilder_wrapper_css', 9999);
+add_action('admin_footer', 'vbc_inject_uxbuilder_wrapper_css', 9999);
+add_action('ux_builder_enqueue_scripts', 'vbc_inject_uxbuilder_wrapper_css', 9999);
 
 // TẦNG 2 + 3: JavaScript — inline style setProperty + setInterval brute-force
-add_action('wp_footer', function() {
-    if (!isset($_GET['uxb_iframe'])) return;
+function vbc_inject_uxbuilder_layout_js() {
     ?>
 <script id="vbc-uxbuilder-layout-fix">
 (function() {
@@ -47,19 +66,19 @@ add_action('wp_footer', function() {
         if (_applying) return;
         _applying = true;
         try {
-            var els = document.querySelectorAll('[class*="uxb-wrapper--vbc_"]');
+            var els = document.querySelectorAll('[class*="uxb-wrapper--vbc_"], .uxb-wrapper');
             for (var i = 0; i < els.length; i++) {
-                // Inline style !important — highest possible CSS priority
-                // Wins over any class-based CSS including Flatsome's !important rules
-                els[i].style.setProperty('display', 'contents', 'important');
+                var el = els[i];
+                var cls = el.className || '';
+                if (cls.indexOf('uxb-wrapper--vbc_') !== -1 || cls.indexOf('vbc_') !== -1) {
+                    el.style.setProperty('display', 'contents', 'important');
+                }
             }
         } finally {
             _applying = false;
         }
     }
 
-    // MutationObserver: chỉ watch childList (KHÔNG watch attributes để tránh infinite loop)
-    // Khi UX Builder thêm element mới → fix ngay
     var observer = new MutationObserver(function(mutations) {
         var hasNewNodes = false;
         for (var i = 0; i < mutations.length; i++) {
@@ -69,17 +88,16 @@ add_action('wp_footer', function() {
             }
         }
         if (hasNewNodes) {
-            // Delay nhỏ để element được render xong trước khi fix
             setTimeout(fixAllWrappers, 20);
         }
     });
 
     function init() {
         fixAllWrappers();
-        observer.observe(document.body, { childList: true, subtree: true });
+        if (document.body) {
+            observer.observe(document.body, { childList: true, subtree: true });
+        }
 
-        // setInterval brute-force: 250ms x 80 lần = 20 giây
-        // Đảm bảo fix kể cả khi UX Builder JS chạy sau và reset style
         var count = 0;
         var interval = setInterval(function() {
             fixAllWrappers();
@@ -96,7 +114,10 @@ add_action('wp_footer', function() {
 })();
 </script>
 <?php
-}, 9998);
+}
+add_action('wp_footer', 'vbc_inject_uxbuilder_layout_js', 9998);
+add_action('admin_footer', 'vbc_inject_uxbuilder_layout_js', 9998);
+add_action('ux_builder_enqueue_scripts', 'vbc_inject_uxbuilder_layout_js', 9998);
 
 
 
@@ -149,6 +170,12 @@ function vbc_get_common_options($tag_type) {
             'background_color' => array(
                 'type' => 'colorpicker',
                 'heading' => 'Màu nền (Background Color)',
+                'responsive' => true,
+                'default' => '',
+            ),
+            'bg_color' => array(
+                'type' => 'colorpicker',
+                'heading' => 'Màu nền (bg_color)',
                 'responsive' => true,
                 'default' => '',
             ),
@@ -335,12 +362,26 @@ function vbc_get_common_options($tag_type) {
                 'default' => '',
                 'description' => 'Ví dụ: 20px, 1.5rem, 16px 24px',
             ),
+            'grid_gap' => array(
+                'type' => 'textfield',
+                'heading' => 'Grid Gap (Bí danh)',
+                'responsive' => true,
+                'default' => '',
+                'description' => 'Ví dụ: 20px, 1.5rem',
+            ),
             'grid_template_columns' => array(
                 'type' => 'textfield',
                 'heading' => 'Cột Grid (Grid Columns)',
                 'responsive' => true,
                 'default' => '',
                 'description' => 'Ví dụ: repeat(3, 1fr), 1fr 2fr, repeat(auto-fit, minmax(250px, 1fr))',
+            ),
+            'grid_columns' => array(
+                'type' => 'textfield',
+                'heading' => 'Cột Grid (grid_columns)',
+                'responsive' => true,
+                'default' => '',
+                'description' => 'Ví dụ: repeat(3, 1fr), 1fr 2fr',
             ),
         ),
     );

@@ -248,6 +248,32 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
         $atts['custom_class'] = $atts['class'];
     }
 
+    // Chuẩn hóa thuộc tính bí danh (Aliases normalization)
+    if (!empty($atts['grid_columns']) && empty($atts['grid_template_columns'])) {
+        $atts['grid_template_columns'] = $atts['grid_columns'];
+    }
+    if (!empty($atts['grid_template_columns']) && empty($atts['grid_columns'])) {
+        $atts['grid_columns'] = $atts['grid_template_columns'];
+    }
+    if (!empty($atts['grid_columns__md']) && empty($atts['grid_template_columns__md'])) {
+        $atts['grid_template_columns__md'] = $atts['grid_columns__md'];
+    }
+    if (!empty($atts['grid_columns__sm']) && empty($atts['grid_template_columns__sm'])) {
+        $atts['grid_template_columns__sm'] = $atts['grid_columns__sm'];
+    }
+    if (!empty($atts['bg_color']) && empty($atts['background_color'])) {
+        $atts['background_color'] = $atts['bg_color'];
+    }
+    if (!empty($atts['background_color']) && empty($atts['bg_color'])) {
+        $atts['bg_color'] = $atts['background_color'];
+    }
+    if (!empty($atts['grid_gap']) && empty($atts['gap'])) {
+        $atts['gap'] = $atts['grid_gap'];
+    }
+    if (!empty($atts['gap']) && empty($atts['grid_gap'])) {
+        $atts['grid_gap'] = $atts['gap'];
+    }
+
     // Biên dịch CSS (desktop → inline style="", responsive → accumulated <style>)
     $compiled = vbc_compile_element_css($atts, 'vbc-css');
     $class_attr   = trim($atts['custom_class'] . ' ' . $compiled['class']);

@@ -27,16 +27,18 @@ AI đọc `tmp/<slug>/source.html` và phân tích các Section chính:
 2. **Hero Section**: Tiêu đề chính H1, slogan, badge ưu đãi, bullet points lợi ích, form đăng ký, hình ảnh đại diện.
 3. **Highlights / Features Grid**: Lưới 3–4 cột với các điểm mạnh dịch vụ, icon vector trực quan.
 4. **Programs / Services / Courses**: Thẻ khóa học, bảng giá, chương trình chi tiết theo đối tượng.
-5. **Tabs & Accordions**: Lộ trình đào tạo (`[vbc_tabs]`), câu hỏi thường gặp (`[vbc_accordion]`).
-6. **Social Proof & Testimonials**: Cảm nhận khách hàng/học viên, rating, feedback thực tế.
-7. **Lead Form & CTA Banner**: Form Contact Form 7 (`[contact-form-7]`) và nút kêu gọi hành động.
-8. **Footer**: Thông tin liên hệ, bản quyền, liên kết điều khoản.
+5. **Tabs & Accordions**: Lộ trình đào tạo (`[vbc_tabs]`), câu hỏi thường gặp / lợi thế đánh số (`[accordion]` / `[vbc_accordion]`).
+6. **Blog / Tin Tức & Sản Phẩm (Dynamic Query)**: Danh sách bài viết blog, tin tức hoặc sản phẩm WooCommerce $\to$ Sử dụng `[vbc_post]` (`post_type="post"` hoặc `post_type="product"`) để truy vấn động từ WordPress Database.
+7. **Social Proof & Testimonials**: Cảm nhận khách hàng/học viên, rating, feedback thực tế.
+8. **Lead Form & CTA Banner**: Form Contact Form 7 (`[contact-form-7]`) và nút kêu gọi hành động.
+9. **Footer**: Thông tin liên hệ, bản quyền, liên kết điều khoản.
 
 ### Bước 3: AI Sinh 100% Native VBC Elements (Trực Tiếp Gắn Thuộc Tính Styling)
 AI viết trực tiếp file mã nguồn VBC Elements lưu tại `tmp/<slug>/compiled_vbc.txt`.
 - **Ràng buộc quan trọng**:
   - Gắn thuộc tính trực tiếp vào shortcode: `bg_color="..."`, `color="..."`, `font_size="..."`, `font_weight="..."`, `padding="..."`, `margin="..."`, `border_radius="..."`, `box_shadow="..."`, `display="flex|grid"`, `gap="..."`, `grid_columns="..."`, `text_align="..."`.
   - Thay thế 100% link ảnh bằng URL WordPress từ `media_map.json`.
+  - **Nội dung Động (Dynamic Posts/Products)**: Khi phân đoạn là danh sách bài viết blog, tin tức kiến thức hoặc sản phẩm, PHẢI dùng `[vbc_post post_type="post|product" posts_per_page="..." columns="..." fields="thumbnail:100%, title:100%, excerpt:100%, button:100%"]` để lấy trực tiếp dữ liệu động từ website.
   - Giữ cấu trúc phân cấp lồng nhau chuẩn xác: dùng `_inner_1`, `_inner_2` cho các thẻ con bên trong để đảm bảo **0 unparsed shortcodes**.
 
 ### Bước 4: Xuất bản Lên WordPress Qua REST API

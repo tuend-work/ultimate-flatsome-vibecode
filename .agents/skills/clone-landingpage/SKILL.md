@@ -1,53 +1,56 @@
 ---
 name: clone-landingpage
 description: >-
-  Tự động sao chép (clone) toàn bộ giao diện và nội dung từ một trang web bất kỳ sang WordPress Flatsome bằng 100% phần tử Ultimate Flatsome VibeCode Elements. Sử dụng khi người dùng yêu cầu clone/sao chép landing page, bóc tách layout từ URL gốc, hoặc chuyển đổi giao diện sang VBC.
+  Tự động sao chép (clone) toàn bộ giao diện và nội dung từ một trang web bất kỳ sang WordPress Flatsome bằng 100% phần tử Ultimate Flatsome VibeCode Elements do AI trực tiếp sinh ra. Sử dụng khi người dùng yêu cầu clone/sao chép landing page, bóc tách layout từ URL gốc, hoặc chuyển đổi giao diện sang VBC.
 ---
 
-# Clone Landing Page (Universal Generic Engine)
+# Clone Landing Page (AI-First LLM Architecture)
 
 ## Mục tiêu (Goal)
-Tự động bóc tách cấu trúc DOM, phân tích ngữ cảnh từng Section, tải và đồng bộ hóa toàn bộ hình ảnh lên thư viện WordPress Media Library, chuyển đổi form sang Contact Form 7 và biên dịch thành shortcodes VBC Elements thuần với độ tương đồng thị giác (VSI) $\ge 90\%$.
+Sử dụng **Trí tuệ Nhân tạo (LLM)** để phân tích ngữ cảnh, bố cục thị giác và cấu trúc nội dung từ trang web nguồn, sau đó AI trực tiếp thiết kế và sinh 100% mã nguồn **Native VBC Elements** (`[vbc_div]`, `[vbc_box]`, `[vbc_block]`, `[vbc_container]`, `[vbc_h1]-[vbc_h6]`, `[vbc_p]`, `[vbc_a]`, `[vbc_img]`, `[vbc_icon]`, `[vbc_card]`, `[vbc_tabs]`, `[vbc_accordion]`, `[contact-form-7]`, `[vbc_post]`) với tất cả thuộc tính giao diện đưa trực tiếp vào thuộc tính của shortcode, đạt độ tương đồng thị giác (VSI) $\ge 90\%$ và **0 unparsed tags**.
 
-## Hướng dẫn Quy trình (Workflow)
+---
 
-1. **Phân tích Cây DOM (Semantic DOM Tree Parsing)**:
-   - Quét cấu trúc trang web nguồn từ URL.
-   - Trích xuất bảng màu chủ đạo (Brand Primary/Dark/Accent Palette).
-   - Phân loại các Section theo ngữ cảnh: Hero Banner, Highlights Grid, Teachers/Testimonial Cards, 2-Col Split, FAQ Accordions, CF7 Form, Footer.
+## Quy trình Thực hiện (Workflow)
 
-2. **Quét & Tải Media**:
-   - Tự động phát hiện toàn bộ ảnh trong các thẻ `<img>`, background CSS `url(...)`.
-   - Tải về thư mục cục bộ `tmp/<slug>/`.
-
-3. **Đồng bộ WordPress Media Library**:
-   - Tải ảnh lên WordPress qua REST API `/vbc/v1/upload`.
-   - Lưu trữ ánh xạ URL gốc $\to$ URL nội bộ WordPress trong `tmp/<slug>/media_map.json`.
-
-4. **Biên dịch Shortcode VBC Elements**:
-   - Sinh shortcodes thuần `[vbc_div]`, `[vbc_box]`, `[vbc_block]`, `[vbc_container]`, `[vbc_h1]-[vbc_h6]`, `[vbc_p]`, `[vbc_a]`, `[vbc_icon]`, `[contact-form-7]`.
-   - **Tự động nhận diện & Clone Tab**: Chuyển đổi toàn bộ cấu trúc tab (Bootstrap, Elementor, Flatsome, ARIA) sang `[vbc_tabs]` và `[vbc_tab title="..."]`.
-   - **Tự động nhận diện Danh sách Bài viết / Sản phẩm**: Nhận diện danh sách bài viết (`.blog-posts`, `article.post`, `.penci-grid`) hoặc sản phẩm WooCommerce (`.woocommerce ul.products`, `.product-item`) và tự động chuyển đổi thành shortcode động `[vbc_post post_type="post|product" posts_per_page="X" columns="Y" layout="grid"]` để truy vấn dữ liệu thời gian thực từ database backend.
-   - Áp dụng CSS Responsive hoàn chỉnh, phân cấp shortcode lồng nhau chặt chẽ, không để sót bất kỳ unparsed tags nào.
-
-5. **Xuất bản & Tự động Đối soát**:
-   - Xuất bản lên WordPress qua REST API `/vbc/v1/page`.
-   - Tự động kích hoạt skill `recheck-url` để chụp ảnh 1-shot và đối soát thị giác bằng AI.
-
-## Thực thi Tập lệnh (Scripts)
-Chạy script thực thi chính:
+### Bước 1: Quét & Đồng bộ Media lên WordPress Media Library
+Chạy script đồng bộ ảnh:
 ```bash
-python .agents/skills/clone-landingpage/scripts/cloner.py --url "<URL_NGUON>" --title "<TIEU_DE>" --slug "<SLUG>" [--post_id <POST_ID>]
+python .agents/skills/clone-landingpage/scripts/sync_media.py --url "<URL_NGUON>"
+```
+- Script sẽ tải mã nguồn HTML về `tmp/<slug>/source.html`, phát hiện toàn bộ ảnh và upload lên WordPress Media Library qua REST API `/vbc/v1/upload`.
+- Kết quả ánh xạ ảnh gốc $\to$ WordPress URL được lưu trong `tmp/<slug>/media_map.json`.
+
+### Bước 2: AI Đọc Hiểu & Bóc Tách Ngữ Cảnh Bố Cục (DOM & Visual Context)
+AI đọc `tmp/<slug>/source.html` và phân tích các Section chính:
+1. **Header / Topbar**: Logo, hotline, navigation links, CTA button.
+2. **Hero Section**: Tiêu đề chính H1, slogan, badge ưu đãi, bullet points lợi ích, form đăng ký, hình ảnh đại diện.
+3. **Highlights / Features Grid**: Lưới 3–4 cột với các điểm mạnh dịch vụ, icon vector trực quan.
+4. **Programs / Services / Courses**: Thẻ khóa học, bảng giá, chương trình chi tiết theo đối tượng.
+5. **Tabs & Accordions**: Lộ trình đào tạo (`[vbc_tabs]`), câu hỏi thường gặp (`[vbc_accordion]`).
+6. **Social Proof & Testimonials**: Cảm nhận khách hàng/học viên, rating, feedback thực tế.
+7. **Lead Form & CTA Banner**: Form Contact Form 7 (`[contact-form-7]`) và nút kêu gọi hành động.
+8. **Footer**: Thông tin liên hệ, bản quyền, liên kết điều khoản.
+
+### Bước 3: AI Sinh 100% Native VBC Elements (Trực Tiếp Gắn Thuộc Tính Styling)
+AI viết trực tiếp file mã nguồn VBC Elements lưu tại `tmp/<slug>/compiled_vbc.txt`.
+- **Ràng buộc quan trọng**:
+  - Gắn thuộc tính trực tiếp vào shortcode: `bg_color="..."`, `color="..."`, `font_size="..."`, `font_weight="..."`, `padding="..."`, `margin="..."`, `border_radius="..."`, `box_shadow="..."`, `display="flex|grid"`, `gap="..."`, `grid_columns="..."`, `text_align="..."`.
+  - Thay thế 100% link ảnh bằng URL WordPress từ `media_map.json`.
+  - Giữ cấu trúc phân cấp lồng nhau chuẩn xác: dùng `_inner_1`, `_inner_2` cho các thẻ con bên trong để đảm bảo **0 unparsed shortcodes**.
+
+### Bước 4: Xuất bản Lên WordPress Qua REST API
+Chạy script xuất bản trang:
+```bash
+python .agents/skills/clone-landingpage/scripts/publisher.py --title "<TIEU_DE>" --slug "<SLUG>" --content "tmp/<slug>/compiled_vbc.txt" [--post_id <POST_ID>]
 ```
 
-## Tài liệu Tham khảo (References)
-- [Quy tắc ánh xạ DOM & Section Patterns](./references/dom-pattern-guide.md)
-- [Quy chuẩn Shortcodes VBC Elements](./references/vbc-mapping-rules.md)
-
-## Ví dụ (Examples)
-- [Mẫu đầu ra VBC chuẩn](./examples/sample-landing-page.vbc)
-
-## Ràng buộc & Tiêu chuẩn Chất lượng (Constraints)
-- **100% Generic**: Tuyệt đối không hardcode nội dung hoặc cấu trúc cố định của một website cụ thể vào script lõi.
-- **Visual Similarity Index (VSI)**: Phải đạt $\ge 90\%$ trước khi bàn giao cho người dùng.
-- **0 Unparsed Tags**: Không để lộ mã shortcode thô ra frontend.
+### Bước 5: Đối Soát Chất Lượng & Thị Giác (Quality Audit)
+Chạy script rechecker:
+```bash
+python .agents/skills/recheck-url/scripts/rechecker.py --url "<TARGET_URL>" --source_url "<SOURCE_URL>"
+```
+Đảm bảo kết quả đạt:
+- **0 Unparsed Shortcodes**.
+- **VSI $\ge 90\%$**.
+- Tương thích 100% với trình kéo thả Flatsome UX Builder.

@@ -1,40 +1,45 @@
 ---
 name: create-landingpage
 description: >-
-  Thiết kế và xây dựng Landing Page mới chuyên nghiệp trên WordPress Flatsome từ ý tưởng, bản thảo hoặc yêu cầu của người dùng bằng 100% phần tử Ultimate Flatsome VibeCode Elements. Sử dụng khi người dùng yêu cầu tạo mới landing page, thiết kế trang bán hàng, giới thiệu dịch vụ.
+  Thiết kế và xây dựng Landing Page mới chuyên nghiệp trên WordPress Flatsome từ ý tưởng, bản thảo hoặc yêu cầu của người dùng bằng 100% phần tử Ultimate Flatsome VibeCode Elements do AI trực tiếp thiết kế. Sử dụng khi người dùng yêu cầu tạo mới landing page, thiết kế trang bán hàng, giới thiệu dịch vụ.
 ---
 
-# Create Landing Page Engine
+# Create Landing Page (AI-First LLM Architecture)
 
 ## Mục tiêu (Goal)
-Tạo trang Landing Page mới chuẩn UI/UX, hiện đại, giàu tính thẩm mỹ (Aesthetics) và tối ưu hóa chuyển đổi bằng hệ thống Shortcodes VBC Elements thuần túy.
+Sử dụng **Trí tuệ Nhân tạo (LLM)** để thiết kế toàn diện một Landing Page đạt chuẩn UI/UX quốc tế, tỉ lệ chuyển đổi (CRO) cao, tương thích 100% với Flatsome UX Builder bằng hệ thống **Ultimate Flatsome VibeCode Elements** với thuộc tính styling đưa trực tiếp vào từng thẻ.
 
-## Hướng dẫn Quy trình (Workflow)
+---
 
-1. **Thu thập Yêu cầu & Xác định Bảng màu**:
-   - Xác định ngành nghề (Giáo dục, Bất động sản, Nha khoa, Spa, Thương mại...).
-   - Lựa chọn bảng màu chủ đạo (Primary, Dark, Background Light, Accent).
+## Quy trình Thực hiện (Workflow)
 
-2. **Dựng Khung Layout Chuẩn 8 Section**:
-   - Section 1: Header / Sticky Navbar & Hotline Call-to-action.
-   - Section 2: Hero Section (Headline H1 lôi cuốn + CTA + Media).
-   - Section 3: Value Proposition / Highlights Icons (3 - 5 điểm nổi bật).
-   - Section 4: Showcase / Features / Teacher / Product Cards (Grid 3 - 4 cột).
-   - Section 5: Split Media / Accordion / Curriculum (2 cột so le).
-   - Section 6: Proof of Work / Testimonials / Trust Badges / Stats.
-   - Section 7: Form Đăng ký Tư vấn (Tích hợp Contact Form 7).
-   - Section 8: Footer thông tin liên hệ và bản quyền.
+### Bước 1: Phân tích Ý tưởng & Bảng Màu Thương Hiệu (Design Concept)
+AI xác định:
+1. **Chủ đề & Mục tiêu trang**: Bán hàng (Sales Page), Thu thập khách hàng tiềm năng (Lead Gen), Giới thiệu công ty (Corporate Landing Page).
+2. **Bảng màu chủ đạo**: Primary Color, Secondary Color, Accent/CTA Color, Neutral Dark/Light Background.
+3. **Cấu trúc Bố cục (Layout Sections)**:
+   - Header Navigation & CTA
+   - Hero Section cuốn hút kèm Form hoặc Button hành động
+   - Problem / Solution & Điểm nổi bật (Highlights Grid)
+   - Chi tiết Khóa học / Dịch vụ / Sản phẩm (Cards / Tabs)
+   - Đội ngũ chuyên gia / Quy trình làm việc (Steps / Workflow)
+   - Bằng chứng xã hội / Đánh giá khách hàng (Testimonials)
+   - Bảng giá / Ưu đãi có thời hạn (Pricing Table)
+   - Câu hỏi thường gặp (FAQ Accordion)
+   - Form Đăng ký tư vấn cuối trang (Contact Form 7)
+   - Footer thông tin thương hiệu & bản quyền
 
-3. **Biên dịch & Xuất bản**:
-   - Sử dụng script `generator.py` để sinh shortcode và đẩy lên WordPress REST API `/vbc/v1/page`.
+### Bước 2: AI Thiết Kế & Sinh 100% Native VBC Elements
+AI trực tiếp viết mã nguồn VBC Elements lưu tại `tmp/<slug>/created_vbc.txt`.
+- Sử dụng đầy đủ các thẻ: `[vbc_div]`, `[vbc_box]`, `[vbc_block]`, `[vbc_container]`, `[vbc_h1]-[vbc_h6]`, `[vbc_p]`, `[vbc_a]`, `[vbc_img]`, `[vbc_icon]`, `[vbc_card]`, `[vbc_tabs]`, `[vbc_accordion]`, `[contact-form-7]`, `[vbc_post]`.
+- Gắn trực tiếp thuộc tính: `bg_color="..."`, `color="..."`, `font_size="..."`, `font_weight="..."`, `padding="..."`, `margin="..."`, `border_radius="..."`, `box_shadow="..."`, `display="flex|grid"`, `gap="..."`, `grid_columns="..."`, `text_align="..."`.
+- Cấu trúc phân cấp lồng nhau chuẩn: dùng `_inner_1`, `_inner_2` để đảm bảo **0 lỗi shortcode**.
 
-## Thực thi Tập lệnh (Scripts)
+### Bước 3: Xuất bản Lên WordPress Qua REST API
+Chạy script xuất bản trang:
 ```bash
-python .agents/skills/create-landingpage/scripts/generator.py --title "<TIEU_DE>" --slug "<SLUG>" [--template page-blank.php]
+python .agents/skills/create-landingpage/scripts/publisher.py --title "<TIEU_DE>" --slug "<SLUG>" --content "tmp/<slug>/created_vbc.txt" [--post_id <POST_ID>]
 ```
 
-## Tài liệu Tham khảo (References)
-- [Thư viện Mẫu Section Chuẩn](./references/section-templates.md)
-
-## Ví dụ (Examples)
-- [Mẫu Toàn Trang Hoàn Chỉnh](./examples/full-page-template.vbc)
+### Bước 4: Kiểm Định & Bàn Giao (Audit & Handover)
+Kiểm tra trang web trên trình duyệt và cung cấp link chỉnh sửa trực tiếp trên Flatsome UX Builder cho người dùng.

@@ -737,12 +737,16 @@ class Ultimate_Flatsome_Template_Builder {
         if ( is_category() || is_tag() || is_tax() ) {
             $title = single_term_title( '', false );
             $desc = term_description();
+        } elseif ( is_post_type_archive() ) {
+            $title = post_type_archive_title( '', false );
+            $desc = get_the_archive_description();
         } elseif ( is_archive() ) {
-            $title = get_the_archive_title();
+            $raw_title = get_the_archive_title();
+            $title = preg_replace( '/^.*:\s*/i', '', wp_strip_all_tags( $raw_title ) );
             $desc = get_the_archive_description();
         } else {
-            $title = __( 'Chuyên Mục Bài Viết', 'vibecode' );
-            $desc = __( 'Danh sách các bài viết mới nhất và kiến thức chuyên sâu.', 'vibecode' );
+            $title = __( 'Danh Mục Khóa Học', 'vibecode' );
+            $desc = __( 'Danh sách các chương trình đào tạo tiếng Anh chuẩn quốc tế.', 'vibecode' );
         }
 
         $tag = in_array( strtolower( $atts['tag'] ), array( 'h1', 'h2', 'h3', 'div' ), true ) ? strtolower( $atts['tag'] ) : 'h1';

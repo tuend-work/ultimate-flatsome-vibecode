@@ -72,6 +72,12 @@ Cung cấp tài liệu tra cứu chuẩn xác nhất về cú pháp, thuộc tí
    - `[vbc_a link_url="..."]`: Thẻ liên kết `<a>` với URL linh hoạt.
    - `[vbc_icon icon_type="lucide" name="..." size="..." color="..."]`: Icon vector Lucide hoặc FontAwesome.
 
+5. **Danh Sách Động Bài Viết & Sản Phẩm (Dynamic Query — `[vbc_post]`)**:
+   - `[vbc_post]`: Shortcode truy vấn và hiển thị danh sách bài viết blog, tin tức hoặc sản phẩm WooCommerce linh hoạt theo Grid / List / Table.
+   - **BẮT BUỘC**: Sử dụng khi nhận diện khu vực là row bài viết blog, tin tức hoặc danh sách sản phẩm / khóa học thay vì dựng cột tĩnh lặp lại.
+   - **Cú pháp Blog Grid:** `[vbc_post post_type="post" posts_per_page="3" columns="3" layout="grid" image_height="220px" title_tag="h3" button_text="Xem Chi Tiết"]`
+   - **Cú pháp Product Grid:** `[vbc_post post_type="product" posts_per_page="4" columns="4" layout="grid" fields="thumbnail:100%, categories:100%, title:100%, price:50%, button:50%" button_text="Mua Ngay"]`
+
 ## ⚠️ QUY TẮC BẮT BUỘC: 100% SHORTCODE TỰ ĐÓNG DÙNG THUỘC TÍNH (NO ENCLOSING TEXT)
 > [!CRITICAL]
 > **TUYỆT ĐỐI KHÔNG GẮN CONTENT VÀO SHORTCODE DẠNG ĐÓNG MỞ NHƯ `[vbc_p]...[/vbc_p]`, `[vbc_h1]...[/vbc_h1]`, `[vbc_span]...[/vbc_span]`**.

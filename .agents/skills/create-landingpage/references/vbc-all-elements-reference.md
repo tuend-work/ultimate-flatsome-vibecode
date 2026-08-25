@@ -312,18 +312,25 @@ Shortcode `[vbc_icon]` hỗ trợ **5 thư viện Icon vector hàng đầu**, c�
 ## NHÓM 7: TRUY VẤN ĐỘNG & TÍCH HỢP BACKEND (DYNAMIC DATA)
 
 ### 7.1. `[vbc_post]` — Grid Truy Vấn Bài Viết & Sản Phẩm WooCommerce
+> 🚨 **QUY TẮC BẮT BUỘC**: Khi nhận diện hoặc thiết kế khu vực là Row bài viết blog, Tin tức, hoặc Danh sách sản phẩm, **BẮT BUỘC sử dụng element `[vbc_post]`** thay vì dựng cột tĩnh lặp lại.
+
 * **Thuộc tính**:
   - `post_type`: `post` (tin tức), `product` (WooCommerce), hoặc bất kỳ Custom Post Type nào.
-  - `posts_per_page`: Số lượng bài hiển thị (mặc định: `6`).
-  - `columns`: `2`, `3`, `4`, `5`.
+  - `posts_per_page`: Số lượng bài hiển thị (mặc định: `8`).
+  - `columns`, `columns__md`, `columns__sm`: `1`, `2`, `3`, `4`, `5`.
   - `layout`: `grid`, `list`, `table`.
-  - `category` / `taxonomy` & `terms`: Lọc theo chuyên mục / tag.
-  - `orderby`: `date`, `title`, `rand`, `menu_order`.
-  - `order`: `DESC` / `ASC`.
-* **Cú pháp mẫu**:
+  - `fields`: Danh sách trường và độ rộng hiển thị (ví dụ: `thumbnail:100%, categories:100%, title:100%, excerpt:100%, date:50%, price:50%, button:100%`).
+  - `image_height`: Chiều cao ảnh thumbnail (ví dụ: `220px`).
+  - `title_tag`: `h2`, `h3`, `h4`.
+  - `button_text`: `Xem Chi Tiết`, `Mua Ngay`.
+  - `card_radius`, `card_bg`, `card_border`, `card_shadow`: Bo góc và kiểu dáng card.
+* **Cú pháp Blog Grid:**
 ```html
-[vbc_post post_type="post" posts_per_page="3" columns="3" layout="grid"]
-[vbc_post post_type="product" posts_per_page="4" columns="4" layout="grid"]
+[vbc_post post_type="post" posts_per_page="3" columns="3" columns__sm="1" layout="grid" image_height="220px" title_tag="h3" button_text="Xem Chi Tiết" card_radius="16px"]
+```
+* **Cú pháp Product Grid:**
+```html
+[vbc_post post_type="product" posts_per_page="4" columns="4" columns__sm="1" layout="grid" fields="thumbnail:100%, categories:100%, title:100%, price:50%, button:50%" button_text="Mua Ngay" card_radius="16px"]
 ```
 
 ### 7.2. Dynamic Post Meta & ACF Field Tags

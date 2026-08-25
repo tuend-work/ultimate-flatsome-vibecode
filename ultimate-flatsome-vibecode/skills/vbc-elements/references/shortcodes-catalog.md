@@ -143,8 +143,24 @@ Tài liệu tra cứu đầy đủ các thuộc tính và cách kết hợp tố
   ```
 
 ### 12. `[vbc_post]`
-- **Mô tả:** Truy vấn động danh sách Bài viết / Sản phẩm từ WordPress DB.
-- **Ví dụ:**
+- **Mô tả:** Truy vấn động và hiển thị danh sách Bài viết Blog, Tin tức, Sản phẩm WooCommerce hoặc Custom Post Types với bố cục Grid / List / Table và hệ thống thẻ Card bo góc chuyên nghiệp.
+- **Quy tắc:** BẮT BUỘC sử dụng khi nhận diện khu vực hiển thị danh sách bài viết (Blog / Tin tức) hoặc danh sách sản phẩm / khóa học / bảng giá.
+- **Thuộc tính chính:**
+  - `post_type`: Loại bài viết (`post`, `product`, hoặc slug CPT bất kỳ). Mặc định `post`.
+  - `posts_per_page`: Số lượng bài viết/sản phẩm hiển thị. Mặc định `8`.
+  - `columns`, `columns__md`, `columns__sm`: Số cột chia responsive (ví dụ: `3`, `2`, `1`).
+  - `layout`: Bố cục hiển thị (`grid`, `list`, `table`). Mặc định `grid`.
+  - `fields`: Danh sách trường và độ rộng hiển thị (ví dụ: `thumbnail:100%, categories:100%, title:100%, excerpt:100%, date:50%, price:50%, button:100%`).
+  - `image_height`: Chiều cao ảnh thumbnail (ví dụ: `220px`).
+  - `image_fit`: Kiểu căn ảnh (`cover`, `contain`).
+  - `title_tag`: Thẻ tiêu đề (`h2`, `h3`, `h4`).
+  - `button_text`: Văn bản nút CTA (ví dụ: `Xem Chi Tiết`, `Đọc Bài Viết`, `Mua Ngay`).
+  - `card_bg`, `card_radius`, `card_border`, `card_shadow`: Định dạng thẻ Card.
+- **Ví dụ Blog Grid:**
   ```html
-  [vbc_post post_type="post" posts_per_page="3" columns="3" layout="grid"]
+  [vbc_post post_type="post" posts_per_page="3" columns="3" columns__sm="1" layout="grid" image_height="220px" title_tag="h3" button_text="Xem Chi Tiết" card_radius="16px"]
+  ```
+- **Ví dụ WooCommerce Product Grid:**
+  ```html
+  [vbc_post post_type="product" posts_per_page="4" columns="4" columns__sm="1" layout="grid" fields="thumbnail:100%, categories:100%, title:100%, price:50%, button:50%" button_text="Mua Ngay" card_radius="16px"]
   ```

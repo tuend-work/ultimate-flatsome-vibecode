@@ -40,6 +40,7 @@ flowchart TD
 - **Shortcode Nesting Rule**: Tuyệt đối không lồng `[vbc_div]` trực tiếp bên trong `[vbc_div]` cùng cấp. Luân chuyển linh hoạt giữa `[vbc_box]`, `[vbc_block]`, `[vbc_div]`.
 - **Custom CSS Extraction**: Toàn bộ CSS phải được tách vào `_custom_css` / `vbc_page_css` (hoặc `custom_css="..."` của `[vbc_section]`), không chứa thẻ `<style>` lồng bên trong chuỗi CSS thô.
 - **Zero Brackets in Attributes**: Tuyệt đối không dùng dấu `[` hoặc `]` bên trong bất kỳ giá trị thuộc tính nào (kể cả `custom_css`).
+- **Dynamic Posts & Products Query**: Các khu vực danh sách bài viết blog, tin tức hoặc danh sách sản phẩm / khóa học phải sử dụng element `[vbc_post]` (`post_type="post|product"`).
 - **Page Template**: Đảm bảo meta `_wp_page_template` được gán chính xác `page-blank.php`.
 
 ### 2. Trụ Cột 2: Rendered DOM & Frontend Aesthetics (Kiểm tra từ Trình duyệt)

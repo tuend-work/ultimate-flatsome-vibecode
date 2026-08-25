@@ -34,7 +34,28 @@ Quy chuẩn chuyển đổi HTML sang cấu trúc kết hợp tối ưu: **Khung
 | `<form>` | `[contact-form-7]` | `[contact-form-7 id="<ID>" title="..."]` *(Tạo tự động qua `create_cf7.py`)* |
 | `<details>`, FAQ list | `[vbc_accordion]` | `[vbc_accordion][vbc_accordion_item title="..."]...[/vbc_accordion_item][/vbc_accordion]` |
 | Tabs | `[vbc_tabs]` | `[vbc_tabs style="pills"][vbc_tab title="..."]...[/vbc_tab][/vbc_tabs]` |
-| Blog Posts / Products | `[vbc_post]` | `[vbc_post post_type="post" posts_per_page="3" columns="3"]` *(Dynamic Query)* |
+| Row / Grid Blog Posts | `[vbc_post]` | `[vbc_post post_type="post" posts_per_page="3" columns="3" layout="grid"]` *(Dynamic Query)* |
+| Row / Grid Products | `[vbc_post]` | `[vbc_post post_type="product" posts_per_page="4" columns="4" layout="grid"]` *(Dynamic Query)* |
+
+---
+
+## 3. Quy Chuẩn Nhận Diện Row Blog & Row Product (BẮT BUỘC DÙNG `[vbc_post]`)
+
+> 🚨 **QUY TẮC BẮT BUỘC**: Khi quét mã nguồn HTML hoặc cấu trúc trang, nếu gặp khu vực hiển thị danh sách bài viết (Blog / Tin tức / Cẩm nang) hoặc danh sách sản phẩm (Products / Khóa học / Dịch vụ), **BẮT BUỘC sử dụng element `[vbc_post]`** thay vì dựng thủ công từng cột `[col]` tĩnh lặp đi lặp lại.
+
+### 1. Dạng Row / Grid Bài Viết Blog (`post_type="post"`):
+- **Dấu hiệu nhận biết**: Danh sách 3-4 bài viết có ảnh thumbnail, tiêu đề bài viết, tóm tắt, ngày đăng, tác giả, nút xem chi tiết.
+- **Cú pháp sử dụng**:
+  ```html
+  [vbc_post post_type="post" posts_per_page="3" columns="3" columns__sm="1" layout="grid" image_height="220px" title_tag="h3" button_text="Xem Chi Tiết" card_radius="16px"]
+  ```
+
+### 2. Dạng Row / Grid Sản Phẩm (`post_type="product"` / CPT):
+- **Dấu hiệu nhận biết**: Lưới 3-4 sản phẩm có ảnh sản phẩm, tên, danh mục, giá bán (`_price`, `sale_price`), nút mua hàng/đăng ký.
+- **Cú pháp sử dụng**:
+  ```html
+  [vbc_post post_type="product" posts_per_page="4" columns="4" columns__sm="1" layout="grid" fields="thumbnail:100%, categories:100%, title:100%, price:50%, button:50%" button_text="Mua Ngay"]
+  ```
 ---
 
 ## 🚨 QUY TẮC BẮT BUỘC: TRUYỀN NỘI DUNG VÀO INPUT CỦA SHORTCODE (CHỐNG LỖI WPAUTOP)

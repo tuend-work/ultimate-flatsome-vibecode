@@ -49,6 +49,21 @@ Khi phát hiện form nhập liệu trên trang nguồn (hoặc khu vực CTA đ
    ```
 3. **Lấy mã Shortcode trả về** dạng `[contact-form-7 id="<ID>" title="..."]` để nhúng trực tiếp vào container VBC ở Bước 4.
 4. **Quy tắc**: 100% biểu mẫu thu thập thông tin (Lead Form) **BẮT BUỘC** phải được tạo thành form Contact Form 7 thực tế qua API, **TUYỆT ĐỐI KHÔNG** dùng văn bản giả lập tĩnh (`[vbc_p]`) thay cho form.
+
+### Bước 3.1: Nhận Diện Danh Sách Bài Viết (Blog) & Sản Phẩm (Product) -> BẮT BUỘC Dùng VBC Post Element `[vbc_post]`
+Khi phát hiện khu vực danh sách Tin tức, Bài viết Blog, Kiến thức, hoặc Danh sách Sản phẩm/Khóa học:
+1. **Nhận diện dạng Row / Grid Blog (Tin tức / Kiến thức)**:
+   - Thay vì dựng thủ công các `[col]` tĩnh lặp lại, **BẮT BUỘC sử dụng element `[vbc_post]`** với `post_type="post"` để hiển thị danh sách bài viết chuẩn WordPress động.
+   - Cú pháp chuẩn:
+     ```
+     [vbc_post post_type="post" posts_per_page="3" columns="3" columns__sm="1" layout="grid" image_height="220px" title_tag="h3" button_text="Xem chi tiết" card_radius="18px"]
+     ```
+2. **Nhận diện dạng Row / Grid Sản Phẩm (WooCommerce / Khóa học / Dịch vụ)**:
+   - **BẮT BUỘC sử dụng `[vbc_post]`** với `post_type="product"` (hoặc Custom Post Type tương ứng):
+     ```
+     [vbc_post post_type="product" posts_per_page="4" columns="4" columns__sm="1" layout="grid" fields="thumbnail:100%, categories:100%, title:100%, price:50%, button:50%" button_text="Mua Ngay"]
+     ```
+3. **Ưu điểm**: Tự động lấy ảnh đại diện, tiêu đề, tóm tắt, giá bán, ngày đăng, liên kết permalink tự động và tương thích 100% với Flatsome UX Builder.
 5. **BẮT BUỘC — CSS Đồng Bộ Form CF7 Khớp Với Web Gốc**:
    - Sau khi tạo form CF7, **phân tích màu sắc, font chữ, border-radius, padding và màu nền của form gốc** từ `source.html`.
    - Viết một khối CSS tùy chỉnh (sử dụng tính năng Page Custom CSS hoặc `vbc_page_custom_css`) để style các thành phần:

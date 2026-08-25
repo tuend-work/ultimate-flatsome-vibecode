@@ -91,3 +91,48 @@ Thư viện mẫu các khối giao diện chuẩn sử dụng **Flatsome Native 
   [/row]
 [/section]
 ```
+
+---
+
+## 5. Blog Posts Grid Section (Tin Tức / Bài Viết Mới Nhất)
+
+> 🚨 **BẮT BUỘC**: Khi thiết kế khu vực danh sách bài viết blog hoặc tin tức, sử dụng element `[vbc_post]` để tự động query bài viết động từ WordPress Database.
+
+```html
+[section bg_color="#f8fafc" padding="80px 0"]
+  [row width="custom" custom_width="1200px"]
+    [col span="12" align="center"]
+      [vbc_p text="KIẾN THỨC HỮU ÍCH" color="#2563eb" font_size="14px" font_weight="700" margin="0 0 8px 0"]
+      [vbc_h2 text="Cẩm Nang & Tin Tức Mới Nhất" color="#0f172a" font_size="34px" font_weight="800" margin="0 0 40px 0"]
+    [/col]
+  [/row]
+  [row width="custom" custom_width="1200px"]
+    [col span="12"]
+      [vbc_post post_type="post" posts_per_page="3" columns="3" columns__sm="1" layout="grid" image_height="220px" title_tag="h3" button_text="Xem Chi Tiết" card_radius="16px"]
+    [/col]
+  [/row]
+[/section]
+```
+
+---
+
+## 6. Products / Courses Grid Section (Sản Phẩm / Khóa Học Nổi Bật)
+
+> 🚨 **BẮT BUỘC**: Khi hiển thị danh sách sản phẩm WooCommerce, khóa học hoặc bảng giá, sử dụng `[vbc_post]` với `post_type="product"`.
+
+```html
+[section bg_color="#ffffff" padding="80px 0"]
+  [row width="custom" custom_width="1200px"]
+    [col span="12" align="center"]
+      [vbc_p text="DANH MỤC KHÓA HỌC" color="#16a34a" font_size="14px" font_weight="700" margin="0 0 8px 0"]
+      [vbc_h2 text="Khóa Học Tiêu Biểu Dành Cho Bạn" color="#0f172a" font_size="34px" font_weight="800" margin="0 0 40px 0"]
+    [/col]
+  [/row]
+  [row width="custom" custom_width="1200px"]
+    [col span="12"]
+      [vbc_post post_type="product" posts_per_page="4" columns="4" columns__sm="1" layout="grid" fields="thumbnail:100%, categories:100%, title:100%, price:50%, button:50%" button_text="Đăng Ký Ngay" card_radius="16px"]
+    [/col]
+  [/row]
+[/section]
+```
+

@@ -334,11 +334,21 @@ python .agents/skills/clone-landingpage/scripts/create_cf7.py --title "Form Tư 
 
 ## NHÓM 7: TRUY VẤN ĐỘNG & TÍCH HỢP BACKEND (DYNAMIC DATA)
 
+> 🚨 **QUY TẮC BẮT BUỘC**: Khi quét thấy khu vực danh sách Bài viết Blog, Tin tức hoặc Danh sách Sản phẩm, **BẮT BUỘC sử dụng element `[vbc_post]`** thay vì dựng thủ công các `[col]` tĩnh lặp lại.
+
+### 7.1. Cú pháp Blog Grid (Tin Tức / Bài Viết Mới Nhất)
 ```html
-[vbc_post post_type="post" posts_per_page="3" columns="3" layout="grid"]
-[vbc_post post_type="product" posts_per_page="4" columns="4" layout="grid"]
+[vbc_post post_type="post" posts_per_page="3" columns="3" columns__sm="1" layout="grid" image_height="220px" title_tag="h3" button_text="Xem Chi Tiết" card_radius="16px"]
 ```
-* **Merge Tags**: `{{post_title}}`, `{{post_date}}`, `{{meta:gia_ban}}`, `{{acf:hotline}}`.
+
+### 7.2. Cú pháp Product Grid (Sản Phẩm WooCommerce / Khóa Học)
+```html
+[vbc_post post_type="product" posts_per_page="4" columns="4" columns__sm="1" layout="grid" fields="thumbnail:100%, categories:100%, title:100%, price:50%, button:50%" button_text="Mua Ngay" card_radius="16px"]
+```
+
+### 7.3. Cấu hình linh hoạt các trường (`fields`):
+- `fields="thumbnail:100%, categories:100%, title:100%, excerpt:100%, date:50%, price:50%, button:100%"`
+- **Merge Tags hỗ trợ**: `{{post_title}}`, `{{post_date}}`, `{{meta:gia_ban}}`, `{{acf:hotline}}`.
 
 ---
 

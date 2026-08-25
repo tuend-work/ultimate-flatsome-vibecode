@@ -66,6 +66,20 @@ Khi thiết kế landing page có khu vực thu thập thông tin khách hàng (
      .wpcf7-form input[type="submit"]:hover { background: <CTA_HOVER_COLOR>; }
      ```
 
+### Bước 2.1: Nhận Diện & Thiết Kế Row Blog (Tin tức) & Row Product (Sản phẩm) -> BẮT BUỘC Dùng Element `[vbc_post]`
+Khi thiết kế khu vực Bài viết Blog, Tin tức, Cẩm nang kiến thức hoặc Danh sách Sản phẩm / Bảng giá / Khóa học:
+1. **Dạng Row / Grid Blog (Tin tức, Bài viết)**:
+   - **BẮT BUỘC sử dụng element `[vbc_post]`** thay vì dựng thủ công các `[col]` tĩnh:
+     ```
+     [vbc_post post_type="post" posts_per_page="3" columns="3" columns__sm="1" layout="grid" image_height="220px" title_tag="h3" button_text="Xem Chi Tiết" card_radius="16px"]
+     ```
+2. **Dạng Row / Grid Sản Phẩm (WooCommerce / Khóa học / Dịch vụ)**:
+   - **BẮT BUỘC sử dụng `[vbc_post]`** với `post_type="product"`:
+     ```
+     [vbc_post post_type="product" posts_per_page="4" columns="4" columns__sm="1" layout="grid" fields="thumbnail:100%, categories:100%, title:100%, price:50%, button:50%" button_text="Mua Ngay"]
+     ```
+3. **Lợi ích**: Đồng bộ 100% dữ liệu động từ WordPress Database, tự động lấy thumbnail, tiêu đề, tóm tắt, giá bán, permalink và tương thích UX Builder.
+
 ### Bước 3: AI Thiết Kế Bố Cục Kết Hợp VBC Section Kế Thừa Chuẩn Flatsome & VBC Elements
 AI trực tiếp viết mã nguồn lưu tại `tmp/<slug>/created_vbc.txt`.
 

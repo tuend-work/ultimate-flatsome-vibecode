@@ -321,6 +321,67 @@ function vbc_handle_export_project_request() {
             'services' => $services_data,
             'posts' => $posts_data,
             'custom_instructions' => $custom_note,
+        ),
+        'shortcodes' => array(
+            'general_info' => array(
+                'description' => 'Hệ thống Shortcodes thông tin website đồng bộ wp_options (Ultimate Flatsome General Settings)',
+                'items' => array(
+                    array( 'shortcode' => '[uf_info field="site_name"]', 'alias' => '[uf_site_title]', 'description' => 'Tên website (wp_options: blogname)' ),
+                    array( 'shortcode' => '[uf_info field="tagline"]', 'alias' => '[uf_tagline]', 'description' => 'Khẩu hiệu website (wp_options: blogdescription)' ),
+                    array( 'shortcode' => '[uf_info field="admin_email"]', 'alias' => '', 'description' => 'Email quản trị website (wp_options: admin_email)' ),
+                    array( 'shortcode' => '[uf_info field="company"]', 'alias' => '[uf_company]', 'description' => 'Tên công ty / Doanh nghiệp' ),
+                    array( 'shortcode' => '[uf_info field="phone"]', 'alias' => '[uf_phone]', 'link_syntax' => '[uf_phone link="true"]', 'description' => 'Hotline / Số điện thoại chính (Click-to-call)' ),
+                    array( 'shortcode' => '[uf_info field="phone_2"]', 'alias' => '[uf_phone_2]', 'link_syntax' => '[uf_phone_2 link="true"]', 'description' => 'Hotline phụ / Kỹ thuật' ),
+                    array( 'shortcode' => '[uf_info field="zalo"]', 'alias' => '[uf_zalo]', 'link_syntax' => '[uf_zalo link="true"]', 'description' => 'Số Zalo / Link chat Zalo OA' ),
+                    array( 'shortcode' => '[uf_info field="email"]', 'alias' => '[uf_email]', 'link_syntax' => '[uf_email link="true"]', 'description' => 'Email liên hệ / CSKH' ),
+                    array( 'shortcode' => '[uf_info field="address"]', 'alias' => '[uf_address]', 'description' => 'Địa chỉ trụ sở chính' ),
+                    array( 'shortcode' => '[uf_info field="address_branch"]', 'alias' => '', 'description' => 'Địa chỉ chi nhánh / Văn phòng 2' ),
+                    array( 'shortcode' => '[uf_info field="hours"]', 'alias' => '[uf_hours]', 'description' => 'Thời gian làm việc' ),
+                    array( 'shortcode' => '[uf_info field="tax_code"]', 'alias' => '[uf_tax_code]', 'description' => 'Mã số thuế / Giấy phép ĐKKD' ),
+                    array( 'shortcode' => '[uf_info field="copyright"]', 'alias' => '[uf_copyright]', 'description' => 'Bản quyền chân trang (Tự động cập nhật {year} và {site_name})' ),
+                    array( 'shortcode' => '[uf_info field="maps"]', 'alias' => '[uf_maps]', 'description' => 'Link bản đồ Google Maps' ),
+                    array( 'shortcode' => '[uf_info field="facebook"]', 'link_syntax' => '[uf_info field="facebook" link="true"]', 'description' => 'Link Facebook Fanpage' ),
+                    array( 'shortcode' => '[uf_info field="youtube"]', 'link_syntax' => '[uf_info field="youtube" link="true"]', 'description' => 'Link Kênh YouTube' ),
+                    array( 'shortcode' => '[uf_info field="tiktok"]', 'link_syntax' => '[uf_info field="tiktok" link="true"]', 'description' => 'Link Kênh TikTok' ),
+                    array( 'shortcode' => '[uf_info field="instagram"]', 'link_syntax' => '[uf_info field="instagram" link="true"]', 'description' => 'Link Tài khoản Instagram' ),
+                    array( 'shortcode' => '[uf_info field="messenger"]', 'link_syntax' => '[uf_info field="messenger" link="true"]', 'description' => 'Link Chat Messenger' ),
+                    array( 'shortcode' => '[uf_info field="telegram"]', 'link_syntax' => '[uf_info field="telegram" link="true"]', 'description' => 'Link Kênh / Nhóm Telegram' ),
+                    array( 'shortcode' => '[uf_option key="..."]', 'description' => 'Truy xuất an toàn bất kỳ option nào trong bảng wp_options' )
+                )
+            ),
+            'layout_flatsome' => array(
+                'description' => 'Khung xương bố cục Flatsome Native Layout UX Builder',
+                'items' => array(
+                    array( 'shortcode' => '[section]', 'params' => array( 'bg_color', 'bg', 'bg_overlay', 'padding', 'padding__sm', 'dark', 'effect' ), 'description' => 'Section full-width' ),
+                    array( 'shortcode' => '[row]', 'params' => array( 'width', 'custom_width', 'v_align', 'h_align', 'col_bg', 'col_bg_radius', 'padding' ), 'description' => 'Hàng lưới 12 cột' ),
+                    array( 'shortcode' => '[col]', 'params' => array( 'span', 'span__md', 'span__sm', 'bg_color', 'bg_radius', 'padding', 'margin', 'align', 'depth', 'animate' ), 'description' => 'Cột 12-grid responsive' ),
+                    array( 'shortcode' => '[row_inner]', 'description' => 'Hàng lồng bên trong cột' ),
+                    array( 'shortcode' => '[col_inner]', 'description' => 'Cột lồng bên trong row_inner' )
+                )
+            ),
+            'vbc_elements' => array(
+                'description' => 'Hệ thống phần tử Ultimate Flatsome VibeCode Elements',
+                'items' => array(
+                    array( 'shortcode' => '[vbc_section]', 'description' => 'Section có CSS Engine' ),
+                    array( 'shortcode' => '[vbc_div]', 'description' => 'Khối chứa vạn năng (Flex/Grid/Box)' ),
+                    array( 'shortcode' => '[vbc_box]', 'description' => 'Khối hộp box' ),
+                    array( 'shortcode' => '[vbc_block]', 'description' => 'Khối nội dung block' ),
+                    array( 'shortcode' => '[vbc_container]', 'description' => 'Container giới hạn độ rộng' ),
+                    array( 'shortcode' => '[vbc_h1]...[vbc_h6]', 'description' => 'Tiêu đề heading tùy biến font, màu sắc, responsive' ),
+                    array( 'shortcode' => '[vbc_p]', 'description' => 'Đoạn văn bản' ),
+                    array( 'shortcode' => '[vbc_a]', 'description' => 'Thẻ liên kết siêu văn bản' ),
+                    array( 'shortcode' => '[vbc_img]', 'description' => 'Hình ảnh responsive có ID media WP hoặc URL' ),
+                    array( 'shortcode' => '[vbc_icon]', 'params' => array( 'pack', 'name', 'size', 'color' ), 'description' => 'Thư viện 2500+ Vector SVG Icons' ),
+                    array( 'shortcode' => '[vbc_card]', 'params' => array( 'variant', 'border_radius', 'glass' ), 'description' => 'Thẻ card hiệu ứng kính mờ' ),
+                    array( 'shortcode' => '[vbc_post]', 'params' => array( 'post_type', 'posts_per_page', 'columns', 'layout', 'fields' ), 'description' => 'Truy vấn động Bài viết / Sản phẩm WooCommerce' ),
+                    array( 'shortcode' => '[vbc_accordion]', 'description' => 'Accordion hỏi đáp FAQ tự sinh JSON-LD Schema' ),
+                    array( 'shortcode' => '[vbc_tabs]', 'params' => array( 'style', 'active_tab' ), 'description' => 'Hệ thống chuyển tab tương tác' ),
+                    array( 'shortcode' => '[vbc_slider]', 'params' => array( 'per_page', 'arrows', 'pagination' ), 'description' => 'Khối trượt Slider (Splide.js)' ),
+                    array( 'shortcode' => '[vbc_button]', 'params' => array( 'text', 'url', 'variant', 'size', 'icon' ), 'description' => 'Nút bấm CTA chuyển đổi cao' ),
+                    array( 'shortcode' => '[vbc_testimonial]', 'params' => array( 'name', 'stars', 'avatar_url' ), 'description' => 'Đánh giá của khách hàng' ),
+                    array( 'shortcode' => '[vbc_fullpage]', 'description' => 'Cuộn toàn màn hình từng trang (fullPage.js)' )
+                )
+            )
         )
     );
 

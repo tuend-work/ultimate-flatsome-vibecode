@@ -350,6 +350,30 @@ python .agents/skills/clone-landingpage/scripts/create_cf7.py --title "Form Tư 
 - `fields="thumbnail:100%, categories:100%, title:100%, excerpt:100%, date:50%, price:50%, button:100%"`
 - **Merge Tags hỗ trợ**: `{{post_title}}`, `{{post_date}}`, `{{meta:gia_ban}}`, `{{acf:hotline}}`.
 
+### 7.4. Shortcodes Thông Tin Website & Doanh Nghiệp (Ultimate Flatsome General Info)
+> Quản lý tập trung tại **Ultimate Flatsome > Cài Đặt Chung**, tự động đồng bộ `wp_options`.
+
+- `[uf_phone]`: Hotline dạng văn bản thuần (ví dụ `0912 345 678`).
+- `[uf_phone link="true"]`: Hotline dạng thẻ gọi `<a href="tel:0912345678">`.
+- `[uf_phone_2 link="true"]`: Hotline phụ / Kỹ thuật.
+- `[uf_zalo link="true"]`: Link chat Zalo OA (`https://zalo.me/...`).
+- `[uf_email link="true"]`: Email dạng thẻ mailto `<a href="mailto:...">`.
+- `[uf_address]`: Địa chỉ trụ sở chính doanh nghiệp.
+- `[uf_company]`: Tên công ty / Doanh nghiệp.
+- `[uf_copyright]`: Bản quyền chân trang (Tự động thay `{year}` theo năm hiện tại).
+- `[uf_info field="site_name"]`: Tên website (từ `wp_options: blogname`).
+- `[uf_info field="tagline"]`: Khẩu hiệu website (từ `wp_options: blogdescription`).
+- `[uf_info field="hours"]`: Thời gian làm việc.
+- `[uf_info field="tax_code"]`: Mã số thuế / ĐKKD.
+- `[uf_info field="facebook" link="true"]`: Link Facebook Fanpage.
+- `[uf_info field="youtube" link="true"]`: Link Kênh YouTube.
+- `[uf_info field="tiktok" link="true"]`: Link Kênh TikTok.
+- `[uf_info field="instagram" link="true"]`: Link Instagram.
+- `[uf_info field="messenger" link="true"]`: Link Messenger Chat.
+- `[uf_info field="telegram" link="true"]`: Link Telegram Chat.
+- `[uf_info field="maps" link="true"]`: Link Google Maps.
+- `[uf_option key="..."]`: Truy xuất bất kỳ giá trị nào trong bảng `wp_options`.
+
 ---
 
 ## KHI NÀO CẦN DÙNG `custom_css`?

@@ -47,6 +47,104 @@ class Ultimate_Flatsome_Template_Builder {
 
         // Taxonomy Term Fields
         add_action( 'init', array( $this, 'register_taxonomy_term_fields' ), 20 );
+
+        // 6. FIX: Redirect UX Builder "Edit" button to the correct UX Block (not the original post)
+        add_action( 'admin_init', array( $this, 'redirect_uxbuilder_to_block' ) );
+
+        // 7. FIX: Override Flatsome's "Edit with UX Builder" frontend link to point to the UX Block
+        add_filter( 'flatsome_ux_builder_post_link', array( $this, 'fix_uxbuilder_frontend_link' ), 20, 2 );
+    }
+
+    /**
+     * FIX: Khi admin mở UX Builder từ bài viết (post=359&app=uxbuilder)
+     * nhưng bài đó đang sử dụng UX Block template (block_id=350),
+     * tự động redirect sang UX Builder của UX Block đó (post=350&app=uxbuilder).
+     */
+    public function redirect_uxbuilder_to_block() {
+        // Chỉ xử lý khi đang ở trong UX Builder Admin Editor
+        if ( ! isset( $_GET['app'] ) || $_GET['app'] !== 'uxbuilder' ) {
+            return;
+        }
+        if ( ! isset( $_GET['post'] ) || ! isset( $_GET['action'] ) || $_GET['action'] !== 'edit' ) {
+            return;
+        }
+        if ( ! current_user_can( 'edit_posts' ) ) {
+            return;
+        }
+
+        $post_id = intval( $_GET['post'] );
+        $post = get_post( $post_id );
+        if ( ! $post || $post->post_type === 'blocks' ) {
+            // Đã là UX Block rồi, không cần redirect
+            return;
+        }
+
+        // Tìm UX Block template được gán cho post này
+        $block_id = $this->find_block_for_post( $post );
+        if ( empty( $block_id ) ) {
+            return;
+        }
+
+        // Xây dựng URL UX Builder đúng, trỏ thẳng vào UX Block
+        $redirect_url = admin_url( 'post.php?post=' . intval( $block_id ) . '&action=edit&app=uxbuilder' );
+
+        // Thêm thông báo cho admin biết họ đang edit UX Block Template
+        set_transient( 'uf_uxb_redirect_notice_' . get_current_user_id(), array(
+            'block_id'   => $block_id,
+            'post_id'    => $post_id,
+            'block_title' => get_the_title( $block_id ),
+        ), 60 );
+
+        wp_redirect( $redirect_url );
+        exit;
+    }
+
+    /**
+     * FIX: Override link "Edit with UX Builder" ở frontend
+     * để trỏ sang UX Block template thay vì bài viết gốc.
+     */
+    public function fix_uxbuilder_frontend_link( $url, $post ) {
+        if ( ! $post ) return $url;
+        if ( $post->post_type === 'blocks' ) return $url;
+
+        $block_id = $this->find_block_for_post( $post );
+        if ( ! empty( $block_id ) ) {
+            return admin_url( 'post.php?post=' . intval( $block_id ) . '&action=edit&app=uxbuilder' );
+        }
+        return $url;
+    }
+
+    /**
+     * Tìm UX Block được gán cho 1 post object (ưu tiên: post meta > category term meta > global rules)
+     */
+    private function find_block_for_post( $post ) {
+        if ( ! $post ) return null;
+
+        // 1. Post Meta Override
+        $meta_block = get_post_meta( $post->ID, '_uf_custom_uxblock_template', true );
+        if ( ! empty( $meta_block ) && get_post_status( $meta_block ) === 'publish' ) {
+            return intval( $meta_block );
+        }
+
+        // 2. Primary Category Term Meta
+        if ( $post->post_type === 'post' ) {
+            $cats = get_the_category( $post->ID );
+            if ( ! empty( $cats ) ) {
+                $cat_block = get_term_meta( $cats[0]->term_id, '_uf_custom_uxblock_template', true );
+                if ( ! empty( $cat_block ) && get_post_status( $cat_block ) === 'publish' ) {
+                    return intval( $cat_block );
+                }
+            }
+        }
+
+        // 3. Global Rule
+        $rules = self::get_template_rules();
+        $rule_key = 'single_' . $post->post_type;
+        if ( ! empty( $rules[ $rule_key ] ) && get_post_status( $rules[ $rule_key ] ) === 'publish' ) {
+            return intval( $rules[ $rule_key ] );
+        }
+
+        return null;
     }
 
     /**

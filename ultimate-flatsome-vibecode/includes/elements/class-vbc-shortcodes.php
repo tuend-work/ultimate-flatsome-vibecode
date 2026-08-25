@@ -47,58 +47,95 @@ function vbc_no_texturize_shortcodes($shortcodes) {
 }
 
 /**
- * [vbc_section] — Wrapper bao ngoài các Flatsome native shortcodes.
- * Toàn bộ CSS của section (kể cả CSS của các phần tử con bên trong)
- * được đặt trong thuộc tính custom_css dưới dạng CSS selector rules.
+/**
+ * [vbc_section] — Kế thừa toàn bộ tính năng và thuộc tính của Flatsome [section],
+ * đồng thời bổ sung thuộc tính custom_css với từ khóa "selector" để style cho section
+ * và toàn bộ các phần tử con bên trong (như form CF7, heading, text, button...).
  *
  * Attributes:
- *   id          — ID CSS duy nhất của section (bắt buộc, dùng để scope CSS)
- *   class       — CSS class bổ sung cho wrapper div
- *   custom_css  — CSS rules dạng:
- *                   selector { ... }                   (áp dụng cho wrapper)
- *                   selector .section-title { ... }    (áp dụng cho con)
- *                   @media (max-width:768px) { selector { ... } }
+ *   id / _id        — ID CSS duy nhất của section (bắt buộc/tự sinh, dùng để scope CSS)
+ *   class           — CSS class bổ sung cho section
+ *   bg, bg_color, bg_overlay, bg_pos, parallax, effect
+ *   padding, padding__sm, padding__md, margin, height, height__sm, height__md
+ *   dark, mask, visibility, sticky, loading, scroll_for_more
+ *   divider, divider_height, divider_fill, divider_top, divider_top_height, divider_top_fill
+ *   border, border_color, border_radius, border_style, border_hover
+ *   video_mp4, video_ogg, video_webm, video_sound, video_loop, youtube
+ *   custom_css      — CSS rules dạng:
+ *                       selector { ... }                   (áp dụng cho section)
+ *                       selector .wpcf7-form input { ... } (áp dụng cho con)
+ *                       selector h2 { ... }
+ *                       @media (max-width:768px) { selector { ... } }
  */
 function vbc_section_renderer($atts, $content = null) {
     global $vbc_accumulated_css;
     if (!is_array($vbc_accumulated_css)) $vbc_accumulated_css = array();
 
-    $atts = shortcode_atts(array(
-        'id'         => '',
-        'class'      => '',
-        'custom_css' => '',
-    ), $atts, 'vbc_section');
+    if (!is_array($atts)) {
+        $atts = array();
+    }
 
-    // Tạo ID duy nhất nếu không được cung cấp
-    $section_id = !empty($atts['id']) ? sanitize_html_class($atts['id']) : 'vbc-s-' . substr(md5(uniqid()), 0, 8);
+    // 1. Xác định ID duy nhất của section
+    $section_id = '';
+    if (!empty($atts['id'])) {
+        $section_id = sanitize_html_class($atts['id']);
+        $atts['_id'] = $section_id;
+    } elseif (!empty($atts['_id'])) {
+        $section_id = sanitize_html_class($atts['_id']);
+        $atts['id']  = $section_id;
+    } else {
+        $section_id = 'vbc-sec-' . substr(md5(uniqid()), 0, 8);
+        $atts['_id'] = $section_id;
+        $atts['id']  = $section_id;
+    }
 
-    // Build class list
+    // 2. Thêm class vbc-section
     $classes = array('vbc-section');
     if (!empty($atts['class'])) {
         $classes[] = esc_attr($atts['class']);
     }
-    $class_str = implode(' ', $classes);
+    $atts['class'] = implode(' ', array_unique($classes));
 
-    // Xử lý custom_css: thay "selector" bằng "#section_id"
-    if (!empty($atts['custom_css'])) {
-        $raw_css = $atts['custom_css'];
+    // 3. Tách custom_css
+    $custom_css = !empty($atts['custom_css']) ? $atts['custom_css'] : '';
+    unset($atts['custom_css']);
+
+    // 4. Xử lý Custom CSS (dùng từ khóa "selector")
+    $style_tag = '';
+    if (!empty($custom_css)) {
+        $raw_css = html_entity_decode($custom_css, ENT_QUOTES, 'UTF-8');
+        $raw_css = str_replace(array('&gt;', '&lt;', '&amp;', '[[', ']]'), array('>', '<', '&', '[', ']'), $raw_css);
+
         $scoped_selector = '#' . $section_id;
 
-        // Thay tất cả "selector" (từ riêng) bằng scoped selector
+        // Thay tất cả "selector" bằng "#section_id"
         $compiled_css = preg_replace('/\bselector\b/', $scoped_selector, $raw_css);
 
-        // Inject vào accumulated CSS pool (in ra ở wp_footer)
+        // Lưu vào accumulated CSS pool (in ra ở footer)
         $vbc_accumulated_css['vbc_section_' . $section_id] = $compiled_css;
+
+        // Nhúng style tag trực tiếp trước section để hiển thị ngay lập tức (kể cả UX Builder live preview)
+        $style_tag = '<style id="vbc-style-' . esc_attr($section_id) . '">' . $compiled_css . '</style>';
     }
 
-    // Render nội dung (Flatsome native shortcodes bên trong)
-    $inner = !empty($content) ? do_shortcode($content) : '';
-    // Remove wpautop artifacts
-    $inner = preg_replace('/<p\s*>/', '', $inner);
-    $inner = preg_replace('/<\/p>/', '', $inner);
-    $inner = preg_replace('/<br\s*\/?>/', '', $inner);
+    // 5. Render nội dung kế thừa từ Flatsome ux_section nếu có
+    if (function_exists('ux_section')) {
+        $output = ux_section($atts, $content);
+    } else {
+        // Fallback độc lập nếu không chạy trong Flatsome
+        $bg_color = !empty($atts['bg_color']) ? 'background-color:' . esc_attr($atts['bg_color']) . ';' : '';
+        $padding  = !empty($atts['padding']) ? 'padding:' . esc_attr($atts['padding']) . ';' : 'padding:30px 0;';
+        $style_attr = $bg_color . $padding;
 
-    return '<div id="' . esc_attr($section_id) . '" class="' . esc_attr($class_str) . '">' . $inner . '</div>';
+        $inner = !empty($content) ? do_shortcode($content) : '';
+        $inner = preg_replace('/<p\s*>/', '', $inner);
+        $inner = preg_replace('/<\/p>/', '', $inner);
+        $inner = preg_replace('/<br\s*\/?>/', '', $inner);
+
+        $output = '<section id="' . esc_attr($section_id) . '" class="' . esc_attr($atts['class']) . '" style="' . esc_attr($style_attr) . '"><div class="section-content relative">' . $inner . '</div></section>';
+    }
+
+    return $style_tag . $output;
 }
 
 

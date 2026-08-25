@@ -66,13 +66,16 @@ Khi thiết kế landing page có khu vực thu thập thông tin khách hàng (
      .wpcf7-form input[type="submit"]:hover { background: <CTA_HOVER_COLOR>; }
      ```
 
-### Bước 3: AI Thiết Kế Bố Cục Chuẩn Flatsome (Section + Row + Col) & VBC Elements
+### Bước 3: AI Thiết Kế Bố Cục Kết Hợp VBC Section Kế Thừa Chuẩn Flatsome & VBC Elements
 AI trực tiếp viết mã nguồn lưu tại `tmp/<slug>/created_vbc.txt`.
 
 #### 🏛️ Kiến Trúc Bố Cục Ưu Tiên (Layout Backbone):
-1. **Khung xương Bố cục (Structure)**: **Ưu tiên sử dụng `[section]` + `[row]` + `[col]` chuẩn của Flatsome**:
-   - `[section class="section-hero" bg_color="#..." padding="60px" dark="true|false"]`: **BẮT BUỘC gán `class="section-<tên>"` cho mỗi section** để làm CSS scope selector.
-   - `[row width="custom" custom_width="1140px" v_align="middle|top"]`: **Toàn bộ `[row]` PHẢI nằm bên trong `[section]`** — tuyệt đối không đặt `[row]` độc lập ngoài section.
+1. **Khung xương Bố cục (Structure)**: **100% sử dụng `[vbc_section]` (kế thừa Section Flatsome) + `[row]` + `[col]`**:
+   - `[vbc_section id="section-xxx" bg_color="#..." padding="60px" dark="true|false" custom_css="..."]`:
+     - **Kế thừa toàn bộ thuộc tính của Section Flatsome**: `bg`, `bg_color`, `bg_overlay`, `padding`, `padding__sm`, `padding__md`, `margin`, `height`, `dark`, `divider`, `divider_top`, `border`, `effect`, `parallax`...
+     - **BẮT BUỘC gán `id="section-<tên>"`** cho mỗi `[vbc_section]` để làm CSS scope identifier.
+     - **Toàn bộ CSS của section và các phần tử con bên trong ĐƯA TRỰC TIẾP vào `custom_css="..."`** sử dụng từ khóa `selector`.
+   - `[row width="custom" custom_width="1140px" v_align="middle|top"]`: **Toàn bộ `[row]` PHẢI nằm bên trong `[vbc_section]`** — tuyệt đối không đặt `[row]` độc lập ngoài section.
    - `[col span="4" span__md="6" span__sm="12" align="center|left" bg_color="#..." bg_radius="16" padding="24px"]`: Quản lý hệ thống 12 cột responsive chuẩn Flatsome UX Builder.
    *(Lưu ý: Đối với các layout flex/grid phức tạp đặc thù, có thể sử dụng `[vbc_div]` $\to$ `[vbc_container]` $\to$ `[vbc_box]` $\to$ `[vbc_block]` — không dùng `[col]` bên trong `[col]`)*.
 
@@ -89,39 +92,44 @@ AI trực tiếp viết mã nguồn lưu tại `tmp/<slug>/created_vbc.txt`.
 
 3. **Ràng buộc quan trọng**:
    - **Truyền nội dung qua input (`text="..."` / `content="..."`)**: Tuyệt đối không lồng thẻ thô hoặc `<img>` vào giữa cặp thẻ `[vbc_p]...[/vbc_p]` hay `[vbc_h1]-[vbc_h6]`, vì WordPress `wpautop` sẽ tự động chèn thẻ `<p>` rác làm vỡ layout.
-   - **Zero same-type nesting**: Không lồng cùng loại thẻ vào nhau (không lồng `[row]` trong `[row]` hoặc `[col]` trong `[col]`, dùng `[row_inner]` / `[vbc_box]` nếu cần sub-grid).
+   - **Zero same-type nesting**: Không lồng cùng loại thẻ vào nhau (không lồng `[row]` trong `[row]`, dùng `[row_inner]` nếu cần sub-grid).
 
-4. **BẮT BUỘC — CSS Scoped Theo Section Class (Nhúng `<style>` Trong Content)**:
-   - Mỗi section có màu sắc, font, form đặc thù PHẢI dùng CSS scoped theo class của section đó.
-   - **Cơ chế**: Nhúng trực tiếp `<style>` block vào **đầu file `created_vbc.txt`** (trước các shortcodes), trong đó dùng class của `[section]` làm selector cha:
-     ```html
-     <style>
-     /* === Section Hero === */
-     .section-hero .title { font-size: 40px; }
-     /* === Section Register (Form CF7) === */
-     .section-register .wpcf7-form input[type="text"],
-     .section-register .wpcf7-form input[type="tel"],
-     .section-register .wpcf7-form input[type="email"],
-     .section-register .wpcf7-form select,
-     .section-register .wpcf7-form textarea {
-       width: 100%; padding: 13px 16px;
-       border: 1.5px solid #e2e8f0; border-radius: 10px;
-       font-size: 15px; background: #f8fafc; color: #1e293b; box-sizing: border-box;
-     }
-     .section-register .wpcf7-form input[type="text"]:focus,
-     .section-register .wpcf7-form input[type="tel"]:focus,
-     .section-register .wpcf7-form input[type="email"]:focus {
-       border-color: #F5568F; box-shadow: 0 0 0 3px rgba(245,86,143,0.12); outline: none; background: #ffffff;
-     }
-     .section-register .wpcf7-form input[type="submit"] {
-       width: 100%; padding: 14px;
-       background: #F5568F; color: #fff;
-       font-weight: 700; border: none; border-radius: 50px; cursor: pointer;
-     }
-     .section-register .wpcf7-form input[type="submit"]:hover { background: #e0447c; }
-     </style>
+4. **BẮT BUỘC — Đưa CSS của Các Phần Tử Con Vào Custom CSS (Selector) Của VBC Section**:
+   - **KHÔNG đưa CSS vào Custom Field** mà đưa trực tiếp vào thuộc tính `custom_css="..."` của `[vbc_section]`.
+   - **Cú pháp sử dụng từ khóa `selector`**: Từ khóa `selector` tự động đại diện cho chính Section cha (`#section-id`), từ đó dễ dàng target và style cho mọi phần tử con bên trong:
      ```
-   - **TUYỆT ĐỐI KHÔNG** để CSS form `[contact-form-7]` rời rạc — PHẢI embed trực tiếp bằng thẻ `<style>` ở đầu content kèm selector `.section-xxx` để đảm bảo áp dụng 100%.
+     [vbc_section id="section-register" bg_color="#F5568F" padding="80px" padding__sm="50px" dark="true" custom_css="
+       selector { background: linear-gradient(135deg, #F5568F 0%, #e0447c 100%); }
+       selector .wpcf7-form input[type='text'],
+       selector .wpcf7-form input[type='tel'],
+       selector .wpcf7-form input[type='email'],
+       selector .wpcf7-form textarea {
+         width: 100%; padding: 13px 16px;
+         border: 1.5px solid #e2e8f0; border-radius: 10px;
+         font-size: 15px; background: #f8fafc; color: #1e293b; box-sizing: border-box;
+       }
+       selector .wpcf7-form input[type='text']:focus,
+       selector .wpcf7-form input[type='tel']:focus,
+       selector .wpcf7-form input[type='email']:focus {
+         border-color: #F5568F; box-shadow: 0 0 0 3px rgba(245,86,143,0.12); outline: none; background: #ffffff;
+       }
+       selector .wpcf7-form input[type='submit'] {
+         width: 100%; padding: 15px 24px;
+         background: #F5568F; color: #ffffff;
+         font-weight: 700; font-size: 16px;
+         border: none; border-radius: 50px; cursor: pointer;
+       }
+       selector .wpcf7-form input[type='submit']:hover { background: #e0447c; }
+     "]
+       [row width="custom" custom_width="840px"]
+         [col span="12" bg_color="#ffffff" bg_radius="24" padding="48px"]
+           [vbc_h2 text="Đăng ký tư vấn ngay" color="#1e293b" font_size="26px" font_weight="800" text_align="center" margin="0 0 28px 0"]
+           [contact-form-7 id="..." title="..."]
+         [/col]
+       [/row]
+     [/vbc_section]
+     ```
+   - **Ưu điểm**: CSS được đóng gói trọn vẹn trong từng section, tương thích 100% trong UX Builder, độc lập và không phụ thuộc vào file/field bên ngoài.
 
 ### Bước 4: Xuất bản Lên WordPress Qua REST API
 Chạy script xuất bản trang:

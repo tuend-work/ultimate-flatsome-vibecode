@@ -597,26 +597,200 @@ function vbc_register_ux_builder_elements() {
         }
     }
 
-    // Đăng ký vbc_section
+    // Đăng ký vbc_section kế thừa đầy đủ tính năng Flatsome Section + VBC Custom CSS
     add_ux_builder_shortcode('vbc_section', array(
         'name' => 'VBC Section',
         'category' => 'VibeCode Layout',
         'type' => 'container',
+        'priority' => 1,
         'options' => array(
             'id' => array(
                 'type' => 'textfield',
                 'heading' => 'Section ID',
                 'default' => '',
+                'description' => 'ID duy nhất cho section (dùng để gán selector CSS).',
             ),
             'class' => array(
                 'type' => 'textfield',
                 'heading' => 'CSS Class',
                 'default' => '',
             ),
-            'custom_css' => array(
-                'type' => 'textarea',
-                'heading' => 'Custom CSS (selector)',
+            'label' => array(
+                'type' => 'textfield',
+                'heading' => 'Tên gợi nhớ (Label)',
                 'default' => '',
+            ),
+            'dark' => array(
+                'type' => 'radio-buttons',
+                'heading' => 'Chế độ chữ sáng (Dark)',
+                'default' => 'false',
+                'options' => array(
+                    'false' => array('title' => 'Tối (Mặc định)'),
+                    'true'  => array('title' => 'Sáng (Nền tối)'),
+                ),
+            ),
+            'bg_group' => array(
+                'type' => 'group',
+                'heading' => 'Màu sắc & Hình nền',
+                'options' => array(
+                    'bg_color' => array(
+                        'type' => 'colorpicker',
+                        'heading' => 'Màu nền (Background Color)',
+                        'default' => '',
+                    ),
+                    'bg' => array(
+                        'type' => 'image',
+                        'heading' => 'Ảnh nền (Background Image)',
+                        'default' => '',
+                    ),
+                    'bg_overlay' => array(
+                        'type' => 'colorpicker',
+                        'heading' => 'Lớp phủ màu nền (Overlay)',
+                        'default' => '',
+                    ),
+                    'bg_pos' => array(
+                        'type' => 'select',
+                        'heading' => 'Vị trí ảnh nền',
+                        'default' => '',
+                        'options' => array(
+                            '' => 'Mặc định',
+                            'top left' => 'Top Left',
+                            'top center' => 'Top Center',
+                            'top right' => 'Top Right',
+                            'center left' => 'Center Left',
+                            'center center' => 'Center Center',
+                            'center right' => 'Center Right',
+                            'bottom left' => 'Bottom Left',
+                            'bottom center' => 'Bottom Center',
+                            'bottom right' => 'Bottom Right',
+                        ),
+                    ),
+                    'parallax' => array(
+                        'type' => 'slider',
+                        'heading' => 'Hiệu ứng Parallax',
+                        'default' => '0',
+                        'max' => '10',
+                        'min' => '0',
+                    ),
+                    'effect' => array(
+                        'type' => 'select',
+                        'heading' => 'Hiệu ứng nền',
+                        'default' => '',
+                        'options' => array(
+                            '' => 'Không',
+                            'snow' => 'Tuyết rơi (Snow)',
+                            'rain' => 'Mưa rơi (Rain)',
+                            'sparkle' => 'Lấp lánh (Sparkle)',
+                        ),
+                    ),
+                ),
+            ),
+            'spacing_group' => array(
+                'type' => 'group',
+                'heading' => 'Khoảng cách & Kích thước',
+                'options' => array(
+                    'padding' => array(
+                        'type' => 'textfield',
+                        'heading' => 'Padding',
+                        'responsive' => true,
+                        'default' => '60px',
+                        'description' => 'Ví dụ: 60px, 80px 0',
+                    ),
+                    'margin' => array(
+                        'type' => 'textfield',
+                        'heading' => 'Margin',
+                        'responsive' => true,
+                        'default' => '',
+                    ),
+                    'height' => array(
+                        'type' => 'textfield',
+                        'heading' => 'Chiều cao tối thiểu (Min Height)',
+                        'responsive' => true,
+                        'default' => '',
+                        'description' => 'Ví dụ: 500px, 100vh',
+                    ),
+                ),
+            ),
+            'divider_group' => array(
+                'type' => 'group',
+                'heading' => 'Shape Divider (Đường cong viền)',
+                'options' => array(
+                    'divider_top' => array(
+                        'type' => 'select',
+                        'heading' => 'Divider đỉnh',
+                        'default' => '',
+                        'options' => array(
+                            '' => 'Không có',
+                            'waves' => 'Sóng lượn (Waves)',
+                            'curve' => 'Đường cong (Curve)',
+                            'triangle' => 'Tam giác (Triangle)',
+                        ),
+                    ),
+                    'divider_top_height' => array(
+                        'type' => 'textfield',
+                        'heading' => 'Chiều cao Divider đỉnh',
+                        'default' => '150px',
+                    ),
+                    'divider_top_fill' => array(
+                        'type' => 'colorpicker',
+                        'heading' => 'Màu Divider đỉnh',
+                        'default' => '#ffffff',
+                    ),
+                    'divider' => array(
+                        'type' => 'select',
+                        'heading' => 'Divider đáy',
+                        'default' => '',
+                        'options' => array(
+                            '' => 'Không có',
+                            'waves' => 'Sóng lượn (Waves)',
+                            'curve' => 'Đường cong (Curve)',
+                            'triangle' => 'Tam giác (Triangle)',
+                        ),
+                    ),
+                    'divider_height' => array(
+                        'type' => 'textfield',
+                        'heading' => 'Chiều cao Divider đáy',
+                        'default' => '150px',
+                    ),
+                    'divider_fill' => array(
+                        'type' => 'colorpicker',
+                        'heading' => 'Màu Divider đáy',
+                        'default' => '#ffffff',
+                    ),
+                ),
+            ),
+            'border_group' => array(
+                'type' => 'group',
+                'heading' => 'Viền & Bo góc (Border & Radius)',
+                'options' => array(
+                    'border' => array(
+                        'type' => 'textfield',
+                        'heading' => 'Border',
+                        'default' => '',
+                    ),
+                    'border_color' => array(
+                        'type' => 'colorpicker',
+                        'heading' => 'Màu viền',
+                        'default' => '',
+                    ),
+                    'border_radius' => array(
+                        'type' => 'textfield',
+                        'heading' => 'Bo góc (Radius)',
+                        'default' => '',
+                    ),
+                ),
+            ),
+            'custom_css_group' => array(
+                'type' => 'group',
+                'heading' => 'VBC Custom CSS (Dùng "selector")',
+                'options' => array(
+                    'custom_css' => array(
+                        'type' => 'textarea',
+                        'heading' => 'CSS Rules (Dùng từ khóa "selector")',
+                        'default' => '',
+                        'description' => 'Nhập CSS cho section và toàn bộ phần tử con. Từ khóa "selector" tự động thay bằng ID của section. Ví dụ: selector { background: #fff; } selector .wpcf7-form input { border-radius: 10px; }',
+                    ),
+                ),
             ),
         ),
     ));

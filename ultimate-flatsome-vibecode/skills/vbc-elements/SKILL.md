@@ -12,8 +12,9 @@ Cung cấp tài liệu tra cứu chuẩn xác nhất về cú pháp, thuộc tí
 ## Danh Mục Phần Tử (Element Catalog)
 
 1. **Khung chứa & Bố cục (Layout Containers)**:
-   - `[vbc_div]`: Thẻ `<div>` full-width bao ngoài toàn bộ Section.
-   - `[vbc_box]`: Thẻ `<div>` giới hạn bề rộng (container max-width 1200px).
+   - `[vbc_section]`: Section chính kế thừa toàn bộ tính năng của Section Flatsome (`bg`, `bg_color`, `bg_overlay`, `padding`, `margin`, `dark`, `divider`, `border`...), hỗ trợ `custom_css="selector { ... } selector .child { ... }"` để định kiểu cho Section và toàn bộ phần tử con bên trong.
+   - `[vbc_div]`: Thẻ `<div>` full-width bao ngoài toàn bộ Section hoặc khối giao diện tùy biến.
+   - `[vbc_box]`: Thẻ `<div>` card/box container (max-width, flex/grid, border-radius).
    - `[vbc_block]`: Khung hàng/grid cấp 1.
    - `[vbc_block_inner]`: Khung hàng/grid con cấp 2.
    - `[vbc_container]`: Cột/khung chứa item cấp 1.

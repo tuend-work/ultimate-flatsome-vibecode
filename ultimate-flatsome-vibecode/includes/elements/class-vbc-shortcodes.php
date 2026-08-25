@@ -110,6 +110,8 @@ function vbc_section_renderer($atts, $content = null) {
 
         // Thay tất cả "selector" bằng "#section_id"
         $compiled_css = preg_replace('/\bselector\b/', $scoped_selector, $raw_css);
+        // Minify CSS loại bỏ hoàn toàn các dòng trắng để chống wpautop chèn <p>/<br>
+        $compiled_css = trim(preg_replace('/\s+/', ' ', $compiled_css));
 
         // Lưu vào accumulated CSS pool (in ra ở footer)
         $vbc_accumulated_css['vbc_section_' . $section_id] = $compiled_css;
@@ -617,3 +619,15 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
  * 2.5 VIBECODE ADVANCED COMPONENT SHORTCODES
  */
 add_action('init', 'vbc_register_component_shortcodes');
+
+/**
+ * Tự động dọn dẹp các thẻ <p> hoặc <br> vô tình bị wpautop chèn vào bên trong hoặc xung quanh thẻ <style>
+ */
+add_filter('the_content', function($content) {
+    if (empty($content)) return $content;
+    return preg_replace_callback('/<style\b([^>]*)>(.*?)<\/style>/is', function($matches) {
+        $clean_css = preg_replace('/<\/?(p|br)\s*\/?>/i', '', $matches[2]);
+        $clean_css = trim(preg_replace('/\s+/', ' ', $clean_css));
+        return '<style' . $matches[1] . '>' . $clean_css . '</style>';
+    }, $content);
+}, 99);

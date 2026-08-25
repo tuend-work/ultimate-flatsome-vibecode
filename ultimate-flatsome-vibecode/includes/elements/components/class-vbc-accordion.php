@@ -104,47 +104,25 @@ function vbc_accordion_item_shortcode($atts, $content = null) {
 function vbc_inject_accordion_faq_styles() {
     ?>
     <style id="vbc-accordion-faq-custom-css">
+    .accordion,
     .accordion.vbc-accordion-faq,
     .vbc-accordion {
-        border: none !important;
-        background: transparent !important;
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
-        margin-top: 24px;
+        border: none;
     }
-    .accordion.vbc-accordion-faq .accordion-item,
-    .vbc-accordion .accordion-item {
-        border: 1px solid #e2e8f0 !important;
-        border-radius: 12px !important;
-        background: #ffffff !important;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02) !important;
-        overflow: hidden !important;
-        margin-bottom: 0 !important;
-        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
-    }
-    .accordion.vbc-accordion-faq .accordion-item:hover,
-    .vbc-accordion .accordion-item:hover {
-        border-color: #cbd5e1 !important;
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06) !important;
-    }
+    .accordion .accordion-title,
     .accordion.vbc-accordion-faq .accordion-title,
     .vbc-accordion .accordion-title {
         display: flex !important;
         flex-direction: row !important;
         align-items: center !important;
         justify-content: space-between !important;
-        padding: 18px 22px !important;
-        font-size: 15px !important;
-        font-weight: 700 !important;
-        color: #0f172a !important;
         text-align: left !important;
         text-decoration: none !important;
-        background: #ffffff !important;
-        border: none !important;
         cursor: pointer !important;
         transition: all 0.2s ease !important;
     }
+    .accordion .accordion-title > span,
+    .accordion .accordion-title span,
     .accordion.vbc-accordion-faq .accordion-title > span,
     .accordion.vbc-accordion-faq .accordion-title span,
     .vbc-accordion .accordion-title > span,
@@ -155,16 +133,10 @@ function vbc_inject_accordion_faq_styles() {
         margin: 0 !important;
         display: block !important;
     }
-    .accordion.vbc-accordion-faq .accordion-title:hover,
-    .vbc-accordion .accordion-title:hover {
-        color: #2563eb !important;
-    }
-    .accordion.vbc-accordion-faq .accordion-title.active,
-    .vbc-accordion .accordion-title.active {
-        color: #2563eb !important;
-        background: #f8fafc !important;
-        border-bottom: 1px solid #f1f5f9 !important;
-    }
+    .accordion .accordion-title > .toggle,
+    .accordion .accordion-title > button,
+    .accordion .accordion-title .toggle,
+    .accordion .accordion-title button.toggle,
     .accordion.vbc-accordion-faq .accordion-title > .toggle,
     .accordion.vbc-accordion-faq .accordion-title > button,
     .accordion.vbc-accordion-faq .accordion-title .toggle,
@@ -174,9 +146,13 @@ function vbc_inject_accordion_faq_styles() {
         order: 2 !important;
         position: static !important;
         float: none !important;
+        left: auto !important;
+        right: auto !important;
+        top: auto !important;
+        bottom: auto !important;
         margin: 0 0 0 16px !important;
         color: #64748b !important;
-        font-size: 14px !important;
+        font-size: 16px !important;
         transition: transform 0.25s ease, color 0.25s ease !important;
         background: transparent !important;
         border: none !important;
@@ -187,10 +163,12 @@ function vbc_inject_accordion_faq_styles() {
         height: 24px !important;
         padding: 0 !important;
         cursor: pointer !important;
-        top: auto !important;
-        right: auto !important;
         transform: none !important;
     }
+    .accordion .accordion-title.active > .toggle,
+    .accordion .accordion-title.active > button,
+    .accordion .accordion-title.active .toggle,
+    .accordion .accordion-title.active button.toggle,
     .accordion.vbc-accordion-faq .accordion-title.active > .toggle,
     .accordion.vbc-accordion-faq .accordion-title.active > button,
     .accordion.vbc-accordion-faq .accordion-title.active .toggle,
@@ -200,17 +178,8 @@ function vbc_inject_accordion_faq_styles() {
         transform: rotate(180deg) !important;
         color: #2563eb !important;
     }
-    .accordion.vbc-accordion-faq .accordion-inner,
-    .vbc-accordion .accordion-inner {
-        padding: 20px 22px !important;
-        font-size: 14px !important;
-        line-height: 1.75 !important;
-        color: #475569 !important;
-        background: #ffffff !important;
-        border-top: none !important;
-        text-align: left !important;
-    }
     </style>
     <?php
 }
 add_action('wp_head', 'vbc_inject_accordion_faq_styles', 99);
+

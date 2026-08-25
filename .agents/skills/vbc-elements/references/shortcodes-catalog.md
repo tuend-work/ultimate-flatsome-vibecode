@@ -117,8 +117,15 @@ Tài liệu tra cứu đầy đủ các thuộc tính và cách kết hợp tố
   [contact-form-7 id="1391" title="Form Đăng Ký Tư Vấn - Tiếng Anh Mẫu Giáo"]
   ```
 
-### 10. `[vbc_accordion]` & `[vbc_accordion_item]`
+### 10. `[vbc_accordion]` & `[vbc_accordion_item]` (hoặc `[accordion]` & `[accordion-item]`)
 - **Mô tả:** Khối hỏi đáp thường gặp FAQ hoặc danh sách lợi ích xổ xuống.
+- **Lưu ý định vị mũi tên toggle:** Flatsome mặc định đặt toggle bên trái. Khi styling custom accordion, bắt buộc dùng CSS Flexbox với `order: 1` cho tiêu đề và `order: 2`, `position: static !important` cho `.toggle` để mũi tên luôn nằm gọn gàng bên phải:
+  ```css
+  selector .accordion-title { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; text-decoration: none !important; position: relative !important; }
+  selector .accordion-title > span, selector .accordion-title span { order: 1 !important; flex: 1 1 auto !important; text-align: left !important; margin: 0 !important; }
+  selector .accordion-title > .toggle, selector .accordion-title .toggle, selector .accordion-title button.toggle { order: 2 !important; position: static !important; left: auto !important; right: auto !important; top: auto !important; bottom: auto !important; float: none !important; transform: none !important; margin: 0 0 0 16px !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; }
+  selector .accordion-title.active > .toggle, selector .accordion-title.active .toggle, selector .accordion-title.active button.toggle { transform: rotate(180deg) !important; }
+  ```
 - **Ví dụ:**
   ```html
   [vbc_accordion style="separated" icon="plus" enable_schema="yes"]

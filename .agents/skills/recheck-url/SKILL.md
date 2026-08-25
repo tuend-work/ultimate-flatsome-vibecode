@@ -33,13 +33,19 @@ flowchart TD
 ## 📋 Bảng Tiêu Chí Nghiệm Thu 3 Trụ Cột (Acceptance Criteria)
 
 ### 1. Trụ Cột 1: API Shortcode & Meta Integrity (Kiểm tra từ CSDL)
+- **100% Dùng thuộc tính `text="..."` tự đóng (Self-closing shortcode)**:
+  - CẤM TUYỆT ĐỐI dạng đóng mở có ruột văn bản như `[vbc_p]...[/vbc_p]`, `[vbc_h1]...[/vbc_h1]`, `[vbc_span]...[/vbc_span]`.
+  - Phải dùng: `[vbc_p text="..." class="..."]`, `[vbc_h2 text="..."]`. Định dạng `<b>`, `<strong>`, `<span>` phải viết trực tiếp vào `text="..."`.
 - **Tag Balance Stack**: 100% các cặp thẻ đóng mở `[vbc_section]`, `[row]`, `[col]`, `[vbc_box]`, `[vbc_block]`, `[vbc_card]`, `[vbc_accordion]` phải cân bằng hoàn hảo.
 - **Shortcode Nesting Rule**: Tuyệt đối không lồng `[vbc_div]` trực tiếp bên trong `[vbc_div]` cùng cấp. Luân chuyển linh hoạt giữa `[vbc_box]`, `[vbc_block]`, `[vbc_div]`.
-- **Custom CSS Extraction**: Toàn bộ CSS phải được tách vào `_custom_css` / `vbc_page_css`, không chứa thẻ `<style>` lồng bên trong chuỗi CSS thô.
+- **Custom CSS Extraction**: Toàn bộ CSS phải được tách vào `_custom_css` / `vbc_page_css` (hoặc `custom_css="..."` của `[vbc_section]`), không chứa thẻ `<style>` lồng bên trong chuỗi CSS thô.
+- **Zero Brackets in Attributes**: Tuyệt đối không dùng dấu `[` hoặc `]` bên trong bất kỳ giá trị thuộc tính nào (kể cả `custom_css`).
 - **Page Template**: Đảm bảo meta `_wp_page_template` được gán chính xác `page-blank.php`.
 
 ### 2. Trụ Cột 2: Rendered DOM & Frontend Aesthetics (Kiểm tra từ Trình duyệt)
-- **0 Raw Shortcodes**: 0 thẻ `[/vbc_div]`, `[row]`, `[col]` thô bị hiển thị ra ngoài màn hình người dùng.
+- **0 Raw Shortcodes & 0 Text Leaks**:
+  - 0 thẻ `[/vbc_div]`, `[row]`, `[col]` thô bị hiển thị ra ngoài màn hình người dùng.
+  - 0 rò rỉ mã CSS (`selector .`, `{ width:`), 0 rò rỉ thuộc tính (`class="`, `margin="`), 0 dấu ngoặc đơn lẻ `]` trong text content.
 - **0 Corrupted Style Tags**: 0 thẻ `<style>` bị WordPress wpautop tự động chèn `<p>` hoặc `<br>`.
 - **Media & Image Integrity**: 100% thẻ `<img>` có `src` hợp lệ, không rỗng, không vỡ ảnh, tỷ lệ khung hình chuẩn.
 - **SEO & Content Structure**: Có duy nhất 1 thẻ `<h1>` chất lượng cao, các thẻ `<h2>`, `<h3>` phân cấp rõ ràng.

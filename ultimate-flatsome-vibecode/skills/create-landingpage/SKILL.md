@@ -90,36 +90,41 @@ AI trực tiếp viết mã nguồn lưu tại `tmp/<slug>/created_vbc.txt`.
    - `[contact-form-7 id="..." title="..."]`: Form thu thập khách hàng thực tế sinh từ Bước 2.
    - `[vbc_post post_type="post|product"]`: Danh sách bài viết / sản phẩm truy vấn động từ WordPress Database.
 
-3. **Ràng buộc quan trọng**:
-   - **Truyền nội dung qua input (`text="..."` / `content="..."`)**: Tuyệt đối không lồng thẻ thô hoặc `<img>` vào giữa cặp thẻ `[vbc_p]...[/vbc_p]` hay `[vbc_h1]-[vbc_h6]`, vì WordPress `wpautop` sẽ tự động chèn thẻ `<p>` rác làm vỡ layout.
+3. **Ràng buộc quan trọng (CẤM VI PHẠM)**:
+   - **100% DÙNG THUỘC TÍNH `text="..."` (SELF-CLOSING SHORTCODES)**:
+     > [!CRITICAL]
+     > **TUYỆT ĐỐI KHÔNG GẮN CONTENT VÀO SHORTCODE DẠNG ĐÓNG MỞ NHƯ `[vbc_p]...[/vbc_p]`, `[vbc_h1]...[/vbc_h1]`, `[vbc_span]...[/vbc_span]`**.
+     > Flatsome UX Builder và bộ lọc `wpautop` của WordPress sẽ tự động nhồi nhét thẻ `<p>` vào ruột thẻ, sinh ra cấu trúc lỗi `<p><p>...</p></p>` hoặc thẻ rác làm hỏng toàn bộ giao diện.
+     > - **ĐÚNG:** `[vbc_p text="Khắc phục điểm yếu, nâng band điểm <b>Listening</b>." class="target-text"]`
+     > - **SAI:** `[vbc_p class="target-text"]Khắc phục điểm yếu, nâng band điểm <b>Listening</b>.[/vbc_p]`
+     > - **Định dạng HTML:** Viết trực tiếp `<b>`, `<strong>`, `<span>`, `<br>` vào trong `text="..."`.
    - **Zero same-type nesting**: Không lồng cùng loại thẻ vào nhau (không lồng `[row]` trong `[row]`, dùng `[row_inner]` nếu cần sub-grid).
+   - **Tuyệt đối không dùng dấu ngoặc vuông `[` hoặc `]` trong các giá trị thuộc tính**: Kể cả trong `custom_css` (dùng class selector như `.wpcf7-tel`, `.wpcf7-submit`, không dùng `[type='tel']`).
 
 4. **BẮT BUỘC — Đưa CSS của Các Phần Tử Con Vào Custom CSS (Selector) Của VBC Section**:
    - **KHÔNG đưa CSS vào Custom Field** mà đưa trực tiếp vào thuộc tính `custom_css="..."` của `[vbc_section]`.
-   - **Cú pháp sử dụng từ khóa `selector`**: Từ khóa `selector` tự động đại diện cho chính Section cha (`#section-id`), từ đó dễ dàng target và style cho mọi phần tử con bên trong:
+   - **Cú pháp sử dụng từ khóa `selector`**: Từ khóa `selector` tự động đại diện cho chính Section cha (`#section-id`), từ đó dễ dàng target và style cho mọi phần tử con bên trong (KHÔNG DÙNG DẤU `[` HOẶC `]` TRONG SELECTOR):
      ```
      [vbc_section id="section-register" bg_color="#F5568F" padding="80px" padding__sm="50px" dark="true" custom_css="
        selector { background: linear-gradient(135deg, #F5568F 0%, #e0447c 100%); }
-       selector .wpcf7-form input[type='text'],
-       selector .wpcf7-form input[type='tel'],
-       selector .wpcf7-form input[type='email'],
+       selector .wpcf7-form input.wpcf7-text,
+       selector .wpcf7-form input.wpcf7-tel,
+       selector .wpcf7-form input.wpcf7-email,
        selector .wpcf7-form textarea {
          width: 100%; padding: 13px 16px;
          border: 1.5px solid #e2e8f0; border-radius: 10px;
          font-size: 15px; background: #f8fafc; color: #1e293b; box-sizing: border-box;
        }
-       selector .wpcf7-form input[type='text']:focus,
-       selector .wpcf7-form input[type='tel']:focus,
-       selector .wpcf7-form input[type='email']:focus {
+       selector .wpcf7-form input:focus {
          border-color: #F5568F; box-shadow: 0 0 0 3px rgba(245,86,143,0.12); outline: none; background: #ffffff;
        }
-       selector .wpcf7-form input[type='submit'] {
+       selector .wpcf7-form input.wpcf7-submit {
          width: 100%; padding: 15px 24px;
          background: #F5568F; color: #ffffff;
          font-weight: 700; font-size: 16px;
          border: none; border-radius: 50px; cursor: pointer;
        }
-       selector .wpcf7-form input[type='submit']:hover { background: #e0447c; }
+       selector .wpcf7-form input.wpcf7-submit:hover { background: #e0447c; }
      "]
        [row width="custom" custom_width="840px"]
          [col span="12" bg_color="#ffffff" bg_radius="24" padding="48px"]

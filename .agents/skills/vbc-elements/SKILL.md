@@ -29,6 +29,26 @@ Cung cấp tài liệu tra cứu chuẩn xác nhất về cú pháp, thuộc tí
    - `[vbc_a link_url="..."]`: Thẻ liên kết `<a>` với URL linh hoạt.
    - `[vbc_icon icon_type="lucide" name="..." size="..." color="..."]`: Icon vector Lucide hoặc FontAwesome.
 
+## ⚠️ QUY TẮC BẮT BUỘC: 100% SHORTCODE TỰ ĐÓNG DÙNG THUỘC TÍNH (NO ENCLOSING TEXT)
+> [!CRITICAL]
+> **TUYỆT ĐỐI KHÔNG GẮN CONTENT VÀO SHORTCODE DẠNG ĐÓNG MỞ NHƯ `[vbc_p]...[/vbc_p]`, `[vbc_h1]...[/vbc_h1]`, `[vbc_span]...[/vbc_span]`**.
+> Flatsome UX Builder và bộ lọc `wpautop` của WordPress sẽ tự động nhồi nhét thẻ `<p>` vào ruột thẻ, sinh ra cấu trúc lỗi `<p><p>...</p></p>` làm hỏng giao diện.
+>
+> - **ĐÚNG (100% Dùng thuộc tính `text="..."` tự đóng):**
+>   ```html
+>   [vbc_h2 text="Mục tiêu khoá học" font_size="32px" font_weight="800"]
+>   [vbc_p text="Khắc phục điểm yếu, nâng band điểm <b>Listening</b>." class="target-text"]
+>   [vbc_a href="#register" text="Đăng ký ngay" class="btn-primary"]
+>   [vbc_span text="Hotline: 1900 6364" class="hotline-text"]
+>   ```
+> - **SAI (CẤM TUYỆT ĐỐI):**
+>   ```html
+>   <!-- CẤM: UX Builder sẽ chèn thẻ p vào giữa gây vỡ layout -->
+>   [vbc_p class="target-text"]Khắc phục điểm yếu, nâng band điểm <b>Listening</b>.[/vbc_p]
+>   [vbc_h2]Mục tiêu khoá học[/vbc_h2]
+>   ```
+> - **Văn bản có định dạng (`<b>`, `<strong>`, `<span>`, `<br>`):** Viết trực tiếp thẻ HTML vào trong `text="..."` (Ví dụ: `text="Học <b>1 kèm 1</b> cùng giáo viên"`). Tuyệt đối không dùng dấu ngoặc vuông `[` hoặc `]` bên trong giá trị thuộc tính.
+
 ## Quy Tắc Định Kiểu CSS (CSS Selector Rules)
 - Luôn sử dụng từ khóa `selector` để áp dụng CSS trực tiếp lên phần tử:
   ```css
@@ -38,6 +58,7 @@ Cung cấp tài liệu tra cứu chuẩn xác nhất về cú pháp, thuộc tí
   ```css
   @media(max-width: 849px) { selector { padding: 20px; } }
   ```
+- **TUYỆT ĐỐI KHÔNG DÙNG NGOẶC VUÔNG `[` hoặc `]` TRONG `custom_css`**: Không dùng `input[type='tel']`, hãy dùng class selector như `input.wpcf7-tel` hoặc `.wpcf7-form input`.
 
 ## Tài liệu Tham khảo (References)
 - [Bảng tra cứu toàn bộ Shortcodes VBC](./references/shortcodes-catalog.md)
@@ -45,3 +66,4 @@ Cung cấp tài liệu tra cứu chuẩn xác nhất về cú pháp, thuộc tí
 
 ## Ví dụ (Examples)
 - [Mẫu Section Hero hiện đại](./examples/modern-hero-section.vbc)
+

@@ -93,40 +93,41 @@
 
 ## NHÓM 2: KIỂU CHỮ & VĂN BẢN (TYPOGRAPHY)
 
-### 2.1. `[vbc_h1]` đến `[vbc_h6]` — Tiêu Đề Chuẩn SEO
-* **Thuộc tính**: `class`, `custom_css`, `font_family`, `font_size`, `font_size__md`, `font_size__sm`, `text_align`.
-* **Cú pháp mẫu**:
-```html
-[vbc_h1 custom_css="selector { font-size: 42px; font-weight: 800; color: #ffffff; line-height: 1.2; margin-bottom: 16px; } @media(max-width:549px) { selector { font-size: 28px; } }"]
-    Giải Pháp Công Nghệ Đột Phá 2026
-[/vbc_h1]
+> [!CRITICAL]
+> **QUY TẮC BẮT BUỘC: 100% SỬ DỤNG SHORTCODE TỰ ĐÓNG VỚI THUỘC TÍNH `text="..."`**
+> - **CẤM TUYỆT ĐỐI**: Không bao giờ viết dạng thẻ đóng mở có ruột văn bản như `[vbc_p]...[/vbc_p]`, `[vbc_h1]...[/vbc_h1]`, `[vbc_span]...[/vbc_span]`, `[vbc_a]...[/vbc_a]`.
+> - **Lý do**: Flatsome UX Builder và bộ lọc `wpautop` của WordPress sẽ tự động nhồi nhét thẻ `<p>` vào ruột thẻ, sinh ra cấu trúc lỗi `<p><p>...</p></p>` hoặc thẻ rác làm hỏng toàn bộ giao diện.
+> - **ĐÚNG**: `[vbc_p text="Khắc phục điểm yếu, nâng band điểm <b>Listening</b>." class="target-text"]`
+> - **SAI**: `[vbc_p class="target-text"]Khắc phục điểm yếu, nâng band điểm <b>Listening</b>.[/vbc_p]`
 
-[vbc_h2 custom_css="selector { font-size: 32px; font-weight: 700; color: #0f172a; text-align: center; }"]
-    Tính Năng Nổi Bật
-[/vbc_h2]
+### 2.1. `[vbc_h1]` đến `[vbc_h6]` — Tiêu Đề Chuẩn SEO
+* **Thuộc tính**: `text`, `class`, `custom_css`, `font_family`, `font_size`, `font_size__md`, `font_size__sm`, `font_weight`, `line_height`, `text_align`, `color`, `margin`.
+* **Cú pháp mẫu (Tự đóng)**:
+```html
+[vbc_h1 text="Giải Pháp Công Nghệ Đột Phá 2026" font_size="42px" font_size__sm="28px" font_weight="800" color="#ffffff" line_height="1.2" margin="0 0 16px 0"]
+[vbc_h2 text="Tính Năng Nổi Bật" font_size="32px" font_weight="700" color="#0f172a" text_align="center" margin="0 0 20px 0"]
 ```
 
 ### 2.2. `[vbc_p]` — Đoạn Văn Bản
-* **Cú pháp mẫu**:
+* **Thuộc tính**: `text`, `class`, `color`, `font_size`, `font_size__sm`, `line_height`, `text_align`, `margin`.
+* **Cú pháp mẫu (Tự đóng)**:
 ```html
-[vbc_p custom_css="selector { font-size: 16px; color: #64748b; line-height: 1.7; margin-bottom: 20px; }"]
-    Hệ thống hỗ trợ tự động hóa toàn diện quy trình chuyển đổi giao diện website sang Flatsome UX Builder.
-[/vbc_p]
+[vbc_p text="Hệ thống hỗ trợ tự động hóa toàn diện quy trình chuyển đổi giao diện website sang Flatsome UX Builder." color="#64748b" font_size="16px" line_height="1.7" margin="0 0 20px 0"]
+[vbc_p text="Chương trình đào tạo phản xạ ngôn ngữ <b>chuẩn quốc tế</b>." class="desc-text"]
 ```
 
 ### 2.3. `[vbc_span]` — Văn Bản Nội Dòng (Inline Text)
-* **Cú pháp mẫu**:
+* **Thuộc tính**: `text`, `class`, `color`, `font_size`, `font_weight`.
+* **Cú pháp mẫu (Tự đóng)**:
 ```html
-[vbc_span custom_css="selector { color: #2563eb; font-weight: 700; }"]Nổi bật 99%[/vbc_span]
+[vbc_span text="Nổi bật 99%" color="#2563eb" font_weight="700" class="badge-text"]
 ```
 
 ### 2.4. `[vbc_a]` — Thẻ Liên Kết (Link/Anchor)
-* **Thuộc tính**: `link_url`, `link_target` (`_self` / `_blank`), `link_rel`, `class`, `custom_css`.
-* **Cú pháp mẫu**:
+* **Thuộc tính**: `href` (hoặc `link_url`), `text`, `target` (`_self` / `_blank`), `rel`, `class`, `custom_css`, `bg_color`, `color`, `font_size`, `font_weight`, `padding`, `border_radius`, `display`.
+* **Cú pháp mẫu (Tự đóng)**:
 ```html
-[vbc_a link_url="https://zalo.me/0123456789" link_target="_blank" custom_css="selector { display: inline-flex; align-items: center; gap: 8px; color: #2563eb; font-weight: 600; text-decoration: none; } selector:hover { text-decoration: underline; }"]
-    Liên hệ tư vấn Zalo
-[/vbc_a]
+[vbc_a href="https://zalo.me/0123456789" text="Liên hệ tư vấn Zalo" target="_blank" class="btn-zalo" bg_color="#2563eb" color="#ffffff" padding="12px 24px" border_radius="8px" display="inline-block"]
 ```
 
 ### 2.5. `[vbc_b]`, `[vbc_strong]`, `[vbc_em]`, `[vbc_u]` — Định Dạng Chữ

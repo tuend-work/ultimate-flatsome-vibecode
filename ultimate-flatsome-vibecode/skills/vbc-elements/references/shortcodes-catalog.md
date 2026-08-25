@@ -61,6 +61,13 @@ Tài liệu tra cứu đầy đủ các thuộc tính và cách kết hợp tố
 
 ## 🎨 PHẦN 2: PHẦN TỬ CON NGUYÊN TỬ (VBC ATOMIC ELEMENTS)
 
+> [!CRITICAL]
+> **100% PHẦN TỬ VĂN BẢN PHẢI DÙNG THUỘC TÍNH `text="..."` (SELF-CLOSING SHORTCODES)**
+> - **CẤM TUYỆT ĐỐI**: Không bao giờ viết dạng thẻ đóng mở có ruột văn bản như `[vbc_p]...[/vbc_p]`, `[vbc_h2]...[/vbc_h2]`, `[vbc_span]...[/vbc_span]`. UX Builder và bộ lọc `wpautop` của WordPress sẽ tự động nhồi nhét thẻ `<p>` vào ruột thẻ, sinh ra cấu trúc lỗi `<p><p>...</p></p>` làm hỏng giao diện.
+> - **ĐÚNG**: `[vbc_p text="Nâng band điểm <b>Listening</b>." class="target-text"]`
+> - **SAI**: `[vbc_p class="target-text"]Nâng band điểm <b>Listening</b>.[/vbc_p]`
+> - **Định dạng HTML**: Viết trực tiếp `<b>`, `<strong>`, `<span>`, `<br>` vào trong `text="..."`. Không dùng ngoặc vuông `[` hoặc `]` trong thuộc tính.
+
 ### 4. `[vbc_h1]` đến `[vbc_h6]`
 - **Mô tả:** Các thẻ tiêu đề chuẩn SEO.
 - **Thuộc tính:** `text`, `color`, `font_size`, `font_size__sm`, `font_weight`, `line_height`, `text_align`, `margin`.
@@ -71,10 +78,11 @@ Tài liệu tra cứu đầy đủ các thuộc tính và cách kết hợp tố
 
 ### 5. `[vbc_p]` & `[vbc_span]`
 - **Mô tả:** Đoạn văn bản và cụm từ nội dòng.
-- **Thuộc tính:** `text`, `color`, `font_size`, `font_size__sm`, `line_height`, `text_align`, `margin`.
+- **Thuộc tính:** `text`, `color`, `font_size`, `font_size__sm`, `line_height`, `text_align`, `margin`, `class`.
 - **Ví dụ:**
   ```html
   [vbc_p text="Chương trình đào tạo phản xạ ngôn ngữ chuẩn quốc tế." color="#475569" font_size="15px" line_height="1.7"]
+  [vbc_p text="Hiểu rõ cấu trúc đề thi trong <b>2 kỹ năng</b> chính." class="desc-text"]
   ```
 
 ### 6. `[vbc_img]` *(Tự đóng)*

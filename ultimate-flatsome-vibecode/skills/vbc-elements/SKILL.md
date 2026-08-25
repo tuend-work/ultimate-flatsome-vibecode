@@ -16,16 +16,59 @@ Cung cấp tài liệu tra cứu chuẩn xác nhất về cú pháp, thuộc tí
    - `[vbc_div]`: Thẻ `<div>` full-width bao ngoài toàn bộ Section hoặc khối giao diện tùy biến.
    - `[vbc_box]`: Thẻ `<div>` card/box container (max-width, flex/grid, border-radius).
    - `[vbc_block]`: Khung hàng/grid cấp 1.
-   - `[vbc_block_inner]`: Khung hàng/grid con cấp 2.
    - `[vbc_container]`: Cột/khung chứa item cấp 1.
-   - `[vbc_container_inner]`: Cột/khung chứa item con cấp 2.
 
-2. **Tiêu đề & Nội dung (Typography)**:
+2. **Cơ Chế Lồng Nhau Đa Cấp (Suffix Nesting Hierarchy - Tương tự Row/Col Flatsome)**:
+   WordPress shortcode parser mặc định sẽ bị lỗi đóng nhầm thẻ nếu lồng cùng 1 tên shortcode lặp lại (ví dụ `[vbc_div]...[vbc_div]...[/vbc_div]...[/vbc_div]`). Để giải quyết triệt để và cho phép lồng layout vô hạn độ sâu, hệ thống VBC Elements cung cấp cơ chế hậu tố `_inner` giống hệt Flatsome `[row] -> [row_inner] -> [row_inner_1]` và `[col] -> [col_inner] -> [col_inner_1]`:
+   
+   - **Cấp 0 (Gốc):** `[vbc_div]`, `[vbc_box]`, `[vbc_block]`, `[vbc_container]`, `[row]`, `[col]`
+   - **Cấp 1 (Lồng cấp 1):** `[vbc_div_inner]`, `[vbc_box_inner]`, `[vbc_block_inner]`, `[vbc_container_inner]`, `[row_inner]`, `[col_inner]`
+   - **Cấp 2 (Lồng cấp 2):** `[vbc_div_inner_1]`, `[vbc_box_inner_1]`, `[vbc_block_inner_1]`, `[vbc_container_inner_1]`, `[row_inner_1]`, `[col_inner_1]`
+   - **Cấp 3 đến 10 (Lồng cấp sâu hơn):** `[vbc_div_inner_2]` $\to$ `[vbc_div_inner_3]` ... `[vbc_div_inner_10]`
+   
+   **Ví dụ lồng VBC Div / Row chuẩn UX Builder:**
+   ```html
+   [row]
+     [col span="4" span__sm="12"]
+       [vbc_img img_attachment="1787"]
+     [/col]
+     [col span="8" span__sm="12"]
+       [row_inner]
+         [col_inner span__sm="12"]
+           [row_inner_1]
+             [col_inner_1 span="4" span__sm="12"]
+               [vbc_p text="Cột 1"]
+             [/col_inner_1]
+             [col_inner_1 span="4" span__sm="12"]
+               [vbc_p text="Cột 2"]
+             [/col_inner_1]
+             [col_inner_1 span="4" span__sm="12"]
+               [vbc_p text="Cột 3"]
+             [/col_inner_1]
+           [/row_inner_1]
+         [/col_inner]
+       [/row_inner]
+     [/col]
+   [/row]
+   ```
+   **Ví dụ lồng thuần VBC Div Elements:**
+   ```html
+   [vbc_div class="wrapper-outer"]
+     [vbc_div_inner class="content-row"]
+       [vbc_div_inner_1 class="card-item"]
+         [vbc_h3 text="Tiêu đề card"]
+         [vbc_p text="Nội dung mô tả..."]
+       [/vbc_div_inner_1]
+     [/vbc_div_inner]
+   [/vbc_div]
+   ```
+
+3. **Tiêu đề & Nội dung (Typography)**:
    - `[vbc_h1]` đến `[vbc_h6]`: Thẻ heading chuẩn SEO, hỗ trợ `custom_css`.
    - `[vbc_p]`: Thẻ đoạn văn bản `<p>`.
    - `[vbc_span]`: Thẻ văn bản nội dòng `<span>`.
 
-3. **Liên kết & Biểu tượng (Interactive & Icons)**:
+4. **Liên kết & Biểu tượng (Interactive & Icons)**:
    - `[vbc_a link_url="..."]`: Thẻ liên kết `<a>` với URL linh hoạt.
    - `[vbc_icon icon_type="lucide" name="..." size="..." color="..."]`: Icon vector Lucide hoặc FontAwesome.
 

@@ -415,6 +415,14 @@ function vbc_get_common_options($tag_type) {
     return $options;
 }
 
+function vbc_add_ux_builder_shortcode_with_inners($tag_name, $args, $max_depth = 10) {
+    add_ux_builder_shortcode($tag_name, $args);
+    add_ux_builder_shortcode($tag_name . '_inner', $args);
+    for ($i = 1; $i <= $max_depth; $i++) {
+        add_ux_builder_shortcode($tag_name . '_inner_' . $i, $args);
+    }
+}
+
 function vbc_register_ux_builder_elements() {
     if (!function_exists('add_ux_builder_shortcode')) {
         return;
@@ -808,7 +816,7 @@ function vbc_register_ux_builder_elements() {
     ));
 
     // Đăng ký các Advanced Components vào UX Builder
-    add_ux_builder_shortcode('vbc_card', array(
+    vbc_add_ux_builder_shortcode_with_inners('vbc_card', array(
         'name' => 'VBC Card',
         'category' => 'VibeCode Components',
         'type' => 'container',
@@ -901,7 +909,7 @@ function vbc_register_ux_builder_elements() {
         ),
     ));
 
-    add_ux_builder_shortcode('vbc_testimonial', array(
+    vbc_add_ux_builder_shortcode_with_inners('vbc_testimonial', array(
         'name' => 'VBC Testimonial',
         'category' => 'VibeCode Components',
         'type' => 'container',
@@ -1017,7 +1025,7 @@ function vbc_register_ux_builder_elements() {
         ),
     ));
 
-    add_ux_builder_shortcode('vbc_accordion', array(
+    vbc_add_ux_builder_shortcode_with_inners('vbc_accordion', array(
         'name' => 'VBC Accordion',
         'category' => 'VibeCode Components',
         'type' => 'container',
@@ -1105,7 +1113,7 @@ function vbc_register_ux_builder_elements() {
         ),
     ));
 
-    add_ux_builder_shortcode('vbc_accordion_item', array(
+    vbc_add_ux_builder_shortcode_with_inners('vbc_accordion_item', array(
         'name' => 'VBC Accordion Item',
         'category' => 'VibeCode Components',
         'type' => 'container',
@@ -1142,7 +1150,7 @@ function vbc_register_ux_builder_elements() {
         ),
     ));
 
-    add_ux_builder_shortcode('vbc_tabs', array(
+    vbc_add_ux_builder_shortcode_with_inners('vbc_tabs', array(
         'name' => 'VBC Tabs',
         'category' => 'VibeCode Components',
         'type' => 'container',
@@ -1256,7 +1264,7 @@ function vbc_register_ux_builder_elements() {
         ),
     ));
 
-    add_ux_builder_shortcode('vbc_tab', array(
+    vbc_add_ux_builder_shortcode_with_inners('vbc_tab', array(
         'name' => 'VBC Tab Item',
         'category' => 'VibeCode Components',
         'type' => 'container',
@@ -1294,7 +1302,7 @@ function vbc_register_ux_builder_elements() {
         ),
     ));
 
-    add_ux_builder_shortcode('vbc_button', array(
+    vbc_add_ux_builder_shortcode_with_inners('vbc_button', array(
         'name' => 'VBC Button',
         'category' => 'VibeCode Components',
         'type' => 'container',
@@ -1401,7 +1409,7 @@ function vbc_register_ux_builder_elements() {
         ),
     ));
 
-    add_ux_builder_shortcode('vbc_slider', array(
+    vbc_add_ux_builder_shortcode_with_inners('vbc_slider', array(
         'name' => 'VBC Slider',
         'category' => 'VibeCode Components',
         'type' => 'container',
@@ -1471,7 +1479,7 @@ function vbc_register_ux_builder_elements() {
         ),
     ));
 
-    add_ux_builder_shortcode('vbc_slide', array(
+    vbc_add_ux_builder_shortcode_with_inners('vbc_slide', array(
         'name' => 'VBC Slide Item',
         'category' => 'VibeCode Components',
         'type' => 'container',
@@ -1515,7 +1523,7 @@ function vbc_register_ux_builder_elements() {
         ),
     ));
 
-    add_ux_builder_shortcode('vbc_fullpage', array(
+    vbc_add_ux_builder_shortcode_with_inners('vbc_fullpage', array(
         'name' => 'VBC FullPage Wrapper',
         'category' => 'VibeCode Components',
         'type' => 'container',
@@ -1565,7 +1573,7 @@ function vbc_register_ux_builder_elements() {
         ),
     ));
 
-    add_ux_builder_shortcode('vbc_post', array(
+    vbc_add_ux_builder_shortcode_with_inners('vbc_post', array(
         'name' => 'VBC Post & Product Grid',
         'category' => 'VibeCode Components',
         'type' => 'container',

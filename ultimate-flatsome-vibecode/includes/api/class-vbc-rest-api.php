@@ -99,14 +99,11 @@ function vbc_authenticate_request($request) {
 }
 
 function vbc_api_upload_handler($request) {
-    if (empty($_FILES['file'])) {
-        return new WP_Error('vbc_no_file', 'No file was uploaded.', array('status' => 400));
-    }
-    
-    // Cho phép upload SVG an toàn
+    // Cho phép upload SVG và các định dạng ảnh phổ biến
     add_filter('upload_mimes', function($mimes) {
         $mimes['svg'] = 'image/svg+xml';
         $mimes['svgz'] = 'image/svg+xml';
+        $mimes['webp'] = 'image/webp';
         return $mimes;
     });
     
@@ -114,20 +111,66 @@ function vbc_api_upload_handler($request) {
     require_once( ABSPATH . 'wp-admin/includes/file.php' );
     require_once( ABSPATH . 'wp-admin/includes/media.php' );
     
-    $attachment_id = media_handle_upload('file', 0);
-    
-    if (is_wp_error($attachment_id)) {
-        return new WP_Error('vbc_upload_failed', $attachment_id->get_error_message(), array('status' => 500));
+    // 1. Nếu upload qua Multipart Form-Data
+    if (!empty($_FILES['file'])) {
+        $attachment_id = media_handle_upload('file', 0);
+        if (is_wp_error($attachment_id)) {
+            return new WP_Error('vbc_upload_failed', $attachment_id->get_error_message(), array('status' => 500));
+        }
+        $url = wp_get_attachment_url($attachment_id);
+        return array(
+            'success' => true,
+            'id' => $attachment_id,
+            'attachment_id' => $attachment_id,
+            'url' => $url,
+        );
     }
     
-    $url = wp_get_attachment_url($attachment_id);
+    // 2. Nếu upload qua Raw Binary Body kèm X-File-Name
+    $raw_body = $request->get_body();
+    if (empty($raw_body)) {
+        $raw_body = file_get_contents('php://input');
+    }
     
-    return array(
-        'success' => true,
-        'id' => $attachment_id,
-        'attachment_id' => $attachment_id,
-        'url' => $url,
-    );
+    if (!empty($raw_body)) {
+        $filename = $request->get_header('X-File-Name');
+        if (empty($filename)) {
+            $filename = $request->get_param('filename');
+        }
+        if (empty($filename)) {
+            $filename = 'vbc_upload_' . time() . '.png';
+        }
+        
+        $upload = wp_upload_bits($filename, null, $raw_body);
+        if (!empty($upload['error'])) {
+            return new WP_Error('vbc_upload_failed', $upload['error'], array('status' => 500));
+        }
+        
+        $file_path = $upload['file'];
+        $file_type = wp_check_filetype(basename($file_path), null);
+        
+        $attachment = array(
+            'post_mime_type' => $file_type['type'],
+            'post_title'     => preg_replace('/\.[^.]+$/', '', basename($file_path)),
+            'post_content'   => '',
+            'post_status'    => 'inherit'
+        );
+        
+        $attachment_id = wp_insert_attachment($attachment, $file_path);
+        if (!is_wp_error($attachment_id)) {
+            $attach_data = wp_generate_attachment_metadata($attachment_id, $file_path);
+            wp_update_attachment_metadata($attachment_id, $attach_data);
+            
+            return array(
+                'success' => true,
+                'id' => $attachment_id,
+                'attachment_id' => $attachment_id,
+                'url' => $upload['url'],
+            );
+        }
+    }
+    
+    return new WP_Error('vbc_no_file', 'No file was uploaded.', array('status' => 400));
 }
 
 /**

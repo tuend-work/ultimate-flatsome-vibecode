@@ -49,6 +49,31 @@ function vbc_register_rest_routes() {
         )
     ));
 
+    // Endpoint lấy nội dung chi tiết bài viết / trang (GET /vbc/v1/page, /vbc/v1/post, /vbc/v1/content)
+    register_rest_route('vbc/v1', '/post', array(
+        'methods' => 'GET',
+        'callback' => 'vbc_api_get_page_handler',
+        'permission_callback' => function($request) {
+            $user = vbc_authenticate_request($request);
+            if (is_wp_error($user)) {
+                return $user;
+            }
+            return user_can($user, 'edit_pages') || user_can($user, 'edit_posts');
+        }
+    ));
+
+    register_rest_route('vbc/v1', '/content', array(
+        'methods' => 'GET',
+        'callback' => 'vbc_api_get_page_handler',
+        'permission_callback' => function($request) {
+            $user = vbc_authenticate_request($request);
+            if (is_wp_error($user)) {
+                return $user;
+            }
+            return user_can($user, 'edit_pages') || user_can($user, 'edit_posts');
+        }
+    ));
+
     // Endpoint tạo & quản lý Contact Form 7
     register_rest_route('vbc/v1', '/cf7', array(
         'methods' => 'POST',
@@ -337,6 +362,69 @@ function vbc_api_page_handler($request) {
 }
 
 /**
+ * Xử lý truy vấn GET nội dung của Post / Page (GET /vbc/v1/page, /vbc/v1/post, /vbc/v1/content)
+ */
+function vbc_api_get_page_handler($request) {
+    $params = $request->get_params();
+    $post_id = !empty($params['post_id']) ? intval($params['post_id']) : (!empty($params['id']) ? intval($params['id']) : 0);
+    $slug = !empty($params['slug']) ? sanitize_title($params['slug']) : '';
+    $post_type = !empty($params['post_type']) ? sanitize_key($params['post_type']) : 'any';
+
+    if ($post_id <= 0 && !empty($slug)) {
+        $existing = get_page_by_path($slug, OBJECT, $post_type === 'any' ? array('page', 'post', 'blocks') : $post_type);
+        if ($existing) {
+            $post_id = $existing->ID;
+        }
+    }
+
+    if ($post_id <= 0) {
+        return new WP_Error('vbc_invalid_param', 'Vui lòng cung cấp post_id hoặc slug hợp lệ.', array('status' => 400));
+    }
+
+    $post = get_post($post_id);
+    if (!$post) {
+        return new WP_Error('vbc_not_found', 'Không tìm thấy trang/bài viết tương ứng.', array('status' => 404));
+    }
+
+    $custom_css = get_post_meta($post_id, '_custom_css', true);
+    if (empty($custom_css)) {
+        $custom_css = get_post_meta($post_id, 'vbc_page_css', true);
+    }
+
+    $template = get_post_meta($post_id, '_wp_page_template', true);
+
+    // Thống kê nhanh nội dung
+    $raw_content = $post->post_content;
+    preg_match_all('/\[vbc_section\b/i', $raw_content, $sections);
+    preg_match_all('/<img\b|\[vbc_img\b/i', $raw_content, $imgs);
+    preg_match_all('/\[contact-form-7\b/i', $raw_content, $forms);
+    preg_match_all('/\[\/?vbc_[a-zA-Z0-9_\-]+[^\]]*\]/i', $raw_content, $vbc_tags);
+
+    return array(
+        'success'        => true,
+        'post_id'        => $post->ID,
+        'title'          => $post->post_title,
+        'slug'           => $post->post_name,
+        'status'         => $post->post_status,
+        'post_type'      => $post->post_type,
+        'url'            => get_permalink($post->ID),
+        'ux_builder_url' => admin_url('post.php?post=' . $post->ID . '&action=edit&app=uxbuilder'),
+        'template'       => $template ? $template : 'default',
+        'post_content'   => $raw_content,
+        'custom_css'     => $custom_css ? $custom_css : '',
+        'date'           => $post->post_date,
+        'modified'       => $post->post_modified,
+        'stats'          => array(
+            'content_length'    => strlen($raw_content),
+            'vbc_tags_count'    => count($vbc_tags[0]),
+            'sections_count'    => count($sections[0]),
+            'images_count'      => count($imgs[0]),
+            'has_cf7'           => count($forms[0]) > 0,
+        )
+    );
+}
+
+/**
  * Tự động nạp Custom CSS vào thẻ <head> của trang
  */
 add_action('wp_head', 'vbc_render_page_custom_css', 99);
@@ -357,38 +445,6 @@ function vbc_render_page_custom_css() {
         echo "\n<!-- VibeCode / Flatsome Page Custom CSS -->\n";
         echo '<style id="vbc-page-custom-css">' . trim($css) . '</style>' . "\n";
     }
-}
-
-function vbc_api_get_page_handler($request) {
-    $post_id = intval($request->get_param('post_id'));
-    $slug = sanitize_title($request->get_param('slug'));
-    
-    if ($post_id > 0) {
-        $post = get_post($post_id);
-    } elseif (!empty($slug)) {
-        $posts = get_posts(array(
-            'name' => $slug,
-            'post_type' => 'any',
-            'posts_per_page' => 1
-        ));
-        $post = !empty($posts) ? $posts[0] : null;
-    } else {
-        return new WP_Error('vbc_missing_param', 'Post ID or Slug is required.', array('status' => 400));
-    }
-    
-    if (!$post) {
-        return new WP_Error('vbc_not_found', 'Page not found.', array('status' => 404));
-    }
-    
-    return array(
-        'success' => true,
-        'post_id' => $post->ID,
-        'title' => $post->post_title,
-        'content' => $post->post_content,
-        'slug' => $post->post_name,
-        'status' => $post->post_status,
-        'post_type' => $post->post_type,
-    );
 }
 
 /**

@@ -189,6 +189,12 @@ class Ultimate_Flatsome_Template_Builder {
         if ( empty( $rules['archive_post'] ) && get_post_status( 403 ) === 'publish' ) {
             $rules['archive_post'] = 403;
         }
+        if ( empty( $rules['taxonomy_course_category'] ) && get_post_status( 352 ) === 'publish' ) {
+            $rules['taxonomy_course_category'] = 352;
+        }
+        if ( empty( $rules['archive_course'] ) && get_post_status( 352 ) === 'publish' ) {
+            $rules['archive_course'] = 352;
+        }
         return $rules;
     }
 
@@ -242,7 +248,18 @@ class Ultimate_Flatsome_Template_Builder {
                 }
             }
         }
-        // B. Xử lý Taxonomy & Archive Pages (Category, Tag, Product Category, Custom Taxonomies)
+        // B. Xử lý Custom Post Type Archive (e.g. /khoa-hoc/)
+        elseif ( is_post_type_archive( 'course' ) ) {
+            $rules = self::get_template_rules();
+            if ( ! empty( $rules['archive_course'] ) ) {
+                $block_id = $rules['archive_course'];
+                $context = 'archive_course';
+            } elseif ( get_post_status( 352 ) === 'publish' ) {
+                $block_id = 352;
+                $context = 'archive_course';
+            }
+        }
+        // C. Xử lý Taxonomy & Archive Pages (Category, Tag, Product Category, Custom Taxonomies)
         elseif ( is_category() || is_tag() || is_tax() ) {
             $term = get_queried_object();
             if ( $term && isset( $term->term_id ) ) {
@@ -258,11 +275,16 @@ class Ultimate_Flatsome_Template_Builder {
                     if ( ! empty( $rules[ $tax_key ] ) ) {
                         $block_id = $rules[ $tax_key ];
                         $context = 'taxonomy_' . $term->taxonomy;
+                    } elseif ( $term->taxonomy === 'course_category' || $term->taxonomy === 'course_tag' ) {
+                        if ( get_post_status( 352 ) === 'publish' ) {
+                            $block_id = 352;
+                            $context = 'taxonomy_course_category';
+                        }
                     }
                 }
             }
         }
-        // C. Xử lý Blog Home & General Post Archives
+        // D. Xử lý Blog Home & General Post Archives
         elseif ( is_home() || is_archive() ) {
             $rules = self::get_template_rules();
             if ( ! empty( $rules['archive_post'] ) ) {

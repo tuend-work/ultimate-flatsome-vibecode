@@ -137,9 +137,21 @@ Chạy script xuất bản trang:
 python .agents/skills/create-landingpage/scripts/publisher.py --title "<TIEU_DE>" --slug "<SLUG>" --content "tmp/<slug>/created_vbc.txt" [--post_id <POST_ID>]
 ```
 
-### Bước 5: Kiểm Định & Bàn Giao (Audit & Handover)
-Chạy rechecker và kiểm tra trang web trên trình duyệt:
-```bash
-python .agents/skills/recheck-url/scripts/rechecker.py --url "<TARGET_URL>"
-```
-Cung cấp link live và link chỉnh sửa trực tiếp trên Flatsome UX Builder cho người dùng.
+### Bước 5: AI Agent Đối Soát Từng Section & Tự Động Hoàn Thiện Code (AI Section-by-Section Audit & Polish)
+1. **AI Agent Phân Tích & Đối Soát Trực Quan Từng Section**:
+   - Sử dụng AI Agent duyệt qua từng section đã tạo để đối soát tính thẩm mỹ, độ tương phản, khoảng cách, font chữ và tỷ lệ bố cục.
+   - Phát hiện các điểm cần tối ưu: padding quá lớn/quá nhỏ, màu chữ bị chìm, thiếu bóng đổ, form chưa đẹp.
+
+2. **Chạy Script Rechecker**:
+   ```bash
+   python .agents/skills/recheck-url/scripts/rechecker.py --url "<TARGET_URL>"
+   ```
+
+3. **Yêu Cầu AI Agent Tự Động Sinh Lại Code Mới Nếu Cần Tinh Chỉnh**:
+   - Nếu phát hiện bất kỳ khuyết điểm thị giác nào, AI Agent **phải tự động cập nhật lại code VBC cho section đó** và tái xuất bản lên WordPress.
+   - Nghiệm thu khi đạt chuẩn:
+     - **0 Shortcodes chưa parse**.
+     - **Tất cả hình ảnh hiển thị sắc nét**.
+     - **Contact Form 7 hoạt động trơn tru**.
+     - **Giao diện hiện đại, chuyên nghiệp, responsive 100%**.
+4. Cung cấp link live và link chỉnh sửa trực tiếp trên Flatsome UX Builder cho người dùng.

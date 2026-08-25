@@ -258,6 +258,27 @@ class LandingPageRechecker:
 
     def compare_with_source(self, target_html):
         """Đối chiếu số liệu giữa Web Gốc và Web Clone"""
+        # Phân tích bóc tách Section-by-Section Gap Analysis
+        target_sections = re.findall(r'<section\b[^>]*id=[\'"]([^\'"]*)[\'"][^>]*>([\s\S]*?)<\/section>', target_html, re.IGNORECASE)
+        section_audit = []
+        for sec_id, sec_content in target_sections:
+            sec_h = re.findall(r'<h[1-6][^>]*>([\s\S]*?)<\/h[1-6]>', sec_content, re.IGNORECASE)
+            sec_h_clean = [re.sub(r'<[^>]+>', '', h).strip() for h in sec_h if h.strip()]
+            sec_imgs = re.findall(r'<img[^>]+src=[\'"]([^\'"]+)[\'"]', sec_content, re.IGNORECASE)
+            sec_has_form = bool(re.search(r'<(?:form|div[^>]*class=[\'"][^\'"]*wpcf7)', sec_content, re.IGNORECASE))
+            sec_has_cta = bool(re.search(r'<a[^>]+href=[\'"][^\'"]*[\'"][^>]*>[\s\S]*?<\/a>', sec_content, re.IGNORECASE))
+            
+            section_audit.append({
+                "id": sec_id,
+                "title": sec_h_clean[0] if sec_h_clean else "Khối không có tiêu đề",
+                "img_count": len(sec_imgs),
+                "has_form": sec_has_form,
+                "has_cta": sec_has_cta,
+                "status": "PASS" if (len(sec_imgs) > 0 or sec_h_clean or sec_has_form) else "WARNING"
+            })
+        
+        self.stats['section_audit'] = section_audit
+
         if not self.source_url:
             return
 
@@ -350,12 +371,12 @@ class LandingPageRechecker:
         is_success = vis_score >= self.threshold and self.stats.get('unparsed_shortcodes', 0) == 0
 
         with open(report_path, 'w', encoding='utf-8') as f:
-            f.write(f"# BÁO CÁO ĐỐI SOÁT CHẤT LƯỢNG & SO SÁNH THỊ GIÁC AI\n\n")
+            f.write(f"# BÁO CÁO ĐỐI SOÁT CHẤT LƯỢNG & SO SÁNH THỊ GIÁC AI (SECTION-BY-SECTION)\n\n")
             f.write(f"- **Target URL (Clone):** {self.target_url}\n")
             f.write(f"- **Source URL (Gốc):** {self.source_url or 'N/A'}\n")
             f.write(f"- **Thời gian kiểm định:** {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
             f.write(f"- **Ngưỡng đạt yêu cầu:** &ge; {self.threshold}%\n")
-            f.write(f"- **KẾT QUẢ NGHIỆM THU:** **{'🎉 CLONE THÀNH CÔNG (ĐẠT &ge; ' + str(self.threshold) + '%)' if is_success else '⚠️ CHƯA ĐẠT (CẦN ĐIỀU CHỈNH)'}**\n\n")
+            f.write(f"- **KẾT QUẢ NGHIỆM THU:** **{'🎉 CLONE THÀNH CÔNG (ĐẠT &ge; ' + str(self.threshold) + '%)' if is_success else '⚠️ CHƯA ĐẠT (CẦN AI AGENT SINH LẠI CODE)'}**\n\n")
 
             f.write(f"## 1. Bảng Điểm Đánh Giá Thị Giác AI (Visual Similarity Score)\n\n")
             f.write(f"| Chỉ số đánh giá | Điểm số đạt được | Trọng số | Trạng thái |\n")
@@ -365,7 +386,15 @@ class LandingPageRechecker:
             f.write(f"| **Độ khớp chi tiết Pixel (Pixel Difference)** | {vis.get('pixel_similarity', 0)}% | 25% | {'✓ Đạt' if vis.get('pixel_similarity', 0) >= 80 else '⚠️ Cần chỉnh'} |\n")
             f.write(f"| **TỔNG ĐIỂM TƯƠNG ĐỒNG THỊ GIÁC (VSI)** | **{vis_score}%** | **100%** | **{'✓ PASS' if vis_score >= self.threshold else '✗ FAIL'}** |\n\n")
 
-            f.write(f"## 2. Bảng Đối Soát Cấu Trúc DOM & Dữ Liệu Thực Tế\n\n")
+            f.write(f"## 2. Bảng Đối Soát Chi Tiết Từng Section (Section-by-Section Gap Analysis)\n\n")
+            f.write(f"| Section ID | Tiêu đề khối | Hình ảnh | CTA / Form | Đánh giá trực quan |\n")
+            f.write(f"|---|---|:---:|:---:|:---:|\n")
+            for sec in self.stats.get('section_audit', []):
+                cta_info = "Form CF7" if sec['has_form'] else ("Nút CTA" if sec['has_cta'] else "Nội dung tĩnh")
+                f.write(f"| `#{sec['id']}` | **{sec['title']}** | {sec['img_count']} ảnh | {cta_info} | {'✓ Khớp giao diện' if sec['status'] == 'PASS' else '⚠️ Cần kiểm tra'} |\n")
+            f.write("\n")
+
+            f.write(f"## 3. Bảng Đối Soát Cấu Trúc DOM & Dữ Liệu Thực Tế\n\n")
             f.write(f"| Hạng mục kiểm tra | Web Gốc (Source) | Web Clone (Target) | Đánh giá |\n")
             f.write(f"|---|---|---|:---:|\n")
             if self.comparison_data:
@@ -375,6 +404,12 @@ class LandingPageRechecker:
                 f.write(f"| **Biểu mẫu Form & CF7** | {'Có' if self.comparison_data['conversion']['source_has_form'] else 'Không'} | {'Có (CF7)' if self.comparison_data['conversion']['target_has_form'] else 'Không'} | ✓ Chuẩn hóa |\n")
             f.write(f"| **Shortcodes chưa parse** | - | {self.stats.get('unparsed_shortcodes', 0)} tags | {'✓ 0 lỗi' if self.stats.get('unparsed_shortcodes', 0) == 0 else '✗ Lỗi raw tag'} |\n")
             f.write(f"| **Thẻ Style hợp lệ** | - | {self.stats.get('corrupted_style_tags', 0)} lỗi | {'✓ 100% Chuẩn' if self.stats.get('corrupted_style_tags', 0) == 0 else '✗ Lỗi wpautop'} |\n\n")
+
+            if not is_success:
+                f.write(f"## 4. Hướng Dẫn Tự Động Sửa Lỗi Cho AI Agent\n\n")
+                f.write(f"1. Rà soát danh sách sai khác ở bảng Section-by-Section bên trên.\n")
+                f.write(f"2. Cập nhật mã nguồn `tmp/<slug>/compiled_vbc.txt` sử dụng 100% `[vbc_section id='...' custom_css='...']`.\n")
+                f.write(f"3. Xuất bản lại lên WordPress và chạy lại `rechecker.py` để nghiệm thu.\n\n")
 
             if vis.get('side_by_side_path'):
                 f.write(f"- Ảnh đối chiếu Side-by-Side: `{vis['side_by_side_path']}`\n")

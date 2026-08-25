@@ -166,13 +166,27 @@ Chạy script xuất bản trang:
 python .agents/skills/clone-landingpage/scripts/publisher.py --title "<TIEU_DE>" --slug "<SLUG>" --content "tmp/<slug>/compiled_vbc.txt" [--post_id <POST_ID>]
 ```
 
-### Bước 6: Đối Soát Chất Lượng & Thị Giác (Quality Audit)
-Chạy script rechecker:
-```bash
-python .agents/skills/recheck-url/scripts/rechecker.py --url "<TARGET_URL>" --source_url "<SOURCE_URL>"
-```
-Đảm bảo kết quả đạt:
-- **0 Unparsed Shortcodes**.
-- **VSI $\ge 90\%$**.
-- **Biểu mẫu Contact Form 7 hoạt động**.
-- Tương thích 100% với trình kéo thả Flatsome UX Builder.
+### Bước 6: AI Agent Đối Soát Từng Section & Tự Động Sinh Lại Code (AI Section-by-Section Recheck & Auto-Fix)
+
+1. **AI Agent Phân Tích & Đối Soát Trực Quan Từng Section (Section Gap Analysis)**:
+   - Sử dụng AI Agent kết hợp `browser_subagent` và script `rechecker.py` để duyệt qua từng section của trang nguồn và trang clone:
+     - So sánh bố cục lưới (số cột, tỷ lệ khoảng cách, padding).
+     - So sánh typography (màu chữ, font-size, độ tương phản không bị chìm nền).
+     - So sánh hình ảnh & icons (tỷ lệ ảnh, bo góc `border_radius`, bóng đổ `box_shadow`, icon checklist).
+     - So sánh các tương tác (Accordion FAQ, nút CTA, form fields).
+
+2. **Chạy Script Rechecker**:
+   ```bash
+   python .agents/skills/recheck-url/scripts/rechecker.py --url "<TARGET_URL>" --source_url "<SOURCE_URL>"
+   ```
+
+3. **Yêu Cầu AI Agent Tự Động Sinh Lại Code Mới (Auto-Remediation)**:
+   - **BẮT BUỘC**: Nếu phát hiện bất kỳ Section nào có sai khác (vỡ layout, chữ bị chìm màu, hình ảnh bị méo mó, hoặc VSI $< 90\%$):
+     - AI Agent **phải chỉ rõ từng điểm sai khác theo từng section**.
+     - AI Agent **phải tự động cập nhật lại script generator và sinh lại code VBC mới** cho section đó.
+     - Tái xuất bản và kiểm định lại cho đến khi đạt chuẩn hoàn hảo:
+       - **Độ tương đồng thị giác (VSI) $\ge 90.0\%$**.
+       - **0 Shortcodes chưa parse**.
+       - **Hình ảnh hiển thị đầy đủ, không broken link**.
+       - **Biểu mẫu Contact Form 7 hiển thị đẹp mắt và hoạt động chuẩn**.
+       - **Tương thích 100% với trình kéo thả Flatsome UX Builder**.

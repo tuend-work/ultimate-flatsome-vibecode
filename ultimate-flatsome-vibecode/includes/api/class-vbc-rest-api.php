@@ -24,55 +24,34 @@ function vbc_register_rest_routes() {
         }
     ));
 
-    register_rest_route('vbc/v1', '/page', array(
-        array(
-            'methods' => 'POST',
-            'callback' => 'vbc_api_page_handler',
-            'permission_callback' => function($request) {
-                $user = vbc_authenticate_request($request);
-                if (is_wp_error($user)) {
-                    return $user;
+    // 2. Unified Endpoint CRUD cho mọi wp_post (/vbc/v1/post, /vbc/v1/page, /vbc/v1/content)
+    $post_endpoints = array('/post', '/page', '/content');
+    foreach ($post_endpoints as $route) {
+        register_rest_route('vbc/v1', $route, array(
+            array(
+                'methods' => 'GET',
+                'callback' => 'vbc_api_get_post_handler',
+                'permission_callback' => function($request) {
+                    $user = vbc_authenticate_request($request);
+                    if (is_wp_error($user)) {
+                        return $user;
+                    }
+                    return user_can($user, 'edit_pages') || user_can($user, 'edit_posts');
                 }
-                return user_can($user, 'edit_pages') || user_can($user, 'edit_posts');
-            }
-        ),
-        array(
-            'methods' => 'GET',
-            'callback' => 'vbc_api_get_page_handler',
-            'permission_callback' => function($request) {
-                $user = vbc_authenticate_request($request);
-                if (is_wp_error($user)) {
-                    return $user;
+            ),
+            array(
+                'methods' => 'POST',
+                'callback' => 'vbc_api_page_handler',
+                'permission_callback' => function($request) {
+                    $user = vbc_authenticate_request($request);
+                    if (is_wp_error($user)) {
+                        return $user;
+                    }
+                    return user_can($user, 'edit_pages') || user_can($user, 'edit_posts');
                 }
-                return user_can($user, 'edit_pages') || user_can($user, 'edit_posts');
-            }
-        )
-    ));
-
-    // Endpoint lấy nội dung chi tiết bài viết / trang (GET /vbc/v1/page, /vbc/v1/post, /vbc/v1/content)
-    register_rest_route('vbc/v1', '/post', array(
-        'methods' => 'GET',
-        'callback' => 'vbc_api_get_page_handler',
-        'permission_callback' => function($request) {
-            $user = vbc_authenticate_request($request);
-            if (is_wp_error($user)) {
-                return $user;
-            }
-            return user_can($user, 'edit_pages') || user_can($user, 'edit_posts');
-        }
-    ));
-
-    register_rest_route('vbc/v1', '/content', array(
-        'methods' => 'GET',
-        'callback' => 'vbc_api_get_page_handler',
-        'permission_callback' => function($request) {
-            $user = vbc_authenticate_request($request);
-            if (is_wp_error($user)) {
-                return $user;
-            }
-            return user_can($user, 'edit_pages') || user_can($user, 'edit_posts');
-        }
-    ));
+            )
+        ));
+    }
 
     // Endpoint tạo & quản lý Contact Form 7
     register_rest_route('vbc/v1', '/cf7', array(
@@ -362,36 +341,40 @@ function vbc_api_page_handler($request) {
 }
 
 /**
- * Xử lý truy vấn GET nội dung của Post / Page (GET /vbc/v1/page, /vbc/v1/post, /vbc/v1/content)
+ * Xử lý truy vấn GET nội dung của bất kỳ wp_post nào (Post, Page, UX Block, Product...) qua ID hoặc Slug
  */
-function vbc_api_get_page_handler($request) {
+function vbc_api_get_post_handler($request) {
     $params = $request->get_params();
-    $post_id = !empty($params['post_id']) ? intval($params['post_id']) : (!empty($params['id']) ? intval($params['id']) : 0);
+    $id = !empty($params['id']) ? intval($params['id']) : (!empty($params['post_id']) ? intval($params['post_id']) : 0);
     $slug = !empty($params['slug']) ? sanitize_title($params['slug']) : '';
-    $post_type = !empty($params['post_type']) ? sanitize_key($params['post_type']) : 'any';
 
-    if ($post_id <= 0 && !empty($slug)) {
-        $existing = get_page_by_path($slug, OBJECT, $post_type === 'any' ? array('page', 'post', 'blocks') : $post_type);
-        if ($existing) {
-            $post_id = $existing->ID;
+    if ($id <= 0 && !empty($slug)) {
+        $found_posts = get_posts(array(
+            'name'           => $slug,
+            'post_type'      => 'any',
+            'posts_per_page' => 1,
+            'post_status'    => 'any',
+        ));
+        if (!empty($found_posts)) {
+            $id = $found_posts[0]->ID;
         }
     }
 
-    if ($post_id <= 0) {
-        return new WP_Error('vbc_invalid_param', 'Vui lòng cung cấp post_id hoặc slug hợp lệ.', array('status' => 400));
+    if ($id <= 0) {
+        return new WP_Error('vbc_invalid_id', 'Vui lòng cung cấp id hoặc post_id hợp lệ.', array('status' => 400));
     }
 
-    $post = get_post($post_id);
+    $post = get_post($id);
     if (!$post) {
-        return new WP_Error('vbc_not_found', 'Không tìm thấy trang/bài viết tương ứng.', array('status' => 404));
+        return new WP_Error('vbc_not_found', 'Không tìm thấy wp_post với ID: ' . $id, array('status' => 404));
     }
 
-    $custom_css = get_post_meta($post_id, '_custom_css', true);
+    $custom_css = get_post_meta($post->ID, '_custom_css', true);
     if (empty($custom_css)) {
-        $custom_css = get_post_meta($post_id, 'vbc_page_css', true);
+        $custom_css = get_post_meta($post->ID, 'vbc_page_css', true);
     }
 
-    $template = get_post_meta($post_id, '_wp_page_template', true);
+    $template = get_post_meta($post->ID, '_wp_page_template', true);
 
     // Thống kê nhanh nội dung
     $raw_content = $post->post_content;
@@ -402,6 +385,7 @@ function vbc_api_get_page_handler($request) {
 
     return array(
         'success'        => true,
+        'id'             => $post->ID,
         'post_id'        => $post->ID,
         'title'          => $post->post_title,
         'slug'           => $post->post_name,
@@ -412,14 +396,15 @@ function vbc_api_get_page_handler($request) {
         'template'       => $template ? $template : 'default',
         'post_content'   => $raw_content,
         'custom_css'     => $custom_css ? $custom_css : '',
+        'author'         => $post->post_author,
         'date'           => $post->post_date,
         'modified'       => $post->post_modified,
         'stats'          => array(
-            'content_length'    => strlen($raw_content),
-            'vbc_tags_count'    => count($vbc_tags[0]),
-            'sections_count'    => count($sections[0]),
-            'images_count'      => count($imgs[0]),
-            'has_cf7'           => count($forms[0]) > 0,
+            'content_length' => strlen($raw_content),
+            'vbc_tags_count' => count($vbc_tags[0]),
+            'sections_count' => count($sections[0]),
+            'images_count'   => count($imgs[0]),
+            'has_cf7'        => count($forms[0]) > 0,
         )
     );
 }

@@ -43,15 +43,31 @@ Khi phát hiện form nhập liệu trên trang nguồn (hoặc khu vực CTA đ
 3. **Lấy mã Shortcode trả về** dạng `[contact-form-7 id="<ID>" title="..."]` để nhúng trực tiếp vào container VBC ở Bước 4.
 4. **Quy tắc**: 100% biểu mẫu thu thập thông tin (Lead Form) **BẮT BUỘC** phải được tạo thành form Contact Form 7 thực tế qua API, **TUYỆT ĐỐI KHÔNG** dùng văn bản giả lập tĩnh (`[vbc_p]`) thay cho form.
 
-### Bước 4: AI Sinh 100% Native VBC Elements (Trực Tiếp Gắn Thuộc Tính Styling)
-AI viết trực tiếp file mã nguồn VBC Elements lưu tại `tmp/<slug>/compiled_vbc.txt`.
-- **Ràng buộc quan trọng**:
-  - Gắn thuộc tính trực tiếp vào shortcode: `bg_color="..."`, `color="..."`, `font_size="..."`, `font_weight="..."`, `padding="..."`, `margin="..."`, `border_radius="..."`, `box_shadow="..."`, `display="flex|grid"`, `gap="..."`, `grid_columns="..."`, `text_align="..."`.
-  - Thay thế 100% link ảnh bằng URL WordPress từ `media_map.json`.
-  - **Tích hợp Form CF7**: Nhúng mã `[contact-form-7 id="..." title="..."]` vào trong khối container `[vbc_container]` / `[vbc_box]` đã được style.
-  - **Nội dung Động (Dynamic Posts/Products)**: Khi phân đoạn là danh sách bài viết blog, tin tức kiến thức hoặc sản phẩm, PHẢI dùng `[vbc_post post_type="post|product" posts_per_page="..." columns="..." fields="thumbnail:100%, title:100%, excerpt:100%, button:100%"]` để lấy trực tiếp dữ liệu động từ website.
-  - **Truyền nội dung qua input (`text="..."` / `content="..."`)**: Tuyệt đối không lồng thẻ thô hoặc `<img>` vào giữa cặp thẻ `[vbc_p]...[/vbc_p]` hay `[vbc_h1]-[vbc_h6]`, vì WordPress `wpautop` sẽ tự động chèn thẻ `<p>` rác làm vỡ layout. Thay vào đó, hãy truyền nội dung vào input `text="..."` hoặc tách thành các phần tử nguyên tử (`[vbc_img]` + `[vbc_p]`) bên trong Flex container.
-  - **Cấu trúc phân cấp không trùng loại thẻ (Zero Same-type Nesting)**: Tuân thủ nghiêm ngặt thứ tự `[vbc_div]` (Section) $\to$ `[vbc_container]` (Container max-width) $\to$ `[vbc_box]` (Grid/Flex) $\to$ `[vbc_block]` (Item) $\to$ Self-closing elements / `[contact-form-7]`. Không lồng thẻ cùng loại vào nhau để đảm bảo **0 unparsed shortcodes**.
+### Bước 4: AI Sinh Mã Nguồn Kết Hợp Chuẩn Flatsome (Section + Row + Col) & VBC Elements
+AI viết trực tiếp file mã nguồn lưu tại `tmp/<slug>/compiled_vbc.txt`.
+
+#### 🏛️ Kiến Trúc Bố Cục Ưu Tiên (Layout Backbone):
+1. **Khung xương Bố cục (Structure)**: **Ưu tiên sử dụng `[section]` + `[row]` + `[col]` chuẩn của Flatsome**:
+   - `[section bg_color="#..." bg="<img_url>" padding="60px" dark="true|false"]`: Quản lý toàn bộ Section full-width, màu nền, padding và divider.
+   - `[row width="custom" custom_width="1140px" v_align="middle|top" col_bg="#..." col_bg_radius="16" padding="20px"]`: Quản lý lưới căn giữa, độ rộng container, flexbox vertical align và màu nền các cột.
+   - `[col span="4" span__md="6" span__sm="12" align="center|left" bg_color="#..." bg_radius="16" padding="24px"]`: Quản lý hệ thống 12 cột responsive chuẩn Flatsome UX Builder.
+   *(Lưu ý: Đối với các layout flex/grid phức tạp đặc thù, có thể sử dụng `[vbc_div]` $\to$ `[vbc_container]` $\to$ `[vbc_box]` $\to$ `[vbc_block]`)*.
+
+2. **Phần tử Con Nguyên Tử (Atomic Elements)**: Đặt trực tiếp bên trong `[col]` hoặc `[vbc_block]`:
+   - `[vbc_h1]-[vbc_h6]`: Tiêu đề kèm thuộc tính `text="..."`, `color`, `font_size`, `font_weight`, `text_align`.
+   - `[vbc_p]`: Đoạn văn bản kèm `text="..."`, `color`, `font_size`, `line_height`.
+   - `[vbc_img]`: Hình ảnh tự đóng `[vbc_img src="..." alt="..." width="..." border_radius="..."]`.
+   - `[vbc_a]`: Nút bấm hoặc liên kết `[vbc_a href="..." text="..." bg_color="..." color="..." padding="..."]`.
+   - `[vbc_icon]`: Icon vector từ 5 thư viện `[vbc_icon icon_type="lucide|fontawesome" name="..." size="..." color="..."]`.
+   - `[vbc_accordion]` & `[vbc_accordion_item]`: Khối câu hỏi thường gặp FAQ.
+   - `[vbc_tabs]` & `[vbc_tab]`: Khối chuyển tab lộ trình học / bảng giá.
+   - `[contact-form-7 id="..." title="..."]`: Form thu thập khách hàng thực tế sinh từ Bước 3.
+   - `[vbc_post post_type="post|product"]`: Danh sách bài viết / sản phẩm truy vấn động từ WordPress Database.
+
+3. **Ràng buộc quan trọng**:
+   - Thay thế 100% link ảnh bằng URL WordPress từ `media_map.json`.
+   - **Truyền nội dung qua input (`text="..."` / `content="..."`)**: Tuyệt đối không lồng thẻ thô hoặc `<img>` vào giữa cặp thẻ `[vbc_p]...[/vbc_p]` hay `[vbc_h1]-[vbc_h6]`, vì WordPress `wpautop` sẽ tự động chèn thẻ `<p>` rác làm vỡ layout.
+   - **Zero same-type nesting**: Tuyệt đối không lồng cùng loại thẻ vào nhau (ví dụ: không lồng `[row]` trong `[row]`, dùng `[row_inner]` nếu cần sub-grid).
 
 ### Bước 5: Xuất bản Lên WordPress Qua REST API
 Chạy script xuất bản trang:

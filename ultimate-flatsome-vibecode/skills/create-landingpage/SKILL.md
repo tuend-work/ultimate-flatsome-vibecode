@@ -39,13 +39,30 @@ Khi thiết kế landing page có khu vực thu thập thông tin khách hàng (
 3. **Lấy mã Shortcode trả về** dạng `[contact-form-7 id="<ID>" title="..."]` để nhúng vào layout VBC.
 4. **Quy tắc**: 100% biểu mẫu thu thập thông tin khách hàng **BẮT BUỘC** phải được tạo thành form Contact Form 7 thực tế qua API, **TUYỆT ĐỐI KHÔNG** dùng văn bản giả lập tĩnh (`[vbc_p]`) thay cho form.
 
-### Bước 3: AI Thiết Kế & Sinh 100% Native VBC Elements
-AI trực tiếp viết mã nguồn VBC Elements lưu tại `tmp/<slug>/created_vbc.txt`.
-- Sử dụng đầy đủ các thẻ: `[vbc_div]`, `[vbc_box]`, `[vbc_block]`, `[vbc_container]`, `[vbc_h1]-[vbc_h6]`, `[vbc_p]`, `[vbc_a]`, `[vbc_img]`, `[vbc_icon]`, `[vbc_card]`, `[vbc_tabs]`, `[vbc_accordion]`, `[contact-form-7]`, `[vbc_post]`.
-- Gắn trực tiếp thuộc tính: `bg_color="..."`, `color="..."`, `font_size="..."`, `font_weight="..."`, `padding="..."`, `margin="..."`, `border_radius="..."`, `box_shadow="..."`, `display="flex|grid"`, `gap="..."`, `grid_columns="..."`, `text_align="..."`.
-- **Tích hợp Form CF7**: Nhúng mã `[contact-form-7 id="..." title="..."]` vào trong khối container `[vbc_container]` / `[vbc_box]` đã được style.
-- **Truyền nội dung qua input (`text="..."` / `content="..."`)**: Tuyệt đối không lồng thẻ thô hoặc `<img>` vào giữa cặp thẻ `[vbc_p]...[/vbc_p]` hay `[vbc_h1]-[vbc_h6]`, vì WordPress `wpautop` sẽ tự động chèn thẻ `<p>` rác làm vỡ layout. Thay vào đó, hãy truyền nội dung vào input `text="..."` hoặc tách thành các phần tử nguyên tử (`[vbc_img]` + `[vbc_p]`) bên trong Flex container.
-- **Cấu trúc phân cấp không trùng loại thẻ (Zero Same-type Nesting)**: Tuân thủ nghiêm ngặt thứ tự `[vbc_div]` (Section) $\to$ `[vbc_container]` (Container max-width) $\to$ `[vbc_box]` (Grid/Flex) $\to$ `[vbc_block]` (Item) $\to$ Self-closing elements / `[contact-form-7]`. Không lồng thẻ cùng loại vào nhau để đảm bảo **0 unparsed shortcodes**.
+### Bước 3: AI Thiết Kế Bố Cục Chuẩn Flatsome (Section + Row + Col) & VBC Elements
+AI trực tiếp viết mã nguồn lưu tại `tmp/<slug>/created_vbc.txt`.
+
+#### 🏛️ Kiến Trúc Bố Cục Ưu Tiên (Layout Backbone):
+1. **Khung xương Bố cục (Structure)**: **Ưu tiên sử dụng `[section]` + `[row]` + `[col]` chuẩn của Flatsome**:
+   - `[section bg_color="#..." bg="<img_url>" padding="60px" dark="true|false"]`: Quản lý Section full-width, màu nền và hiệu ứng.
+   - `[row width="custom" custom_width="1140px" v_align="middle|top" col_bg="#..." col_bg_radius="16" padding="20px"]`: Quản lý container căn giữa, flexbox align và màu nền các cột.
+   - `[col span="4" span__md="6" span__sm="12" align="center|left" bg_color="#..." bg_radius="16" padding="24px"]`: Quản lý lưới 12 cột responsive chuẩn Flatsome UX Builder.
+   *(Lưu ý: Đối với các layout flex/grid phức tạp đặc thù, có thể sử dụng `[vbc_div]` $\to$ `[vbc_container]` $\to$ `[vbc_box]` $\to$ `[vbc_block]`)*.
+
+2. **Phần tử Con Nguyên Tử (Atomic Elements)**: Đặt trực tiếp bên trong `[col]` hoặc `[vbc_block]`:
+   - `[vbc_h1]-[vbc_h6]`: Tiêu đề kèm `text="..."`, `color`, `font_size`, `font_weight`, `text_align`.
+   - `[vbc_p]`: Đoạn văn bản kèm `text="..."`, `color`, `font_size`, `line_height`.
+   - `[vbc_img]`: Hình ảnh tự đóng `[vbc_img src="..." alt="..." width="..." border_radius="..."]`.
+   - `[vbc_a]`: Nút bấm hoặc liên kết `[vbc_a href="..." text="..." bg_color="..." color="..." padding="..."]`.
+   - `[vbc_icon]`: Icon vector từ 5 thư viện `[vbc_icon icon_type="lucide|fontawesome" name="..." size="..." color="..."]`.
+   - `[vbc_accordion]` & `[vbc_accordion_item]`: Khối câu hỏi thường gặp FAQ.
+   - `[vbc_tabs]` & `[vbc_tab]`: Khối chuyển tab lộ trình học / bảng giá.
+   - `[contact-form-7 id="..." title="..."]`: Form thu thập khách hàng thực tế sinh từ Bước 2.
+   - `[vbc_post post_type="post|product"]`: Danh sách bài viết / sản phẩm truy vấn động từ WordPress Database.
+
+3. **Ràng buộc quan trọng**:
+   - **Truyền nội dung qua input (`text="..."` / `content="..."`)**: Tuyệt đối không lồng thẻ thô hoặc `<img>` vào giữa cặp thẻ `[vbc_p]...[/vbc_p]` hay `[vbc_h1]-[vbc_h6]`, vì WordPress `wpautop` sẽ tự động chèn thẻ `<p>` rác làm vỡ layout.
+   - **Zero same-type nesting**: Không lồng cùng loại thẻ vào nhau (không lồng `[row]` trong `[row]`, dùng `[row_inner]` nếu cần sub-grid).
 
 ### Bước 4: Xuất bản Lên WordPress Qua REST API
 Chạy script xuất bản trang:

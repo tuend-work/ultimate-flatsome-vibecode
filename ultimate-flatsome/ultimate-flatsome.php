@@ -3,7 +3,7 @@
  * Plugin Name: Ultimate Flatsome
  * Plugin URI: https://github.com/tuend-work/ultimate-flatsome-vibecode
  * Description: Tiện ích mở rộng cao cấp cho theme Flatsome: Quản lý thông tin website tập trung, hệ thống HTML & UX Builder Elements đa năng, hỗ trợ responsive hoàn hảo, chèn dữ liệu động và tối ưu hóa chuyển đổi.
- * Version: 2.5.40
+ * Version: 2.5.45
  * Author: Antigravity AI
  * Author URI: https://github.com/tuend-work
  * License: GPL2
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // 1. Define Plugin Constants
-define( 'VBC_VERSION', '2.5.40' );
+define( 'VBC_VERSION', '2.5.45' );
 define( 'VBC_PLUGIN_FILE', __FILE__ );
 define( 'VBC_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'VBC_PLUGIN_URL', plugin_dir_url( __FILE__ ) );

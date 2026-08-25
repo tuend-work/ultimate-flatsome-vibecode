@@ -13,6 +13,8 @@ function vbc_parse_post_fields_config($fields_str, $post_type = 'post') {
     if (empty(trim($fields_str))) {
         if ($post_type === 'product') {
             $fields_str = 'thumbnail:100%, categories:100%, title:100%, price:50%, button:50%';
+        } elseif ($post_type === 'course') {
+            $fields_str = 'thumbnail:100%, title:100%, excerpt:100%, button:100%';
         } else {
             $fields_str = 'thumbnail:100%, categories:100%, title:100%, excerpt:100%, date:50%, button:50%';
         }
@@ -274,6 +276,12 @@ function vbc_post_shortcode($atts, $content = null) {
     $css_rules .= '.' . $grid_class . ' .vbc-post-title-link { ' . $title_color_css . ' text-decoration: none; transition: color 0.2s; } ';
     $css_rules .= '.' . $grid_class . ' .vbc-post-title-link:hover { ' . $title_hover_css . ' } ';
 
+    // Button styling
+    $btn_rad = !empty($atts['button_radius']) ? $atts['button_radius'] : '50px';
+    $css_rules .= '.' . $grid_class . ' .vbc-post-field-button { width: 100% !important; margin-top: auto !important; padding-top: 6px !important; } ';
+    $css_rules .= '.' . $grid_class . ' .vbc-btn { display: flex !important; width: 100% !important; align-items: center !important; justify-content: center !important; gap: 8px !important; padding: 12px 22px !important; font-size: 14px !important; font-weight: 800 !important; text-decoration: none !important; transition: all 0.2s ease !important; background: linear-gradient(135deg, #F5568F, #e0447c) !important; color: #ffffff !important; box-shadow: 0 4px 14px rgba(245,86,143,0.35) !important; border-radius: ' . esc_attr($btn_rad) . ' !important; } ';
+    $css_rules .= '.' . $grid_class . ' .vbc-btn:hover { transform: translateY(-2px) !important; box-shadow: 0 8px 22px rgba(245,86,143,0.5) !important; color: #ffffff !important; } ';
+
     // Custom CSS
     if (!empty($atts['custom_css'])) {
         $raw_css = trim($atts['custom_css']);
@@ -503,7 +511,12 @@ function vbc_post_shortcode($atts, $content = null) {
                     $output .= '<div class="vbc-post-thumb-wrap" style="position: relative; width: 100%; height: ' . esc_attr($image_height) . '; overflow: hidden; border-radius: ' . esc_attr($card_radius) . ';">';
                     $output .= $sale_badge_html;
                     if (empty($thumb_url)) {
-                        $thumb_url = 'https://vieduenglish.com/wp-content/uploads/2026/08/mau-giao-1.png';
+                        $fallback_thumbs = array(
+                            'https://vieduenglish.com/wp-content/uploads/2026/08/mau-giao-1.png',
+                            'https://vieduenglish.com/wp-content/uploads/2026/08/mau-giao-2.png',
+                            'https://vieduenglish.com/wp-content/uploads/2026/08/mau-giao-3.png',
+                        );
+                        $thumb_url = $fallback_thumbs[ absint($post_id) % count($fallback_thumbs) ];
                     }
                     $output .= '<a href="' . esc_url($permalink) . '" style="display: block; width: 100%; height: 100%;"><img src="' . esc_url($thumb_url) . '" alt="' . esc_attr($post_title) . '" class="vbc-post-thumb-img" style="width: 100%; height: 100%; object-fit: ' . esc_attr($image_fit) . '; display: block; transition: transform 0.4s ease;"></a>';
                     $output .= '</div></div>';
@@ -536,20 +549,31 @@ function vbc_post_shortcode($atts, $content = null) {
                         $output .= '</div>';
                     }
                 } elseif ($f_type === 'excerpt' || $f_type === 'desc' || $f_type === 'description') {
-                    $raw_excerpt = get_the_excerpt($post_id);
+                    $raw_excerpt = get_post_field('post_excerpt', $post_id);
                     if (empty($raw_excerpt) || strpos($raw_excerpt, '[') !== false) {
                         $post_body = get_post_field('post_content', $post_id);
-                        $clean_body = strip_shortcodes($post_body);
+                        $clean_body = preg_replace('/\[[^\]]+\]/', ' ', $post_body);
                         $clean_body = wp_strip_all_tags($clean_body);
                         $clean_body = preg_replace('/\s+/', ' ', trim($clean_body));
-                        if (!empty($clean_body)) {
+                        if (!empty($clean_body) && strlen($clean_body) > 10) {
                             $raw_excerpt = $clean_body;
+                        } else {
+                            $raw_excerpt = '';
                         }
                     }
-                    $trimmed_excerpt = wp_trim_words($raw_excerpt, intval($atts['excerpt_length']), '...');
+                    if (empty($raw_excerpt)) {
+                        if (strpos(strtolower($post_title), 'tiểu học') !== false) {
+                            $raw_excerpt = 'Phát triển toàn diện 4 kỹ năng Nghe - Nói - Đọc - Viết, bám sát khung chuẩn quốc tế Cambridge Starters, Movers, Flyers.';
+                        } elseif (strpos(strtolower($post_title), 'thiếu niên') !== false || strpos(strtolower($post_title), 'ielts') !== false || strpos(strtolower($post_title), 'ket') !== false) {
+                            $raw_excerpt = 'Chiến lược làm bài thi thực chiến, nâng cao tư duy phản biện và rèn luyện kỹ năng viết luận học thuật cá nhân hóa.';
+                        } else {
+                            $raw_excerpt = 'Chương trình đào tạo tiếng Anh chuẩn quốc tế 1 kèm 1 cá nhân hóa, phát triển toàn diện kỹ năng giao tiếp và phản xạ tự nhiên.';
+                        }
+                    }
+                    $trimmed_excerpt = wp_trim_words($raw_excerpt, intval($atts['excerpt_length']) ?: 22, '...');
                     if (!empty($trimmed_excerpt)) {
-                        $output .= '<div class="vbc-post-field vbc-post-field-excerpt" style="' . $flex_css . '">';
-                        $output .= '<p style="margin: 0 0 6px 0; font-size: 14px; line-height: 1.6; color: ' . esc_attr($atts['excerpt_color']) . ';">' . esc_html($trimmed_excerpt) . '</p>';
+                        $output .= '<div class="vbc-post-field vbc-post-field-excerpt" style="' . $flex_css . ' margin: 4px 0 12px 0;">';
+                        $output .= '<p style="margin: 0; font-size: 14px; line-height: 1.6; color: ' . esc_attr($atts['excerpt_color']) . ';">' . esc_html($trimmed_excerpt) . '</p>';
                         $output .= '</div>';
                     }
                 } elseif ($f_type === 'date') {
@@ -584,8 +608,10 @@ function vbc_post_shortcode($atts, $content = null) {
                     }
                 } elseif ($f_type === 'button' || $f_type === 'read_more' || $f_type === 'buy_now') {
                     $btn_label = !empty($f['extra']) ? $f['extra'] : $btn_text_default;
-                    $output .= '<div class="vbc-post-field vbc-post-field-button" style="' . $flex_css . ' text-align: right;">';
-                    $output .= '<a href="' . esc_url($permalink) . '" class="vbc-btn vbc-btn-' . esc_attr($btn_variant) . '" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 18px; font-size: 13px; font-weight: 700; border-radius: ' . esc_attr($btn_radius) . '; text-decoration: none; transition: all 0.2s;">';
+                    $align_btn = ($f_width === '100%') ? 'text-align: center;' : 'text-align: right;';
+                    $btn_width_css = ($f_width === '100%') ? 'width: 100%; box-sizing: border-box;' : '';
+                    $output .= '<div class="vbc-post-field vbc-post-field-button" style="' . $flex_css . ' ' . $align_btn . ' margin-top: auto; padding-top: 6px;">';
+                    $output .= '<a href="' . esc_url($permalink) . '" class="vbc-btn vbc-btn-' . esc_attr($btn_variant) . '" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; font-size: 14px; font-weight: 800; border-radius: ' . esc_attr($btn_radius) . '; text-decoration: none; transition: all 0.2s; background: linear-gradient(135deg, #F5568F, #e0447c) !important; color: #ffffff !important; box-shadow: 0 4px 14px rgba(245,86,143,0.35); ' . $btn_width_css . '">';
                     $output .= '<span>' . esc_html($btn_label) . '</span>';
                     $output .= '<i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>';
                     $output .= '</a></div>';

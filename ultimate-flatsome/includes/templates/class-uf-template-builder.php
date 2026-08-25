@@ -740,13 +740,31 @@ class Ultimate_Flatsome_Template_Builder {
         } elseif ( is_post_type_archive() ) {
             $title = post_type_archive_title( '', false );
             $desc = get_the_archive_description();
+        } elseif ( is_home() ) {
+            $posts_page_id = get_option( 'page_for_posts' );
+            if ( ! empty( $posts_page_id ) ) {
+                $title = get_the_title( $posts_page_id );
+                $desc = get_post_field( 'post_excerpt', $posts_page_id );
+            }
+            if ( empty( $title ) ) {
+                $title = __( 'Blog & Tin Tức', 'vibecode' );
+            }
+            if ( empty( $desc ) ) {
+                $desc = __( 'Tổng hợp các bài viết chia sẻ kinh nghiệm học tiếng Anh, phương pháp học hiệu quả và cẩm nang giáo dục.', 'vibecode' );
+            }
         } elseif ( is_archive() ) {
             $raw_title = get_the_archive_title();
             $title = preg_replace( '/^.*:\s*/i', '', wp_strip_all_tags( $raw_title ) );
             $desc = get_the_archive_description();
         } else {
-            $title = __( 'Danh Mục Khóa Học', 'vibecode' );
-            $desc = __( 'Danh sách các chương trình đào tạo tiếng Anh chuẩn quốc tế.', 'vibecode' );
+            $curr_block = get_the_ID();
+            if ( $curr_block == 352 || ( isset( $_GET['post'] ) && $_GET['post'] == 352 ) ) {
+                $title = __( 'Khóa Học', 'vibecode' );
+                $desc = __( 'Danh sách các chương trình đào tạo tiếng Anh chuẩn quốc tế dành cho mọi lứa tuổi.', 'vibecode' );
+            } else {
+                $title = __( 'Blog & Tin Tức', 'vibecode' );
+                $desc = __( 'Tổng hợp các bài viết chia sẻ kinh nghiệm học tiếng Anh, phương pháp học hiệu quả và cẩm nang giáo dục.', 'vibecode' );
+            }
         }
 
         $tag = in_array( strtolower( $atts['tag'] ), array( 'h1', 'h2', 'h3', 'div' ), true ) ? strtolower( $atts['tag'] ) : 'h1';

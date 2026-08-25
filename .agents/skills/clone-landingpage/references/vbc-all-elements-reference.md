@@ -156,37 +156,38 @@ Mọi shortcode VBC (`[vbc_div]`, `[vbc_box]`, `[vbc_block]`, `[vbc_container]`,
 
 ## NHÓM 2: KIỂU CHỮ & VĂN BẢN (TYPOGRAPHY)
 
+> [!CRITICAL]
+> **QUY TẮC BẮT BUỘC KHI VIẾT NỘI DUNG VĂN BẢN:**
+> 1. **Dùng thuộc tính `text="..."` tự đóng** để tránh lỗi `wpautop` sinh thẻ `<p>` rác.
+> 2. **DẤU NHÁY (QUOTE NESTING)**: Tuyệt đối không lồng dấu nháy kép `"` bên trong `text="..."`. Mọi thuộc tính HTML bên trong (`class`, `style`, `id`) **BẮT BUỘC DÙNG NHÁY ĐƠN `'`** (Ví dụ: `text="<span class='hl'>Listening</span>"`).
+> 3. **CẤM THẺ KHỐI TRONG `[vbc_p]`**: Tuyệt đối không nhồi `<ul>`, `<ol>`, `<li>`, `<div>` vào `[vbc_p]`.
+> 4. **BÓC TÁCH PHẦN TỬ PHỨC HỢP**: Cặp (Số thứ tự + Tiêu đề) phải tách thành `[vbc_span]` + `[vbc_h4]` bên trong `[vbc_div]`, không nhồi nhét vào 1 thẻ `[vbc_p]`.
+
 ### 2.1. `[vbc_h1]` đến `[vbc_h6]` — Tiêu Đề Chuẩn SEO
-* **Thuộc tính ngắn gọn**: `font_family`, `font_size`, `font_weight`, `line_height`, `color`, `text_align`, `margin`.
+* **Thuộc tính ngắn gọn**: `text`, `font_family`, `font_size`, `font_size__sm`, `font_weight`, `line_height`, `color`, `text_align`, `margin`.
 * **Cú pháp mẫu**:
 ```html
-[vbc_h1 font_family="Outfit" font_size="42px" font_size__md="32px" font_size__sm="26px" font_weight="800" color="#ffffff" line_height="1.2" margin="0 0 16px 0" text_align="center"]
-    Giải Pháp Tự Động Hóa VibeCode 2026
-[/vbc_h1]
+[vbc_h1 text="Giải Pháp Tự Động Hóa VibeCode 2026" font_family="Outfit" font_size="42px" font_size__md="32px" font_size__sm="26px" font_weight="800" color="#ffffff" line_height="1.2" margin="0 0 16px 0" text_align="center"]
 
-[vbc_h2 font_family="Inter" font_size="32px" font_size__sm="24px" font_weight="700" color="#0f172a" text_align="left" margin="0 0 12px 0"]
-    Bảng Giá Dịch Vụ
-[/vbc_h2]
+[vbc_h2 text="Bảng Giá Dịch Vụ" font_family="Inter" font_size="32px" font_size__sm="24px" font_weight="700" color="#0f172a" text_align="left" margin="0 0 12px 0"]
 ```
 
 ### 2.2. `[vbc_p]` — Đoạn Văn Bản
 ```html
-[vbc_p font_size="16px" font_size__sm="14px" color="#64748b" line_height="1.7" margin="0 0 20px 0"]
-    Tối ưu hóa toàn diện trải nghiệm kéo thả trên WordPress Flatsome UX Builder.
-[/vbc_p]
+[vbc_p text="Tối ưu hóa toàn diện trải nghiệm kéo thả trên WordPress Flatsome UX Builder." font_size="16px" font_size__sm="14px" color="#64748b" line_height="1.7" margin="0 0 20px 0"]
 ```
 
 ### 2.3. `[vbc_span]` — Văn Bản Nội Dòng
 ```html
-[vbc_span color="#2563eb" font_weight="700"]Chính xác 99%[/vbc_span]
+[vbc_span text="Chính xác 99%" color="#2563eb" font_weight="700"]
 ```
 
 ### 2.4. `[vbc_a]` — Thẻ Liên Kết (Link / Button Anchor)
-* **Thuộc tính**: `link_url`, `link_target` (`_self`/`_blank`), `color`, `bg_color`, `padding`, `border_radius`, `font_weight`.
+* **Thuộc tính**: `link_url`, `link_target` (`_self`/`_blank`), `text`, `color`, `bg_color`, `padding`, `border_radius`, `font_weight`.
 ```html
-[vbc_a link_url="https://zalo.me/0123456789" link_target="_blank" display="inline-flex" align_items="center" gap="8px" bg_color="#2563eb" color="#ffffff" padding="12px 24px" border_radius="50px" font_weight="600" text_decoration="none"]
+[vbc_a href="https://zalo.me/0123456789" link_target="_blank" display="inline-flex" align_items="center" gap="8px" bg_color="#2563eb" color="#ffffff" padding="12px 24px" border_radius="50px" font_weight="600" text_decoration="none"]
     [vbc_icon icon_type="lucide" name="phone" size="18px" color="#fff"]
-    [vbc_span]Tư Vấn Zalo Miễn Phí[/vbc_span]
+    [vbc_span text="Tư Vấn Zalo Miễn Phí"]
 [/vbc_a]
 ```
 
@@ -194,18 +195,30 @@ Mọi shortcode VBC (`[vbc_div]`, `[vbc_box]`, `[vbc_block]`, `[vbc_container]`,
 
 ## NHÓM 3: DANH SÁCH & BẢNG BIỂU (LISTS & TABLES)
 
-### 3.1. Danh Sách: `[vbc_ul]`, `[vbc_ol]`, `[vbc_li]`
+> 💡 **LƯU Ý**: Tuyệt đối không nhồi `<ul><li>` vào `[vbc_p]`. Danh sách phải được viết trong container `[vbc_div]` hoặc dùng các flex item `[vbc_div]`.
+
+### 3.1. Danh Sách: `[vbc_div]` chứa `<ul><li>` hoặc Flex Items
 ```html
-[vbc_ul display="flex" flex_direction="column" gap="12px" padding="0" margin="0"]
-    [vbc_li display="flex" align_items="center" gap="10px" font_size="15px" color="#334155"]
+<!-- Cách 1: Bọc thẻ ul chuẩn trong container -->
+[vbc_div class="check-list-wrapper"]
+    <ul class="check-list">
+        <li>Học 1 kèm 1, sửa lỗi ngay lập tức.</li>
+        <li>Lộ trình riêng theo năng lực &amp; mục tiêu của từng bé.</li>
+        <li>Cam kết đầu ra bằng hợp đồng đào tạo pháp lý.</li>
+    </ul>
+[/vbc_div]
+
+<!-- Cách 2: VBC Flex Items hiện đại kèm Icon -->
+[vbc_div display="flex" flex_direction="column" gap="12px"]
+    [vbc_div display="flex" align_items="center" gap="10px"]
         [vbc_icon icon_type="lucide" name="check-circle" size="18px" color="#10b981"]
-        [vbc_span]Cam kết hoàn tiền trong 30 ngày[/vbc_span]
-    [/vbc_li]
-    [vbc_li display="flex" align_items="center" gap="10px" font_size="15px" color="#334155"]
+        [vbc_p text="Cam kết hoàn tiền trong 30 ngày" font_size="15px" color="#334155" margin="0"]
+    [/vbc_div]
+    [vbc_div display="flex" align_items="center" gap="10px"]
         [vbc_icon icon_type="lucide" name="check-circle" size="18px" color="#10b981"]
-        [vbc_span]Hỗ trợ kỹ thuật 24/7[/vbc_span]
-    [/vbc_li]
-[/vbc_ul]
+        [vbc_p text="Hỗ trợ kỹ thuật 24/7" font_size="15px" color="#334155" margin="0"]
+    [/vbc_div]
+[/vbc_div]
 ```
 
 ### 3.2. Bảng Biểu: `[vbc_table]`, `[vbc_tr]`, `[vbc_th]`, `[vbc_td]`

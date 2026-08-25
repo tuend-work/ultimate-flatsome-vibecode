@@ -34,8 +34,9 @@ flowchart TD
 
 ### 1. Trụ Cột 1: API Shortcode & Meta Integrity (Kiểm tra từ CSDL)
 - **100% Dùng thuộc tính `text="..."` tự đóng (Self-closing shortcode)**:
-  - CẤM TUYỆT ĐỐI dạng đóng mở có ruột văn bản như `[vbc_p]...[/vbc_p]`, `[vbc_h1]...[/vbc_h1]`, `[vbc_span]...[/vbc_span]`.
-  - Phải dùng: `[vbc_p text="..." class="..."]`, `[vbc_h2 text="..."]`. Định dạng `<b>`, `<strong>`, `<span>` phải viết trực tiếp vào `text="..."`.
+  - Dùng `[vbc_p text="..." class="..."]`, `[vbc_h2 text="..."]`.
+- **Quote Nesting Integrity**: 100% thuộc tính `text="..."` KHÔNG ĐƯỢC chứa dấu nháy kép `"` bên trong (vd `text="<span class="...""` là vi phạm nghiêm trọng). Bắt buộc dùng nháy đơn `'` cho HTML attributes.
+- **No Block Tags / Lists in `[vbc_p]`**: Tuyệt đối không nhồi `<ul>`, `<ol>`, `<li>`, `<div>`, `<h3>` vào `[vbc_p]`. Danh sách phải nằm trong `[vbc_div]<ul>...</ul>[/vbc_div]` hoặc chia thành các flex items.
 - **Tag Balance Stack**: 100% các cặp thẻ đóng mở `[vbc_section]`, `[row]`, `[col]`, `[vbc_box]`, `[vbc_block]`, `[vbc_card]`, `[vbc_accordion]` phải cân bằng hoàn hảo.
 - **Shortcode Nesting Rule**: Tuyệt đối không lồng `[vbc_div]` trực tiếp bên trong `[vbc_div]` cùng cấp. Luân chuyển linh hoạt giữa `[vbc_box]`, `[vbc_block]`, `[vbc_div]`.
 - **Custom CSS Extraction**: Toàn bộ CSS phải được tách vào `_custom_css` / `vbc_page_css` (hoặc `custom_css="..."` của `[vbc_section]`), không chứa thẻ `<style>` lồng bên trong chuỗi CSS thô.

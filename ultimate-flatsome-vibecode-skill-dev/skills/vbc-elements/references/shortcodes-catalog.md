@@ -62,11 +62,15 @@ Tài liệu tra cứu đầy đủ các thuộc tính và cách kết hợp tố
 ## 🎨 PHẦN 2: PHẦN TỬ CON NGUYÊN TỬ (VBC ATOMIC ELEMENTS)
 
 > [!CRITICAL]
-> **100% PHẦN TỬ VĂN BẢN PHẢI DÙNG THUỘC TÍNH `text="..."` (SELF-CLOSING SHORTCODES)**
-> - **CẤM TUYỆT ĐỐI**: Không bao giờ viết dạng thẻ đóng mở có ruột văn bản như `[vbc_p]...[/vbc_p]`, `[vbc_h2]...[/vbc_h2]`, `[vbc_span]...[/vbc_span]`. UX Builder và bộ lọc `wpautop` của WordPress sẽ tự động nhồi nhét thẻ `<p>` vào ruột thẻ, sinh ra cấu trúc lỗi `<p><p>...</p></p>` làm hỏng giao diện.
-> - **ĐÚNG**: `[vbc_p text="Nâng band điểm <b>Listening</b>." class="target-text"]`
-> - **SAI**: `[vbc_p class="target-text"]Nâng band điểm <b>Listening</b>.[/vbc_p]`
-> - **Định dạng HTML**: Viết trực tiếp `<b>`, `<strong>`, `<span>`, `<br>` vào trong `text="..."`. Không dùng ngoặc vuông `[` hoặc `]` trong thuộc tính.
+> **QUY TẮC BẮT BUỘC KHI VIẾT SHORTCODE VĂN BẢN & NỘI DUNG:**
+> 1. **Dùng thuộc tính `text="..."` tự đóng**: Không viết dạng `[vbc_p]...[/vbc_p]` hay `[vbc_h1]...[/vbc_h1]`.
+> 2. **DẤU NHÁY (QUOTE NESTING)**: Tuyệt đối không lồng dấu nháy kép `"` bên trong `text="..."`. Mọi thuộc tính HTML bên trong (`class`, `style`, `id`) **BẮT BUỘC DÙNG NHÁY ĐƠN `'`** (Ví dụ: `text="<span class='highlight'>Từ khóa</span>"`).
+> 3. **CẤM THẺ KHỐI & DANH SÁCH TRONG `[vbc_p]`**: Tuyệt đối không nhồi `<ul>`, `<ol>`, `<li>`, `<div>` vào `[vbc_p]`. Danh sách phải đặt trong `[vbc_div]` hoặc chia thành từng item flex `[vbc_div]`.
+> 4. **BÓC TÁCH PHẦN TỬ PHỨC HỢP**: Cặp (Số thứ tự + Tiêu đề) phải tách thành `[vbc_span]` + `[vbc_h4]` bên trong `[vbc_div]`, không nhồi nhét cả 2 vào 1 thẻ `[vbc_p]`.
+>
+> - **ĐÚNG**: `[vbc_p text="Nâng band điểm <span class='hl'>Listening</span>." class="target-text"]`
+> - **SAI (Lỗi vỡ nháy kép)**: `[vbc_p text="<span class="adv-num">01</span><span class="adv-title">Tiêu đề</span>"]`
+> - **SAI (Lỗi nhồi list vào p)**: `[vbc_p text="<ul class="check-list"><li>Item 1</li></ul>"]`
 
 ### 4. `[vbc_h1]` đến `[vbc_h6]`
 - **Mô tả:** Các thẻ tiêu đề chuẩn SEO.
@@ -117,8 +121,15 @@ Tài liệu tra cứu đầy đủ các thuộc tính và cách kết hợp tố
   [contact-form-7 id="1391" title="Form Đăng Ký Tư Vấn - Tiếng Anh Mẫu Giáo"]
   ```
 
-### 10. `[vbc_accordion]` & `[vbc_accordion_item]`
+### 10. `[vbc_accordion]` & `[vbc_accordion_item]` (hoặc `[accordion]` & `[accordion-item]`)
 - **Mô tả:** Khối hỏi đáp thường gặp FAQ hoặc danh sách lợi ích xổ xuống.
+- **Lưu ý định vị mũi tên toggle:** Flatsome mặc định đặt toggle bên trái. Khi styling custom accordion, bắt buộc dùng CSS Flexbox với `order: 1` cho tiêu đề và `order: 2`, `position: static !important` cho `.toggle` để mũi tên luôn nằm gọn gàng bên phải:
+  ```css
+  selector .accordion-title { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; text-decoration: none !important; position: relative !important; }
+  selector .accordion-title > span, selector .accordion-title span { order: 1 !important; flex: 1 1 auto !important; text-align: left !important; margin: 0 !important; }
+  selector .accordion-title > .toggle, selector .accordion-title .toggle, selector .accordion-title button.toggle { order: 2 !important; position: static !important; left: auto !important; right: auto !important; top: auto !important; bottom: auto !important; float: none !important; transform: none !important; margin: 0 0 0 16px !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; }
+  selector .accordion-title.active > .toggle, selector .accordion-title.active .toggle, selector .accordion-title.active button.toggle { transform: rotate(180deg) !important; }
+  ```
 - **Ví dụ:**
   ```html
   [vbc_accordion style="separated" icon="plus" enable_schema="yes"]
@@ -164,3 +175,87 @@ Tài liệu tra cứu đầy đủ các thuộc tính và cách kết hợp tố
   ```html
   [vbc_post post_type="product" posts_per_page="4" columns="4" columns__sm="1" layout="grid" fields="thumbnail:100%, categories:100%, title:100%, price:50%, button:50%" button_text="Mua Ngay" card_radius="16px"]
   ```
+
+---
+
+## ⚙️ PHẦN 3: SHORTCODES THÔNG TIN TỔNG QUAN WEBSITE (ULTIMATE FLATSOME GENERAL SETTINGS)
+
+Toàn bộ thông tin được quản lý tập trung tại **Ultimate Flatsome > Cài Đặt Chung** và lưu trữ đồng bộ trong `wp_options`. Sử dụng các shortcode này ở bất kỳ đâu trên website:
+
+### 1. Shortcodes Liên Hệ & Doanh Nghiệp Nhanh:
+- `[uf_phone]`: Hiển thị số Hotline (Text thuần).
+- `[uf_phone link="true"]`: Hiển thị Hotline dạng link bấm gọi `<a href="tel:...">`.
+- `[uf_phone_2 link="true"]`: Hiển thị số Hotline phụ / Kỹ thuật.
+- `[uf_zalo link="true"]`: Hiển thị link chat Zalo OA (`https://zalo.me/...`).
+- `[uf_email link="true"]`: Hiển thị email dạng link `mailto:`.
+- `[uf_address]`: Hiển thị Địa chỉ trụ sở chính.
+- `[uf_company]`: Hiển thị Tên công ty / Doanh nghiệp.
+- `[uf_copyright]`: Hiển thị Bản quyền footer (tự động cập nhật `{year}` theo năm hiện tại).
+
+### 2. Shortcode Tổng Hợp `[uf_info]`:
+- Cú pháp: `[uf_info field="field_name" link="true|false" prefix="" suffix="" default=""]`
+- Danh sách các `field`:
+  - `site_name` / `site_title`: Tên website (từ `wp_options: blogname`).
+  - `tagline`: Khẩu hiệu website (từ `wp_options: blogdescription`).
+  - `admin_email`: Email quản trị viên.
+  - `company`: Tên công ty.
+  - `phone` / `phone_2`: Số điện thoại.
+  - `zalo`: Link Zalo.
+  - `email`: Email liên hệ.
+  - `address` / `address_branch`: Địa chỉ chính / chi nhánh.
+  - `hours`: Giờ làm việc.
+  - `tax_code`: Mã số thuế.
+  - `copyright`: Bản quyền chân trang.
+  - `facebook`, `youtube`, `tiktok`, `instagram`, `messenger`, `telegram`: Link mạng xã hội (hỗ trợ `link="true"`).
+  - `maps`: Link Google Maps.
+
+### 3. Shortcode Truy Xuất Option Tùy Ý `[uf_option]`:
+- Cú pháp: `[uf_option key="option_name" default=""]`
+- Ví dụ: `[uf_option key="blogname"]` lấy tên website từ `wp_options`.
+
+---
+
+## 🎨 PHẦN 4: THẺ ĐỘNG UX BLOCK TEMPLATES (POST TYPES & TAXONOMIES)
+
+Sử dụng khi thiết kế **UX Block** làm template giao diện hiển thị cho Single Post Types hoặc Taxonomy Archives:
+
+### 1. `[uf_post_title]`
+- **Mô tả:** Tự động hiển thị Tiêu đề bài viết / Tên chuyên mục đang xem.
+- **Thuộc tính:** `tag="h1|h2|h3|h4"`, `font_size="36px"`, `font_weight="800"`, `color="#0f172a"`, `text_align="left|center|right"`, `link="true|false"`.
+
+### 2. `[uf_post_content]`
+- **Mô tả:** Hiển thị toàn bộ nội dung bài viết gốc (`the_content`) bao gồm các blocks, shortcodes và trình bày văn bản.
+
+### 3. `[uf_post_thumbnail]`
+- **Mô tả:** Hiển thị Ảnh đại diện (Featured Image) của bài viết.
+- **Thuộc tính:** `size="full|large|medium"`, `border_radius="16px"`, `aspect_ratio="16/9|4/3|1/1"`, `box_shadow`, `fit="cover|contain"`, `link="true|false"`.
+
+### 4. `[uf_post_meta]`
+- **Mô tả:** Hiển thị thông tin siêu dữ liệu bài viết kèm icon.
+- **Thuộc tính:** `type="date|author|categories|comments_count|custom"`, `field="custom_key"`, `icon="yes|no"`, `color="#64748b"`, `font_size="13.5px"`.
+
+### 5. `[uf_post_author]`
+- **Mô tả:** Box Tác giả bài viết chuyên nghiệp.
+- **Thuộc tính:** `avatar_size="80"`, `show_bio="yes|no"`, `bg_color="#f8fafc"`, `border_radius="16px"`, `padding="24px"`.
+
+### 6. `[uf_post_comments]`
+- **Mô tả:** Hiển thị khung bình luận và form thảo luận chuẩn WordPress / Flatsome (`comments_template`).
+
+### 7. `[uf_post_navigation]`
+- **Mô tả:** Thẻ điều hướng Bài trước (Previous Post) và Bài sau (Next Post).
+
+### 8. `[uf_post_terms]`
+- **Mô tả:** Danh sách các chuyên mục / thẻ gắn với bài viết dạng badge pills bo góc.
+- **Thuộc tính:** `taxonomy="category|post_tag"`, `bg_color="#eff6ff"`, `color="#2563eb"`, `border_radius="20px"`.
+
+### 9. `[uf_breadcrumb]`
+- **Mô tả:** Thanh điều hướng phân cấp Breadcrumbs chuẩn Flatsome.
+
+### 10. `[uf_archive_title]`
+- **Mô tả:** Tiêu đề và mô tả chuyên mục cho trang lưu trữ / category archive.
+- **Thuộc tính:** `tag="h1"`, `font_size="38px"`, `color="#ffffff"`, `show_description="yes|no"`.
+
+### 11. `[uf_archive_posts]`
+- **Mô tả:** Lưới danh sách bài viết / sản phẩm thuộc Category đang xem kèm phân trang Flatsome chuẩn.
+- **Thuộc tính:** `columns="3"`, `columns__md="2"`, `columns__sm="1"`, `image_height="220px"`, `card_radius="16px"`.
+

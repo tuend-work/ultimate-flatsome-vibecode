@@ -78,25 +78,78 @@ Cung cấp tài liệu tra cứu chuẩn xác nhất về cú pháp, thuộc tí
    - **Cú pháp Blog Grid:** `[vbc_post post_type="post" posts_per_page="3" columns="3" layout="grid" image_height="220px" title_tag="h3" button_text="Xem Chi Tiết"]`
    - **Cú pháp Product Grid:** `[vbc_post post_type="product" posts_per_page="4" columns="4" layout="grid" fields="thumbnail:100%, categories:100%, title:100%, price:50%, button:50%" button_text="Mua Ngay"]`
 
-## ⚠️ QUY TẮC BẮT BUỘC: 100% SHORTCODE TỰ ĐÓNG DÙNG THUỘC TÍNH (NO ENCLOSING TEXT)
+## ⚠️ QUY TẮC BẮT BUỘC: CÚ PHÁP SHORTCODE & XỬ LÝ NỘI DUNG
+
+### 1. Quy Tắc Tự Đóng & Dùng Thuộc Tính (`text="..."`)
 > [!CRITICAL]
-> **TUYỆT ĐỐI KHÔNG GẮN CONTENT VÀO SHORTCODE DẠNG ĐÓNG MỞ NHƯ `[vbc_p]...[/vbc_p]`, `[vbc_h1]...[/vbc_h1]`, `[vbc_span]...[/vbc_span]`**.
+> **TUYỆT ĐỐI KHÔNG GẮN VĂN BẢN THUẦN VÀO DẠNG ĐÓNG MỞ NHƯ `[vbc_p]...[/vbc_p]`, `[vbc_h1]...[/vbc_h1]`, `[vbc_span]...[/vbc_span]`**.
 > Flatsome UX Builder và bộ lọc `wpautop` của WordPress sẽ tự động nhồi nhét thẻ `<p>` vào ruột thẻ, sinh ra cấu trúc lỗi `<p><p>...</p></p>` làm hỏng giao diện.
 >
-> - **ĐÚNG (100% Dùng thuộc tính `text="..."` tự đóng):**
+> - **ĐÚNG (Dùng thuộc tính `text="..."` tự đóng):**
 >   ```html
 >   [vbc_h2 text="Mục tiêu khoá học" font_size="32px" font_weight="800"]
 >   [vbc_p text="Khắc phục điểm yếu, nâng band điểm <b>Listening</b>." class="target-text"]
 >   [vbc_a href="#register" text="Đăng ký ngay" class="btn-primary"]
 >   [vbc_span text="Hotline: 1900 6364" class="hotline-text"]
 >   ```
-> - **SAI (CẤM TUYỆT ĐỐI):**
+
+### 2. Quy Tắc Dấu Nháy (Quote Nesting Rule — CẤM LỒNG NHÁY KÉP TRONG THUỘC TÍNH)
+> [!WARNING]
+> Khi giá trị thuộc tính nằm trong dấu nháy kép `text="..."`, **TUYỆT ĐỐI KHÔNG ĐƯỢC DÙNG NHÁY KÉP `"` BÊN TRONG**.
+> Nếu cần dùng HTML (như `<span>`, `<b>`, `<a>`) bên trong `text="..."`, **100% CÁC THUỘC TÍNH HTML PHẢI DÙNG DẤU NHÁY ĐƠN `'`**.
+>
+> - ❌ **SAI (VỠ NÁT SHORTCODE PARSER DO NHÁY KÉP LỒNG NHAU):**
 >   ```html
->   <!-- CẤM: UX Builder sẽ chèn thẻ p vào giữa gây vỡ layout -->
->   [vbc_p class="target-text"]Khắc phục điểm yếu, nâng band điểm <b>Listening</b>.[/vbc_p]
->   [vbc_h2]Mục tiêu khoá học[/vbc_h2]
+>   [vbc_p text="<span class="adv-num">01</span><span class="adv-title">Cam kết hiệu quả</span>"]
 >   ```
-> - **Văn bản có định dạng (`<b>`, `<strong>`, `<span>`, `<br>`):** Viết trực tiếp thẻ HTML vào trong `text="..."` (Ví dụ: `text="Học <b>1 kèm 1</b> cùng giáo viên"`). Tuyệt đối không dùng dấu ngoặc vuông `[` hoặc `]` bên trong giá trị thuộc tính.
+> - ✅ **ĐÚNG (Dùng nháy đơn `'` cho class/style bên trong `text="..."`):**
+>   ```html
+>   [vbc_p text="<span class='adv-num'>01</span> <span class='adv-title'>Cam kết hiệu quả</span>"]
+>   ```
+
+### 3. Quy Tắc Thẻ Khối & Danh Sách (CẤM NHỒI `<ul>`, `<ol>`, `<div>` VÀO `[vbc_p]`)
+> [!CRITICAL]
+> Thẻ `<p>` trong chuẩn HTML5 **KHÔNG ĐƯỢC CHỨA** thẻ khối như `<ul>`, `<ol>`, `<li>`, `<div>`, `<h3>`. Trình duyệt sẽ tự ngắt `<p>` làm vỡ tan DOM.
+> **TUYỆT ĐỐI KHÔNG** nhét danh sách `<ul><li>` vào `text="..."` của `[vbc_p]`.
+>
+> - ❌ **SAI (HTML KHÔNG HỢP LỆ & VỠ SHORTCODE):**
+>   ```html
+>   [vbc_p text="<ul class="check-list"><li>Học 1 kèm 1.</li><li>Lộ trình riêng.</li></ul>"]
+>   ```
+> - ✅ **ĐÚNG (Cách 1 — Bọc `<ul>` chuẩn trong `[vbc_div]` hoặc `[vbc_block]`):**
+>   ```html
+>   [vbc_div class="check-list-wrapper"]
+>     <ul class="check-list">
+>       <li>Học 1 kèm 1, sửa lỗi ngay lập tức.</li>
+>       <li>Lộ trình riêng theo năng lực &amp; mục tiêu của từng bé.</li>
+>       <li>Cam kết đầu ra bằng hợp đồng đào tạo pháp lý.</li>
+>     </ul>
+>   [/vbc_div]
+>   ```
+> - ✅ **ĐÚNG (Cách 2 — Từng mục dùng VBC Flex Items):**
+>   ```html
+>   [vbc_div class="check-list" display="flex" flex_direction="column" gap="10px"]
+>     [vbc_div class="check-item" display="flex" align_items="center" gap="8px"]
+>       [vbc_icon name="check-circle" size="18px" color="#10b981"]
+>       [vbc_p text="Học 1 kèm 1, sửa lỗi ngay lập tức." margin="0"]
+>     [/vbc_div]
+>     [vbc_div class="check-item" display="flex" align_items="center" gap="8px"]
+>       [vbc_icon name="check-circle" size="18px" color="#10b981"]
+>       [vbc_p text="Lộ trình riêng theo năng lực &amp; mục tiêu của từng bé." margin="0"]
+>     [/vbc_div]
+>   [/vbc_div]
+>   ```
+
+### 4. Quy Tắc Phần Tử Phức Hợp (Compound Elements: Số Thứ Tự + Tiêu Đề)
+> Khi gặp khối gồm nhiều thành phần (ví dụ: Số thứ tự `01` + Tiêu đề), **BÓC TÁCH RIÊNG TỪNG ELEMENT** bên trong `[vbc_div]`, không nhồi nhét tất cả vào 1 thẻ `[vbc_p]`:
+>
+> - ✅ **ĐÚNG (Bóc tách rõ ràng):**
+>   ```html
+>   [vbc_div class="adv-header" display="flex" align_items="center" gap="12px"]
+>     [vbc_span text="01" class="adv-num"]
+>     [vbc_h4 text="Cam kết hiệu quả – Cá nhân hóa 100%" class="adv-title"]
+>   [/vbc_div]
+>   ```
 
 ## Quy Tắc Định Kiểu CSS (CSS Selector Rules)
 - Luôn sử dụng từ khóa `selector` để áp dụng CSS trực tiếp lên phần tử:

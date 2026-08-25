@@ -107,11 +107,18 @@ AI trực tiếp viết mã nguồn lưu tại `tmp/<slug>/created_vbc.txt`.
 3. **Ràng buộc quan trọng (CẤM VI PHẠM)**:
    - **100% DÙNG THUỘC TÍNH `text="..."` (SELF-CLOSING SHORTCODES)**:
      > [!CRITICAL]
-     > **TUYỆT ĐỐI KHÔNG GẮN CONTENT VÀO SHORTCODE DẠNG ĐÓNG MỞ NHƯ `[vbc_p]...[/vbc_p]`, `[vbc_h1]...[/vbc_h1]`, `[vbc_span]...[/vbc_span]`**.
-     > Flatsome UX Builder và bộ lọc `wpautop` của WordPress sẽ tự động nhồi nhét thẻ `<p>` vào ruột thẻ, sinh ra cấu trúc lỗi `<p><p>...</p></p>` hoặc thẻ rác làm hỏng toàn bộ giao diện.
      > - **ĐÚNG:** `[vbc_p text="Khắc phục điểm yếu, nâng band điểm <b>Listening</b>." class="target-text"]`
      > - **SAI:** `[vbc_p class="target-text"]Khắc phục điểm yếu, nâng band điểm <b>Listening</b>.[/vbc_p]`
-     > - **Định dạng HTML:** Viết trực tiếp `<b>`, `<strong>`, `<span>`, `<br>` vào trong `text="..."`.
+   - **QUOTE NESTING RULE (CẤM NHÁY KÉP TRONG THUỘC TÍNH)**:
+     > [!WARNING]
+     > Khi giá trị thuộc tính nằm trong dấu nháy kép `text="..."`, **100% THUỘC TÍNH HTML BÊN TRONG BẮT BUỘC DÙNG NHÁY ĐƠN `'`**.
+     > - ❌ **SAI:** `[vbc_p text="<span class="adv-num">01</span><span class="adv-title">Cam kết</span>"]`
+     > - ✅ **ĐÚNG:** `[vbc_p text="<span class='adv-num'>01</span> <span class='adv-title'>Cam kết</span>"]`
+   - **CẤM THẺ KHỐI & DANH SÁCH TRONG `[vbc_p]`**:
+     > Thẻ `<p>` KHÔNG ĐƯỢC CHỨA `<ul>`, `<ol>`, `<li>`, `<div>`, `<h3>`. Danh sách phải đặt trong `[vbc_div]<ul>...</ul>[/vbc_div]` hoặc tách thành các flex items.
+     > - ❌ **SAI:** `[vbc_p text="<ul class="check-list"><li>Item 1</li></ul>"]`
+   - **BÓC TÁCH PHẦN TỬ PHỨC HỢP**:
+     > Khi gặp khối gồm nhiều thành phần (ví dụ: Số thứ tự `01` + Tiêu đề), bóc tách riêng thành `[vbc_span]` + `[vbc_h4]` bên trong `[vbc_div]`.
    - **Zero same-type nesting**: Không lồng cùng loại thẻ vào nhau (không lồng `[row]` trong `[row]`, dùng `[row_inner]` nếu cần sub-grid).
    - **Tuyệt đối không dùng dấu ngoặc vuông `[` hoặc `]` trong các giá trị thuộc tính**: Kể cả trong `custom_css` (dùng class selector như `.wpcf7-tel`, `.wpcf7-submit`, không dùng `[type='tel']`).
 

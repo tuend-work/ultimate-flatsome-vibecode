@@ -262,6 +262,18 @@ class LandingPageRechecker:
         if corrupted_attrs:
             errors.append(f"Phát hiện {len(corrupted_attrs)} thuộc tính shortcode chứa ký tự ngoặc vuông '[' hoặc ']'.")
 
+        # 4. Kiểm tra lỗi lồng dấu nháy kép bên trong giá trị thuộc tính (Quote Nesting Syntax Bug)
+        # Ví dụ: text="<span class="adv-num">01</span>" làm vỡ shortcode parser
+        quote_nesting_errors = re.findall(r'\[vbc_[a-zA-Z0-9_\-]+[^\]]*?\s+text="<[^>]*\s+[a-zA-Z0-9_\-]+="[^"]*"[^\]]*\]', content)
+        if quote_nesting_errors:
+            errors.append(f"Phát hiện {len(quote_nesting_errors)} shortcode bị lỗi lồng dấu nháy kép '\"' bên trong text=\"...\". BẮT BUỘC dùng nháy đơn '\'' cho thuộc tính HTML bên trong (vd: text=\"<span class='adv-num'>01</span>\").")
+
+        # 5. Kiểm tra lỗi nhồi thẻ khối (ul, ol, li, div, h1-h6) vào [vbc_p] hoặc [vbc_span]
+        # Ví dụ: [vbc_p text="<ul class='...'><li>...</li></ul>"]
+        block_in_inline_errors = re.findall(r'\[vbc_(?:p|span)\b[^\]]*?text=["\'][^"\']*?<(?:ul|ol|li|div|h[1-6]|table)\b[^"\']*?["\']', content, re.IGNORECASE)
+        if block_in_inline_errors:
+            errors.append(f"Phát hiện {len(block_in_inline_errors)} thẻ [vbc_p] / [vbc_span] chứa thẻ khối (<ul/ol/li/div/h1-h6>). Thẻ p KHÔNG ĐƯỢC CHỨA thẻ khối! Hãy bọc danh sách trong [vbc_div] hoặc tách thành flex items.")
+
         self.stats['api_shortcode_errors'] = errors
         if errors:
             self.issues.extend(errors)

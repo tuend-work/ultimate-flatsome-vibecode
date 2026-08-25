@@ -62,11 +62,15 @@ Tài liệu tra cứu đầy đủ các thuộc tính và cách kết hợp tố
 ## 🎨 PHẦN 2: PHẦN TỬ CON NGUYÊN TỬ (VBC ATOMIC ELEMENTS)
 
 > [!CRITICAL]
-> **100% PHẦN TỬ VĂN BẢN PHẢI DÙNG THUỘC TÍNH `text="..."` (SELF-CLOSING SHORTCODES)**
-> - **CẤM TUYỆT ĐỐI**: Không bao giờ viết dạng thẻ đóng mở có ruột văn bản như `[vbc_p]...[/vbc_p]`, `[vbc_h2]...[/vbc_h2]`, `[vbc_span]...[/vbc_span]`. UX Builder và bộ lọc `wpautop` của WordPress sẽ tự động nhồi nhét thẻ `<p>` vào ruột thẻ, sinh ra cấu trúc lỗi `<p><p>...</p></p>` làm hỏng giao diện.
-> - **ĐÚNG**: `[vbc_p text="Nâng band điểm <b>Listening</b>." class="target-text"]`
-> - **SAI**: `[vbc_p class="target-text"]Nâng band điểm <b>Listening</b>.[/vbc_p]`
-> - **Định dạng HTML**: Viết trực tiếp `<b>`, `<strong>`, `<span>`, `<br>` vào trong `text="..."`. Không dùng ngoặc vuông `[` hoặc `]` trong thuộc tính.
+> **QUY TẮC BẮT BUỘC KHI VIẾT SHORTCODE VĂN BẢN & NỘI DUNG:**
+> 1. **Dùng thuộc tính `text="..."` tự đóng**: Không viết dạng `[vbc_p]...[/vbc_p]` hay `[vbc_h1]...[/vbc_h1]`.
+> 2. **DẤU NHÁY (QUOTE NESTING)**: Tuyệt đối không lồng dấu nháy kép `"` bên trong `text="..."`. Mọi thuộc tính HTML bên trong (`class`, `style`, `id`) **BẮT BUỘC DÙNG NHÁY ĐƠN `'`** (Ví dụ: `text="<span class='highlight'>Từ khóa</span>"`).
+> 3. **CẤM THẺ KHỐI & DANH SÁCH TRONG `[vbc_p]`**: Tuyệt đối không nhồi `<ul>`, `<ol>`, `<li>`, `<div>` vào `[vbc_p]`. Danh sách phải đặt trong `[vbc_div]` hoặc chia thành từng item flex `[vbc_div]`.
+> 4. **BÓC TÁCH PHẦN TỬ PHỨC HỢP**: Cặp (Số thứ tự + Tiêu đề) phải tách thành `[vbc_span]` + `[vbc_h4]` bên trong `[vbc_div]`, không nhồi nhét cả 2 vào 1 thẻ `[vbc_p]`.
+>
+> - **ĐÚNG**: `[vbc_p text="Nâng band điểm <span class='hl'>Listening</span>." class="target-text"]`
+> - **SAI (Lỗi vỡ nháy kép)**: `[vbc_p text="<span class="adv-num">01</span><span class="adv-title">Tiêu đề</span>"]`
+> - **SAI (Lỗi nhồi list vào p)**: `[vbc_p text="<ul class="check-list"><li>Item 1</li></ul>"]`
 
 ### 4. `[vbc_h1]` đến `[vbc_h6]`
 - **Mô tả:** Các thẻ tiêu đề chuẩn SEO.

@@ -58,29 +58,52 @@ Quy chuẩn chuyển đổi HTML sang cấu trúc kết hợp tối ưu: **Khung
   ```
 ---
 
-## 🚨 QUY TẮC BẮT BUỘC: TRUYỀN NỘI DUNG VÀO INPUT CỦA SHORTCODE (CHỐNG LỖI WPAUTOP)
+## 🚨 QUY TẮC BẮT BUỘC: CÚ PHÁP SHORTCODE & NỘI DUNG VBC ELEMENTS
 
-> ⚠️ **TUYỆT ĐỐI KHÔNG** truyền nội dung bằng cách lồng thẻ thô `<img ...>` hoặc HTML vào giữa cặp thẻ `[vbc_p]...[/vbc_p]` hay `[vbc_h1]-[vbc_h6]`, vì bộ xử lý `wpautop` của WordPress sẽ tự động nhồi thẻ `<p>` rác vào trong làm vỡ bố cục giao diện.
+> ⚠️ **TUYỆT ĐỐI TUÂN THỦ 4 NGUYÊN TẮC VÀNG SAU ĐÂY ĐỂ TRÁNH LỖI VỠ GIAO DIỆN:**
 
-### ❌ CÁCH VIẾT SAI (BỊ WPAUTOP INJECT THẺ P):
+### 1. Dùng thuộc tính `text="..."` tự đóng (Chống lỗi `wpautop` chèn thẻ `<p>` rác):
 ```html
-<!-- SAI: Nhét trực tiếp thẻ img vào giữa cặp thẻ vbc_p -->
-[vbc_p color="#1e293b" font_size="16px" font_weight="600" margin="0 0 12px 0"]<img src="https://.../icon-check.png" width="18px" height="18px" style="vertical-align:middle; margin-right:8px;"> Học 1 kèm 1, sửa lỗi ngay lập tức.[/vbc_p]
-```
-
-### ✅ CÁCH VIẾT ĐÚNG CHUẨN 100%:
-**Cách 1: Truyền nội dung qua thuộc tính `text="..."` hoặc `content="..."`**
-```html
+<!-- ĐÚNG: Truyền nội dung qua thuộc tính text="..." -->
 [vbc_p text="Học 1 kèm 1, sửa lỗi ngay lập tức." color="#1e293b" font_size="16px" font_weight="600" margin="0 0 12px 0"]
 ```
 
-**Cách 2: Tách biệt Icon/Image và Text trong Flex Container**
-```html
-[vbc_block display="flex" align_items="center" gap="10px" margin="0 0 12px 0"]
-  [vbc_img src="https://.../icon-check.png" width="18px" height="18px"]
-  [vbc_p text="Học 1 kèm 1, sửa lỗi ngay lập tức." color="#1e293b" font_size="16px" font_weight="600" margin="0"]
-[/vbc_block]
-```
+### 2. Dấu Nháy (Quote Nesting Rule — CẤM LỒNG NHÁY KÉP TRONG THUỘC TÍNH):
+Khi giá trị thuộc tính nằm trong dấu nháy kép `text="..."`, **TUYỆT ĐỐI KHÔNG DÙNG NHÁY KÉP `"` BÊN TRONG**. Mọi thuộc tính HTML bên trong (`class`, `style`, `id`) **BẮT BUỘC DÙNG NHÁY ĐƠN `'`**.
+- ❌ **SAI:** `[vbc_p text="<span class="adv-num">01</span><span class="adv-title">Cam kết</span>"]`
+- ✅ **ĐÚNG:** `[vbc_p text="<span class='adv-num'>01</span> <span class='adv-title'>Cam kết</span>"]`
+
+### 3. CẤM Thẻ Khối & Danh Sách Trong Thẻ `<p>` / `[vbc_p]`:
+Thẻ `<p>` KHÔNG ĐƯỢC CHỨA `<ul>`, `<ol>`, `<li>`, `<div>`, `<h3>`. Danh sách phải được bọc trong container `[vbc_div]` hoặc tách thành các flex items:
+- ❌ **SAI:** `[vbc_p text="<ul class="check-list"><li>Item 1</li><li>Item 2</li></ul>"]`
+- ✅ **ĐÚNG (Cách 1 — HTML List trong Container):**
+  ```html
+  [vbc_div class="check-list-wrapper"]
+    <ul class="check-list">
+      <li>Học 1 kèm 1, sửa lỗi ngay lập tức.</li>
+      <li>Lộ trình riêng theo năng lực &amp; mục tiêu của từng bé.</li>
+    </ul>
+  [/vbc_div]
+  ```
+- ✅ **ĐÚNG (Cách 2 — VBC Flex Items):**
+  ```html
+  [vbc_div class="check-list" display="flex" flex_direction="column" gap="10px"]
+    [vbc_div class="check-item" display="flex" align_items="center" gap="8px"]
+      [vbc_icon name="check-circle" size="18px" color="#10b981"]
+      [vbc_p text="Học 1 kèm 1, sửa lỗi ngay lập tức." margin="0"]
+    [/vbc_div]
+  [/vbc_div]
+  ```
+
+### 4. Bóc Tách Khối Phức Hợp (Số thứ tự + Tiêu đề):
+- ❌ **SAI:** `[vbc_p text="<span class="adv-num">01</span><span class="adv-title">Cam kết hiệu quả</span>"]`
+- ✅ **ĐÚNG:**
+  ```html
+  [vbc_div class="adv-header" display="flex" align_items="center" gap="12px"]
+    [vbc_span text="01" class="adv-num"]
+    [vbc_h4 text="Cam kết hiệu quả – Cá nhân hóa 100%" class="adv-title"]
+  [/vbc_div]
+  ```
 
 ---
 
@@ -111,3 +134,48 @@ Chỉ dùng `custom_css` cho các trạng thái không thể nhập bằng input
 - Hiệu ứng hover: `custom_css="selector { transition: all 0.3s; } selector:hover { transform: translateY(-5px); }"`
 - Phần tử giả `::before`, `::after`: `custom_css="selector::before { content: ''; position: absolute; ... }"`
 - Hiệu ứng animation phức tạp hoặc backdrop filter glassmorphism.
+
+---
+
+## 4. Quy Chuẩn CSS Bắt Buộc Cho Flatsome Accordion (Mũi Tên Sang Bên Phải)
+
+Khi sử dụng `[accordion]` / `[accordion-item]`, Flatsome mặc định đặt `.toggle` tuyệt đối bên trái đè lên text. Để mũi tên nằm **hoàn toàn bên phải** và text bên trái giống website gốc, **BẮT BUỘC** khai báo trong `custom_css` của `[vbc_section]`:
+
+```css
+selector .accordion-title {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  text-decoration: none !important;
+  position: relative !important;
+}
+selector .accordion-title > span,
+selector .accordion-title span {
+  order: 1 !important;
+  flex: 1 1 auto !important;
+  text-align: left !important;
+  margin: 0 !important;
+}
+selector .accordion-title > .toggle,
+selector .accordion-title .toggle,
+selector .accordion-title button.toggle {
+  order: 2 !important;
+  position: static !important;
+  left: auto !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: auto !important;
+  float: none !important;
+  transform: none !important;
+  margin: 0 0 0 16px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+selector .accordion-title.active > .toggle,
+selector .accordion-title.active .toggle,
+selector .accordion-title.active button.toggle {
+  transform: rotate(180deg) !important;
+}
+```

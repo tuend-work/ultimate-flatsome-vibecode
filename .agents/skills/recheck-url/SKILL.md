@@ -1,73 +1,76 @@
 ---
 name: recheck-url
 description: >-
-  Kiểm tra chất lượng (QA Audit), so sánh chi tiết từng Section bằng AI Agent, đo lường độ tương đồng thị giác (VSI >= 90%), đối soát mã nguồn và tự động yêu cầu AI sinh lại code mới nếu có sai khác. Sử dụng khi người dùng yêu cầu recheck, đối chiếu 2 trang web, kiểm tra layout hoặc nghiệm thu giao diện.
+  Kiểm tra chất lượng toàn diện 3 Trụ Cột (3-Pillar QA Audit): Ảnh chụp Full-Screen/Section, Full Rendered HTML DOM từ trình duyệt, và Raw Shortcode Content/Meta từ REST API. Đảm bảo frontend chuyên nghiệp, chuẩn thẩm mỹ, độ tương đồng thị giác VSI >= 90%, 0 lỗi shortcode và tự động yêu cầu AI sinh lại code mới nếu có sai khác.
 ---
 
-# AI Visual Quality Assurance & Section-by-Section Recheck Engine
+# 🛡️ AI 3-Pillar Deep QA & Visual Comparison Engine
 
-## Mục tiêu (Goal)
-Sử dụng **AI Agent** kết hợp công cụ chụp ảnh và phân tích đa chiều để **so sánh chi tiết từng Section (Section-by-Section Gap Analysis)** giữa trang Web Gốc (Source) và Web Clone (Target). Đo lường chỉ số tương đồng thị giác (Visual Similarity Index - VSI $\ge 90\%$), phát hiện mọi điểm sai khác về bố cục, màu sắc, typography, hình ảnh, sau đó **tự động yêu cầu AI Agent sinh lại mã nguồn VBC mới** để khắc phục triệt để.
+## 🎯 Mục Tiêu & Sứ Mệnh (Mission)
+Thực hiện quy trình kiểm thử và nghiệm thu chất lượng Landing Page đa tầng theo **3 Trụ Cột Độc Lập**:
+1. **Trụ cột 1 (API Shortcode & Meta Integrity)**: Kiểm tra trực tiếp mã nguồn lưu trong Database qua REST API (`GET /vbc/v1/post?id=...`), đối soát cân bằng thẻ (Tag Balance Stack) và chống lỗi lồng thẻ (`Same-Type Nesting`).
+2. **Trụ cột 2 (Browser Rendered DOM & Frontend Aesthetics)**: Quét toàn bộ HTML DOM thực tế do trình duyệt render, xác nhận 0 shortcode thô, 0 thẻ `<style>` hỏng, đủ ảnh, đủ H1/H2, Form CF7, hotline, responsive padding/margin.
+3. **Trụ cột 3 (Full-Screen & Section Visual Appearance Comparison)**: So sánh trực quan thị giác giữa ảnh Web Gốc và Web Clone (độ tương đồng VSI $\ge 90.0\%$), tạo bản đồ nhiệt sai khác (Visual Diff Heatmap) và ảnh Side-by-Side.
 
 ---
 
-## 🔄 Quy Trình Recheck 3 Bước Chặt Chẽ (Workflow)
+## 🔄 Quy Trình Kiểm Thử 3 Trụ Cột Chi Tiết
 
 ```mermaid
 flowchart TD
-    A[Bắt đầu Recheck] --> B[Bước 1: Chụp ảnh & Quét DOM từng Section bằng AI Agent]
-    B --> C[Bước 2: AI Agent So Sánh & Lập Bảng Sai Khác Từng Section]
-    C --> D{Có điểm sai khác / VSI < 90%?}
-    D -- Có --> E[Bước 3: AI Agent Trực Tiếp Sinh Lại Code VBC Mới & Publish]
-    E --> B
-    D -- Không (Đạt >= 90% & 0 lỗi) --> F[Xuất Báo Cáo Nghiệm Thu Thành Công]
+    A[Bắt đầu Recheck Landing Page] --> B[Trụ cột 1: Gọi REST API GET /vbc/v1/post lấy Shortcode & Meta]
+    B --> C[Trụ cột 2: Tải Rendered DOM từ Trình duyệt & Quét Tính Toàn Vẹn]
+    C --> D[Trụ cột 3: Chụp ảnh Full-Screen & So Sánh Thị Giác AI VSI]
+    D --> E{Đạt VSI >= 90% & 0 Lỗi Shortcode?}
+    E -- Có (100% Hoàn hảo) --> F[Xuất Báo Cáo Nghiệm Thu 3 Trụ Cột Thành Công]
+    E -- Không (Có sai khác) --> G[Chỉ rõ Section sai khác & AI Agent Viết Lại Code VBC Mới]
+    G --> H[Tái Xuất Bản lên WordPress & Chạy lại Recheck]
+    H --> B
 ```
 
-### Bước 1: Thu thập Hình ảnh & DOM Từng Section (Section Inspection)
-- Sử dụng `browser_subagent` chụp ảnh toàn trang (`CaptureBeyondViewport: true`) và chụp chi tiết từng Section trọng điểm:
-  - **Section 1 (Hero / Banner)**: Tiêu đề H1, cụm ảnh/video, card thông tin tóm tắt, nút CTA.
-  - **Section 2 (Mục tiêu / Tính năng)**: Bố cục lưới các thẻ mục tiêu, icon, chữ in đậm.
-  - **Section 3 (Hỏi đáp FAQ)**: Accordion câu hỏi, màu chữ tiêu đề, icon toggle, độ tương phản.
-  - **Section 4 (Lợi thế / Khác biệt)**: Bố cục lưới 2x2 hoặc 4 cột, số thứ tự `01-04`, icon minh họa 3D, danh sách checklist tích xanh.
-  - **Section 5 (Học viên / Đánh giá)**: Cấu trúc lưới ảnh học viên (1 ảnh lớn + lưới nhỏ bên cạnh), trích dẫn phụ huynh, nút CTA học thử.
-  - **Section 6 (Đội ngũ Giáo viên)**: Khối giới thiệu bên trái + Lưới avatar tròn giáo viên có viền màu, tên, quốc tịch, link chi tiết.
-  - **Section 7 (Truyền thông & Báo chí)**: Hàng logo báo chí căn giữa, hiệu ứng hover phóng to/đổi màu.
-  - **Section 8 (Giải thưởng / Chứng nhận)**: Khối thẻ giải thưởng có icon cúp/huân chương trên nền màu nhẹ.
-  - **Section 9 (Form Đăng Ký Tư Vấn)**: Bố cục 2 cột (Cột 1: Thông điệp cam kết + checklist tích xanh; Cột 2: Form Contact Form 7 với input bo tròn, focus glow và nút submit nổi bật).
+---
+
+## 📋 Bảng Tiêu Chí Nghiệm Thu 3 Trụ Cột (Acceptance Criteria)
+
+### 1. Trụ Cột 1: API Shortcode & Meta Integrity (Kiểm tra từ CSDL)
+- **Tag Balance Stack**: 100% các cặp thẻ đóng mở `[vbc_section]`, `[row]`, `[col]`, `[vbc_box]`, `[vbc_block]`, `[vbc_card]`, `[vbc_accordion]` phải cân bằng hoàn hảo.
+- **Shortcode Nesting Rule**: Tuyệt đối không lồng `[vbc_div]` trực tiếp bên trong `[vbc_div]` cùng cấp. Luân chuyển linh hoạt giữa `[vbc_box]`, `[vbc_block]`, `[vbc_div]`.
+- **Custom CSS Extraction**: Toàn bộ CSS phải được tách vào `_custom_css` / `vbc_page_css`, không chứa thẻ `<style>` lồng bên trong chuỗi CSS thô.
+- **Page Template**: Đảm bảo meta `_wp_page_template` được gán chính xác `page-blank.php`.
+
+### 2. Trụ Cột 2: Rendered DOM & Frontend Aesthetics (Kiểm tra từ Trình duyệt)
+- **0 Raw Shortcodes**: 0 thẻ `[/vbc_div]`, `[row]`, `[col]` thô bị hiển thị ra ngoài màn hình người dùng.
+- **0 Corrupted Style Tags**: 0 thẻ `<style>` bị WordPress wpautop tự động chèn `<p>` hoặc `<br>`.
+- **Media & Image Integrity**: 100% thẻ `<img>` có `src` hợp lệ, không rỗng, không vỡ ảnh, tỷ lệ khung hình chuẩn.
+- **SEO & Content Structure**: Có duy nhất 1 thẻ `<h1>` chất lượng cao, các thẻ `<h2>`, `<h3>` phân cấp rõ ràng.
+- **Form CF7 & CTA Buttons**: Có Contact Form 7 hoạt động trơn tru (input padding 12-16px, bo góc 10px, glow focus), nút CTA có hover effect (`translateY(-2px)`).
+- **Responsive Layout**: Phân chia cột rõ ràng (`span="6" span__sm="12"`), không có phần tử gây tràn chiều ngang (no overflow-x).
+
+### 3. Trụ Cột 3: Full-Screen & Section Visual Comparison (Đo độ giống thị giác)
+- **Visual Similarity Index (VSI) $\ge 90.0\%$** dựa trên công thức trọng số:
+  - 40% Color Palette Cosine Similarity (Bảng màu, độ tương phản nền và chữ).
+  - 35% Layout Balance (Tỷ lệ phân bố các khối, chiều cao tương quan).
+  - 25% Pixel Match (Độ khớp chi tiết các thành phần giao diện).
+- **Side-by-Side & Visual Diff Heatmap**: Tự động tạo ảnh đối chiếu trực quan lưu trong `tmp/`.
 
 ---
 
-### Bước 2: AI Agent So Sánh Chi Tiết Từng Section (Gap Analysis)
-AI Agent lập bảng đối soát chi tiết từng Section dựa trên 5 tiêu chí:
+## 💻 Câu Lệnh Thực Thi Recheck
 
-| Tiêu chí đối soát | Nội dung kiểm tra chi tiết | Trạng thái chấp thuận |
-|---|---|---|
-| **1. Bố cục & Lưới (Layout & Grid)** | Phân chia cột Flatsome `[row]` + `[col]`, tỷ lệ bề rộng (`custom_width`), khoảng cách padding, margin, căn lề. | Khớp 1:1 với web mẫu |
-| **2. Typography & Phân cấp chữ** | Kích thước font chữ, màu sắc, font-weight (700/800 cho Heading), line-height, độ tương phản chữ không bị chìm nền. | Rõ nét, chuẩn màu |
-| **3. Hình ảnh & Icons** | Số lượng ảnh, tỷ lệ khung hình, bo góc (`border_radius`), bóng đổ mềm (`box_shadow`), icon SVG/PNG sắc nét. | 100% hiển thị đủ, không vỡ |
-| **4. Thành phần tương tác** | Nút CTA bo tròn viên thuốc, hiệu ứng hover (`translateY(-2px)`), accordion đóng/mở mượt mà. | Mượt mà, trực quan |
-| **5. Form Đăng ký & CF7** | Label rõ ràng, input padding 12-16px, bo góc 10px, background `#f8fafc`, focus viền màu chủ đạo, button submit full-width. | Đẹp, validate chuẩn |
-
----
-
-### Bước 3: Tự Động Yêu Cầu AI Agent Sinh Lại Code Mới (Auto-Remediation)
-- **BẮT BUỘC**: Nếu phát hiện bất kỳ Section nào có bố cục sai lệch, chữ bị chìm màu, hình ảnh bị méo/kéo dài, hoặc VSI $< 90\%$:
-  1. AI Agent **phải chỉ ra chính xác sai khác ở Section nào** (ví dụ: *"Section FAQ bị chữ trắng chìm trên nền hồng"* hoặc *"Section Lợi thế bị xếp dọc 4 card khổng lồ"*).
-  2. AI Agent **viết lại toàn bộ code của Section đó (hoặc file generator `gen_<slug>.py`)** với chuẩn 100% `[vbc_section id="..." custom_css="..."]`.
-  3. Tái xuất bản lên WordPress và chạy lại vòng Recheck để nghiệm thu.
-
----
-
-## 💻 Thực Thi Script Rechecker
-
-Chạy script đối soát tự động:
 ```bash
-python .agents/skills/recheck-url/scripts/rechecker.py --url "<TARGET_URL>" --source_url "<SOURCE_URL>" [--threshold 90.0]
+# Recheck đầy đủ với URL mục tiêu và URL gốc:
+python .agents/skills/recheck-url/scripts/rechecker.py --url "<TARGET_URL>" --source_url "<SOURCE_URL>"
+
+# Chỉ định rõ Post ID hoặc file ảnh chụp có sẵn:
+python .agents/skills/recheck-url/scripts/rechecker.py --url "<TARGET_URL>" --post_id <POST_ID> --source_url "<SOURCE_URL>" --threshold 90.0
 ```
 
-## 📊 Tiêu Chí Nghiệm Thu (Acceptance Criteria)
-1. **Độ tương đồng thị giác (VSI) $\ge 90.0\%$**.
-2. **0 Shortcodes chưa parse** (không có `[/vbc_div]`, `[row]`, `[col]` thô).
-3. **0 Thẻ style bị lỗi**.
-4. **Tất cả hình ảnh hiển thị 100%**, không có link ảnh rỗng hay lỗi 404.
-5. **Đầy đủ thẻ H1 SEO & Contact Form 7 hoạt động trơn tru**.
+---
+
+## 🛠️ Quy Trình Tự Động Khắc Phục Lỗi Bằng AI Agent (Auto-Remediation)
+Khi phát hiện bất kỳ lỗi nào ở 1 trong 3 trụ cột:
+1. Đọc báo cáo chi tiết tại `tmp/recheck_visual_ai_report.md`.
+2. Xác định chính xác Section và dòng shortcode gây lỗi (ví dụ: mất cân bằng thẻ, thiếu ảnh, chữ chìm màu nền).
+3. Viết lại mã nguồn hoàn chỉnh của Section đó trong script `tmp/gen_<slug>.py` hoặc file `tmp/<slug>/compiled_vbc.txt`.
+4. Gọi `publisher.py` cập nhật lên WordPress qua REST API `/vbc/v1/post`.
+5. Chạy lại `rechecker.py` cho đến khi đạt thông số: **VSI $\ge 90.0\%$**, **0 shortcode errors**, **0 unparsed tags**.

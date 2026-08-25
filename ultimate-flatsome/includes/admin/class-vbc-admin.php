@@ -44,7 +44,17 @@ function vbc_register_admin_menu() {
         'vbc_render_admin_vibecode_page'
     );
 
-    // Submenu 3: API & Xác Thực
+    // Submenu 3: Cập Nhật Plugin (GitHub Auto-Updater)
+    add_submenu_page(
+        'ultimate-flatsome',
+        __( 'Cập Nhật Plugin - Ultimate Flatsome', 'vibecode' ),
+        __( 'Cập Nhật Plugin 🔄', 'vibecode' ),
+        'manage_options',
+        'ultimate-flatsome-update',
+        'vbc_render_admin_update_page'
+    );
+
+    // Submenu 4: API & Xác Thực
     add_submenu_page(
         'ultimate-flatsome',
         __( 'API & Xác Thực - Ultimate Flatsome', 'vibecode' ),
@@ -54,7 +64,7 @@ function vbc_register_admin_menu() {
         'vbc_render_admin_api_page'
     );
 
-    // Submenu 4: Hướng Dẫn & Shortcodes
+    // Submenu 5: Hướng Dẫn & Shortcodes
     add_submenu_page(
         'ultimate-flatsome',
         __( 'Hướng Dẫn & Shortcodes - Ultimate Flatsome', 'vibecode' ),
@@ -91,6 +101,11 @@ add_action( 'admin_menu', 'vbc_register_admin_menu' );
  */
 function vbc_render_admin_vibecode_page() {
     $_GET['tab'] = 'vibecode';
+    vbc_render_admin_settings_page();
+}
+
+function vbc_render_admin_update_page() {
+    $_GET['tab'] = 'update';
     vbc_render_admin_settings_page();
 }
 
@@ -485,8 +500,12 @@ function vbc_render_admin_settings_page() {
                 <h1><span class="dashicons dashicons-admin-site-alt3" style="font-size: 28px; width: 28px; height: 28px;"></span> Ultimate Flatsome</h1>
                 <p><?php _e('Trung tâm quản trị website tập trung & Tiện ích mở rộng cao cấp cho Flatsome Theme', 'vibecode'); ?></p>
             </div>
-            <div style="text-align: right;">
-                <span class="vbc-badge">Phiên bản <?php echo esc_html( VBC_VERSION ); ?></span>
+            <div style="text-align: right; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: flex-end;">
+                <span class="vbc-badge">Phiên bản v<?php echo esc_html( VBC_VERSION ); ?></span>
+                <a href="?page=ultimate-flatsome&tab=update" class="vbc-btn-save" style="padding: 6px 16px; font-size: 13px; text-decoration: none; border-radius: 20px; box-shadow: 0 2px 10px rgba(37,99,235,0.25);">
+                    <span class="dashicons dashicons-update" style="font-size: 15px; margin-top: 1px;"></span>
+                    <?php _e('Cập Nhật Plugin', 'vibecode'); ?>
+                </a>
             </div>
         </div>
 
@@ -498,6 +517,22 @@ function vbc_render_admin_settings_page() {
             </div>
         <?php endif; ?>
 
+        <?php if ( isset( $_GET['update_success'] ) && $_GET['update_success'] === '1' ) : ?>
+            <div class="notice notice-success is-dismissible" style="margin-bottom: 25px; border-left-color: #10b981; padding: 14px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(16,185,129,0.15);">
+                <p style="font-size: 14.5px; font-weight: 800; color: #065f46; margin: 0;">
+                    <?php printf( __( '🎉 Chúc mừng! Plugin Ultimate Flatsome đã được cập nhật thành công lên phiên bản v%s trực tiếp từ GitHub!', 'vibecode' ), esc_html( ! empty( $_GET['new_version'] ) ? $_GET['new_version'] : VBC_VERSION ) ); ?>
+                </p>
+            </div>
+        <?php endif; ?>
+
+        <?php if ( isset( $_GET['update_error'] ) ) : ?>
+            <div class="notice notice-error is-dismissible" style="margin-bottom: 25px; border-left-color: #ef4444; padding: 14px 20px; border-radius: 8px;">
+                <p style="font-size: 14px; font-weight: 700; color: #991b1b; margin: 0;">
+                    <?php printf( __( '✕ Lỗi cập nhật từ GitHub: %s', 'vibecode' ), esc_html( urldecode( $_GET['update_error'] ) ) ); ?>
+                </p>
+            </div>
+        <?php endif; ?>
+
         <!-- Tabs Navigation -->
         <div class="vbc-nav-tab-wrapper">
             <a href="?page=ultimate-flatsome&tab=general" class="vbc-nav-tab <?php echo $current_tab === 'general' ? 'active' : ''; ?>">
@@ -505,6 +540,9 @@ function vbc_render_admin_settings_page() {
             </a>
             <a href="?page=ultimate-flatsome&tab=vibecode" class="vbc-nav-tab <?php echo $current_tab === 'vibecode' ? 'active' : ''; ?>">
                 <span class="dashicons dashicons-download"></span> <?php _e('VibeCode Hub & Xuất Dự Án', 'vibecode'); ?>
+            </a>
+            <a href="?page=ultimate-flatsome&tab=update" class="vbc-nav-tab <?php echo $current_tab === 'update' ? 'active' : ''; ?>">
+                <span class="dashicons dashicons-update"></span> <?php _e('Cập Nhật Plugin (GitHub)', 'vibecode'); ?>
             </a>
             <a href="?page=ultimate-flatsome&tab=api" class="vbc-nav-tab <?php echo $current_tab === 'api' ? 'active' : ''; ?>">
                 <span class="dashicons dashicons-rest-api"></span> <?php _e('API & Xác Thực', 'vibecode'); ?>
@@ -997,7 +1035,67 @@ function vbc_render_admin_settings_page() {
             </form>
 
         <!-- =========================================================================
-             TAB 3: API & XÁC THỰC (GIỮ NGUYÊN)
+             TAB 3: CẬP NHẬT PLUGIN TỪ GITHUB (AUTO-UPDATER)
+             ========================================================================= -->
+        <?php elseif ( $current_tab === 'update' ) : ?>
+            <div class="vbc-info-box">
+                <strong>🔄 Tự Động Cập Nhật Trực Tiếp Từ GitHub:</strong> Tính năng này cho phép bạn cập nhật plugin <strong>Ultimate Flatsome</strong> lên phiên bản mới nhất trực tiếp từ kho lưu trữ GitHub chính thức (nhánh <code>main</code>, thư mục <code>ultimate-flatsome</code>). Hệ thống sẽ tự động tải file ZIP, giải nén và cập nhật toàn bộ tính năng mà không làm mất các cài đặt cấu hình hiện có của bạn.
+            </div>
+
+            <div class="vbc-card">
+                <h2><span class="dashicons dashicons-update"></span> <?php _e('Trạng Thái Phiên Bản & Cập Nhật GitHub', 'vibecode'); ?></h2>
+                
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 22px; margin-bottom: 25px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+                        <div>
+                            <div style="font-size: 13px; color: #64748b; margin-bottom: 4px;"><?php _e('Phiên bản hiện tại trên Website:', 'vibecode'); ?></div>
+                            <div style="font-size: 24px; font-weight: 800; color: #0f172a;">v<?php echo esc_html( VBC_VERSION ); ?></div>
+                        </div>
+                        <div>
+                            <div style="font-size: 13px; color: #64748b; margin-bottom: 4px;"><?php _e('Kho lưu trữ nguồn GitHub:', 'vibecode'); ?></div>
+                            <div style="font-size: 14px; font-weight: 700; color: #2563eb;">
+                                <a href="https://github.com/tuend-work/ultimate-flatsome-vibecode/tree/main/ultimate-flatsome" target="_blank" rel="noopener noreferrer" style="text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+                                    <span class="dashicons dashicons-external" style="font-size: 16px;"></span> tuend-work/ultimate-flatsome-vibecode (main)
+                                </a>
+                            </div>
+                        </div>
+                        <div>
+                            <button type="button" id="vbc-btn-check-update" class="button button-secondary" style="font-weight: 700; height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 16px; border-radius: 8px;">
+                                <span class="dashicons dashicons-search" style="font-size: 16px;"></span>
+                                <?php _e('Kiểm Tra Bản Mới Trên GitHub', 'vibecode'); ?>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="vbc-update-check-result" style="margin-top: 16px; display: none; padding: 14px 18px; border-radius: 8px; font-size: 13.5px; font-weight: 600;"></div>
+                </div>
+
+                <form method="POST" action="" onsubmit="return confirm('Bạn có chắc chắn muốn tải về và ghi đè cập nhật plugin Ultimate Flatsome lên phiên bản mới nhất từ GitHub?');">
+                    <?php wp_nonce_field( 'vbc_update_plugin_nonce', 'vbc_update_nonce' ); ?>
+                    <input type="hidden" name="vbc_action" value="update_plugin_from_github" />
+                    <input type="hidden" name="current_tab" value="update" />
+
+                    <div class="vbc-form-group">
+                        <label><?php _e('GitHub Personal Access Token (Tùy chọn)', 'vibecode'); ?></label>
+                        <input type="password" name="uf_github_token" value="<?php echo esc_attr( get_option( 'uf_github_token', '' ) ); ?>" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx (Chỉ bắt buộc nếu GitHub Repository ở chế độ Riêng Tư / Private)" />
+                        <span class="vbc-field-desc">
+                            <?php _e('Nếu Repository GitHub là Public (Công khai), bạn có thể để trống trường này. Nếu Repo là Private, hãy tạo một Classic Token có quyền `repo` tại GitHub > Settings > Developer settings > Personal access tokens.', 'vibecode'); ?>
+                        </span>
+                    </div>
+
+                    <div style="margin-top: 25px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                        <button type="submit" class="vbc-btn-save" style="font-size: 16px; padding: 14px 32px;">
+                            <span class="dashicons dashicons-download" style="font-size: 20px;"></span>
+                            <?php _e('Tải & Cập Nhật Tự Động Từ GitHub Ngay', 'vibecode'); ?>
+                        </button>
+                        <span style="color: #64748b; font-size: 13px;">
+                            <?php _e('Thao tác sẽ tự động tải file zip từ GitHub, giải nén thư mục <code>ultimate-flatsome</code> và ghi đè an toàn.', 'vibecode'); ?>
+                        </span>
+                    </div>
+                </form>
+            </div>
+
+        <!-- =========================================================================
+             TAB 4: API & XÁC THỰC (GIỮ NGUYÊN)
              ========================================================================= -->
         <?php elseif ( $current_tab === 'api' ) : ?>
             <div class="vbc-card">
@@ -1169,7 +1267,7 @@ function vbc_render_admin_settings_page() {
         <?php endif; ?>
     </div>
 
-    <!-- Script copy 1-click clipboard -->
+    <!-- Script copy 1-click clipboard & AJAX Updater -->
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         var copyBtns = document.querySelectorAll('.vbc-copy-btn');
@@ -1191,8 +1289,66 @@ function vbc_render_admin_settings_page() {
                 });
             });
         });
+
+        // AJAX Check update from GitHub
+        var checkBtn = document.getElementById('vbc-btn-check-update');
+        if (checkBtn) {
+            checkBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                var resBox = document.getElementById('vbc-update-check-result');
+                checkBtn.disabled = true;
+                checkBtn.innerHTML = '<span class="dashicons dashicons-update" style="animation: rotation 1s infinite linear;"></span> Đang kiểm tra...';
+                resBox.style.display = 'block';
+                resBox.style.background = '#f1f5f9';
+                resBox.style.color = '#334155';
+                resBox.style.border = '1px solid #cbd5e1';
+                resBox.innerHTML = 'Đang kết nối tới GitHub API...';
+
+                var formData = new FormData();
+                formData.append('action', 'vbc_check_plugin_update');
+                formData.append('security', '<?php echo wp_create_nonce("vbc_ajax_nonce"); ?>');
+
+                fetch(ajaxurl, {
+                    method: 'POST',
+                    body: formData
+                }).then(function(r) { return r.json(); }).then(function(res) {
+                    checkBtn.disabled = false;
+                    checkBtn.innerHTML = '<span class="dashicons dashicons-search"></span> Kiểm Tra Bản Mới Trên GitHub';
+                    if (res.success && res.data) {
+                        if (res.data.has_update) {
+                            resBox.style.background = '#ecfdf5';
+                            resBox.style.color = '#065f46';
+                            resBox.style.border = '1px solid #a7f3d0';
+                            resBox.innerHTML = '🎉 ' + res.data.message + ' — Hãy nhấn nút "Tải & Cập Nhật Tự Động Từ GitHub Ngay" ở bên dưới!';
+                        } else {
+                            resBox.style.background = '#eff6ff';
+                            resBox.style.color = '#1e40af';
+                            resBox.style.border = '1px solid #bfdbfe';
+                            resBox.innerHTML = '✓ ' + res.data.message;
+                        }
+                    } else {
+                        resBox.style.background = '#fef2f2';
+                        resBox.style.color = '#991b1b';
+                        resBox.style.border = '1px solid #fecaca';
+                        resBox.innerHTML = '✕ ' + (res.data ? res.data.message : 'Lỗi kết nối kiểm tra.');
+                    }
+                }).catch(function(err) {
+                    checkBtn.disabled = false;
+                    checkBtn.innerHTML = '<span class="dashicons dashicons-search"></span> Kiểm Tra Bản Mới Trên GitHub';
+                    resBox.style.background = '#fef2f2';
+                    resBox.style.color = '#991b1b';
+                    resBox.innerHTML = '✕ Lỗi kết nối: ' + err.message;
+                });
+            });
+        }
     });
     </script>
+    <style>
+        @keyframes rotation {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(359deg); }
+        }
+    </style>
     <?php
 }
 

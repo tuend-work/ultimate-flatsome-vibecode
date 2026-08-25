@@ -111,3 +111,48 @@ Chỉ dùng `custom_css` cho các trạng thái không thể nhập bằng input
 - Hiệu ứng hover: `custom_css="selector { transition: all 0.3s; } selector:hover { transform: translateY(-5px); }"`
 - Phần tử giả `::before`, `::after`: `custom_css="selector::before { content: ''; position: absolute; ... }"`
 - Hiệu ứng animation phức tạp hoặc backdrop filter glassmorphism.
+
+---
+
+## 4. Quy Chuẩn CSS Bắt Buộc Cho Flatsome Accordion (Mũi Tên Sang Bên Phải)
+
+Khi sử dụng `[accordion]` / `[accordion-item]`, Flatsome mặc định đặt `.toggle` tuyệt đối bên trái đè lên text. Để mũi tên nằm **hoàn toàn bên phải** và text bên trái giống website gốc, **BẮT BUỘC** khai báo trong `custom_css` của `[vbc_section]`:
+
+```css
+selector .accordion-title {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  text-decoration: none !important;
+  position: relative !important;
+}
+selector .accordion-title > span,
+selector .accordion-title span {
+  order: 1 !important;
+  flex: 1 1 auto !important;
+  text-align: left !important;
+  margin: 0 !important;
+}
+selector .accordion-title > .toggle,
+selector .accordion-title .toggle,
+selector .accordion-title button.toggle {
+  order: 2 !important;
+  position: static !important;
+  left: auto !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: auto !important;
+  float: none !important;
+  transform: none !important;
+  margin: 0 0 0 16px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+selector .accordion-title.active > .toggle,
+selector .accordion-title.active .toggle,
+selector .accordion-title.active button.toggle {
+  transform: rotate(180deg) !important;
+}
+```

@@ -1,135 +1,225 @@
 <?php
 /**
- * Ultimate Flatsome VibeCode - Admin Settings & User Token Management
+ * Ultimate Flatsome - Admin Dashboard & Settings Management
  *
- * @package UltimateFlatsomeVibeCode
+ * @package UltimateFlatsome
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+/**
+ * 1. Đăng Ký Admin Menu Hệ Thống
+ */
 function vbc_register_admin_menu() {
     // Menu chính cấp 1 trên thanh Admin Sidebar
     add_menu_page(
-        __('VibeCode Flatsome', 'vibecode'),
-        __('VibeCode', 'vibecode'),
+        __( 'Ultimate Flatsome', 'vibecode' ),
+        __( 'Ultimate Flatsome', 'vibecode' ),
         'manage_options',
-        'vibecode-settings',
+        'ultimate-flatsome',
         'vbc_render_admin_settings_page',
-        'dashicons-layout',
+        'dashicons-admin-site-alt3',
         30
     );
 
-    // Menu phụ dưới Flatsome Panel nếu có
+    // Submenu 1: Cài Đặt Chung (General Settings)
     add_submenu_page(
-        'flatsome-panel',
-        __('VibeCode Flatsome', 'vibecode'),
-        __('VibeCode Settings', 'vibecode'),
+        'ultimate-flatsome',
+        __( 'Cài Đặt Chung - Ultimate Flatsome', 'vibecode' ),
+        __( 'Cài Đặt Chung', 'vibecode' ),
         'manage_options',
-        'vibecode-settings',
+        'ultimate-flatsome',
         'vbc_render_admin_settings_page'
     );
 
-    // Menu phụ dưới Cài đặt (Settings) dự phòng
-    add_options_page(
-        __('VibeCode Flatsome', 'vibecode'),
-        __('VibeCode', 'vibecode'),
+    // Submenu 2: VibeCode Hub (AI Export & Automation)
+    add_submenu_page(
+        'ultimate-flatsome',
+        __( 'VibeCode Hub - Ultimate Flatsome', 'vibecode' ),
+        __( 'VibeCode Hub', 'vibecode' ),
+        'manage_options',
+        'ultimate-flatsome-vibecode',
+        'vbc_render_admin_vibecode_page'
+    );
+
+    // Submenu 3: API & Xác Thực
+    add_submenu_page(
+        'ultimate-flatsome',
+        __( 'API & Xác Thực - Ultimate Flatsome', 'vibecode' ),
+        __( 'API & Xác Thực', 'vibecode' ),
+        'manage_options',
+        'ultimate-flatsome-api',
+        'vbc_render_admin_api_page'
+    );
+
+    // Submenu 4: Hướng Dẫn & Shortcodes
+    add_submenu_page(
+        'ultimate-flatsome',
+        __( 'Hướng Dẫn & Shortcodes - Ultimate Flatsome', 'vibecode' ),
+        __( 'Hướng Dẫn & Shortcodes', 'vibecode' ),
+        'manage_options',
+        'ultimate-flatsome-docs',
+        'vbc_render_admin_docs_page'
+    );
+
+    // Menu phụ dưới Flatsome Panel nếu theme Flatsome đang kích hoạt
+    add_submenu_page(
+        'flatsome-panel',
+        __( 'Ultimate Flatsome', 'vibecode' ),
+        __( 'Ultimate Flatsome', 'vibecode' ),
+        'manage_options',
+        'ultimate-flatsome',
+        'vbc_render_admin_settings_page'
+    );
+
+    // Đăng ký bí danh menu cũ vibecode-settings để đảm bảo tương thích 100%
+    add_submenu_page(
+        null,
+        __( 'VibeCode Settings', 'vibecode' ),
+        __( 'VibeCode Settings', 'vibecode' ),
         'manage_options',
         'vibecode-settings',
         'vbc_render_admin_settings_page'
     );
 }
+add_action( 'admin_menu', 'vbc_register_admin_menu' );
 
+/**
+ * Route Submenu Callbacks
+ */
+function vbc_render_admin_vibecode_page() {
+    $_GET['tab'] = 'vibecode';
+    vbc_render_admin_settings_page();
+}
 
+function vbc_render_admin_api_page() {
+    $_GET['tab'] = 'api';
+    vbc_render_admin_settings_page();
+}
 
+function vbc_render_admin_docs_page() {
+    $_GET['tab'] = 'docs';
+    vbc_render_admin_settings_page();
+}
+
+/**
+ * 2. Xử Lý Lưu Cài Đặt (Save Settings Request)
+ */
 function vbc_handle_save_settings_request() {
-    if (isset($_POST['vbc_action']) && $_POST['vbc_action'] === 'save_general_settings') {
-        if (!current_user_can('manage_options')) return;
-        check_admin_referer('vbc_save_settings_nonce', 'vbc_settings_nonce');
+    if ( isset( $_POST['vbc_action'] ) && $_POST['vbc_action'] === 'save_general_settings' ) {
+        if ( ! current_user_can( 'manage_options' ) ) {
+            return;
+        }
+        check_admin_referer( 'vbc_save_settings_nonce', 'vbc_settings_nonce' );
 
-        if (isset($_POST['ftp_host'])) update_option('vbc_ftp_host', sanitize_text_field($_POST['ftp_host']));
-        if (isset($_POST['ftp_user'])) update_option('vbc_ftp_user', sanitize_text_field($_POST['ftp_user']));
-        if (isset($_POST['ftp_password'])) update_option('vbc_ftp_password', sanitize_text_field($_POST['ftp_password']));
-        if (isset($_POST['ftp_path'])) update_option('vbc_ftp_path', sanitize_text_field($_POST['ftp_path']));
+        $tab = ! empty( $_POST['current_tab'] ) ? sanitize_key( $_POST['current_tab'] ) : 'general';
 
-        if (isset($_POST['brand_phone'])) update_option('vbc_brand_phone', sanitize_text_field($_POST['brand_phone']));
-        if (isset($_POST['brand_email'])) update_option('vbc_brand_email', sanitize_email($_POST['brand_email']));
-        if (isset($_POST['brand_address'])) update_option('vbc_brand_address', sanitize_text_field($_POST['brand_address']));
-        if (isset($_POST['brand_zalo'])) update_option('vbc_brand_zalo', sanitize_text_field($_POST['brand_zalo']));
-        if (isset($_POST['brand_hours'])) update_option('vbc_brand_hours', sanitize_text_field($_POST['brand_hours']));
+        // 1. Lưu các trường cấu hình chung (Tab General)
+        if ( class_exists( 'Ultimate_Flatsome_General_Settings' ) ) {
+            $fields = Ultimate_Flatsome_General_Settings::get_fields_config();
+            foreach ( $fields as $key => $config ) {
+                $opt_key = $config['option_key'];
+                if ( ! isset( $_POST[ $opt_key ] ) ) {
+                    continue;
+                }
 
-        if (!empty($_POST['vbc_regenerate_token'])) {
-            $user_id = get_current_user_id();
-            $new_token = bin2hex(random_bytes(20));
-            update_user_meta($user_id, 'vbc_api_token', $new_token);
+                $raw_val = $_POST[ $opt_key ];
+                if ( $config['type'] === 'textarea' ) {
+                    // Cho phép chèn mã HTML/JS đối với người dùng có quyền unfiltered_html
+                    $clean_val = current_user_can( 'unfiltered_html' ) ? wp_unslash( $raw_val ) : wp_kses_post( $raw_val );
+                } elseif ( $config['type'] === 'email' ) {
+                    $clean_val = sanitize_email( $raw_val );
+                } else {
+                    $clean_val = sanitize_text_field( $raw_val );
+                }
+
+                // Cập nhật vào bảng wp_options
+                update_option( $opt_key, $clean_val );
+
+                // Đồng bộ sang legacy key nếu có để tương thích ngược hoàn hảo
+                if ( ! empty( $config['legacy_key'] ) ) {
+                    update_option( $config['legacy_key'], $clean_val );
+                }
+            }
         }
 
-        $tab = !empty($_POST['current_tab']) ? sanitize_text_field($_POST['current_tab']) : 'export';
-        wp_redirect(add_query_arg(array('page' => 'vibecode-settings', 'tab' => $tab, 'saved' => '1'), admin_url('admin.php')));
+        // 2. Lưu cấu hình FTP
+        if ( isset( $_POST['ftp_host'] ) ) update_option( 'vbc_ftp_host', sanitize_text_field( $_POST['ftp_host'] ) );
+        if ( isset( $_POST['ftp_user'] ) ) update_option( 'vbc_ftp_user', sanitize_text_field( $_POST['ftp_user'] ) );
+        if ( isset( $_POST['ftp_password'] ) ) update_option( 'vbc_ftp_password', sanitize_text_field( $_POST['ftp_password'] ) );
+        if ( isset( $_POST['ftp_path'] ) ) update_option( 'vbc_ftp_path', sanitize_text_field( $_POST['ftp_path'] ) );
+
+        // 3. Tạo lại API Token nếu được yêu cầu
+        if ( ! empty( $_POST['vbc_regenerate_token'] ) ) {
+            $user_id = get_current_user_id();
+            $new_token = bin2hex( random_bytes( 20 ) );
+            update_user_meta( $user_id, 'vbc_api_token', $new_token );
+        }
+
+        wp_redirect( add_query_arg( array( 'page' => 'ultimate-flatsome', 'tab' => $tab, 'saved' => '1' ), admin_url( 'admin.php' ) ) );
         exit;
     }
 }
+add_action( 'admin_init', 'vbc_handle_save_settings_request' );
 
-// Giao diện Trang Quản Trị VibeCode
+/**
+ * 3. Giao Diện Bảng Quản Trị Trung Tâm (Ultimate Flatsome Admin Dashboard)
+ */
 function vbc_render_admin_settings_page() {
-    if (!current_user_can('manage_options')) {
+    if ( ! current_user_can( 'manage_options' ) ) {
         return;
     }
 
-    $current_tab = isset($_GET['tab']) ? sanitize_key($_GET['tab']) : 'export';
+    $current_tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'general';
+    if ( $current_tab === 'export' ) {
+        $current_tab = 'vibecode';
+    }
+
     $user_id = get_current_user_id();
-    $token = get_user_meta($user_id, 'vbc_api_token', true);
-    if (empty($token)) {
-        $token = bin2hex(random_bytes(20));
-        update_user_meta($user_id, 'vbc_api_token', $token);
+    $token = get_user_meta( $user_id, 'vbc_api_token', true );
+    if ( empty( $token ) ) {
+        $token = bin2hex( random_bytes( 20 ) );
+        update_user_meta( $user_id, 'vbc_api_token', $token );
     }
 
-    $api_url = get_rest_url(null, '');
+    $api_url = get_rest_url( null, '' );
     $site_url = get_site_url();
-    $parsed_url = parse_url($site_url);
-    $domain_host = !empty($parsed_url['host']) ? $parsed_url['host'] : 'website';
-    $clean_domain = sanitize_file_name(preg_replace('/[^a-zA-Z0-9\.\-]/', '-', $domain_host));
+    $parsed_url = parse_url( $site_url );
+    $domain_host = ! empty( $parsed_url['host'] ) ? $parsed_url['host'] : 'website';
+    $clean_domain = sanitize_file_name( preg_replace( '/[^a-zA-Z0-9\.\-]/', '-', $domain_host ) );
 
-    // Tự động nhận diện đường dẫn thư mục gốc website (Root Path chứa wp-config.php)
-    $detected_root_path = defined('ABSPATH') ? wp_normalize_path(untrailingslashit(ABSPATH)) : (defined('WP_CONTENT_DIR') ? wp_normalize_path(dirname(WP_CONTENT_DIR)) : '/public_html');
-    $detected_plugin_path = defined('WP_PLUGIN_DIR') ? wp_normalize_path(WP_PLUGIN_DIR) : $detected_root_path . '/wp-content/plugins';
-    $ftp_host = get_option('vbc_ftp_host', '');
-    $ftp_user = get_option('vbc_ftp_user', '');
-    $ftp_password = get_option('vbc_ftp_password', '');
-    $ftp_path = get_option('vbc_ftp_path', '');
-    if (empty($ftp_path)) {
-        $ftp_path = $detected_root_path;
-    }
+    // Tự động nhận diện đường dẫn thư mục gốc
+    $detected_root_path = defined( 'ABSPATH' ) ? wp_normalize_path( untrailingslashit( ABSPATH ) ) : ( defined( 'WP_CONTENT_DIR' ) ? wp_normalize_path( dirname( WP_CONTENT_DIR ) ) : '/public_html' );
+    $ftp_host = get_option( 'vbc_ftp_host', '' );
+    $ftp_user = get_option( 'vbc_ftp_user', '' );
+    $ftp_password = get_option( 'vbc_ftp_password', '' );
+    $ftp_path = get_option( 'vbc_ftp_path', $detected_root_path );
 
-    $brand_phone = get_option('vbc_brand_phone', '');
-    $brand_email = get_option('vbc_brand_email', get_option('admin_email'));
-    $brand_address = get_option('vbc_brand_address', '');
-    $brand_zalo = get_option('vbc_brand_zalo', '');
-    $brand_hours = get_option('vbc_brand_hours', '8:00 - 18:00 (T2 - T7)');
+    $has_wc = class_exists( 'WooCommerce' );
+    $product_count = $has_wc ? wp_count_posts( 'product' )->publish : 0;
+    $post_count = wp_count_posts( 'post' )->publish;
+    $page_count = wp_count_posts( 'page' )->publish;
 
-    $has_wc = class_exists('WooCommerce');
-    $product_count = $has_wc ? wp_count_posts('product')->publish : 0;
-    $post_count = wp_count_posts('post')->publish;
-    $page_count = wp_count_posts('page')->publish;
-
+    $fields_config = class_exists( 'Ultimate_Flatsome_General_Settings' ) ? Ultimate_Flatsome_General_Settings::get_fields_config() : array();
     ?>
-    <div class="wrap vbc-admin-wrap" style="max-width: 1100px; margin-top: 20px;">
+    <div class="wrap vbc-admin-wrap" style="max-width: 1180px; margin-top: 20px;">
         <style>
             .vbc-admin-header {
                 background: linear-gradient(135deg, #090d16 0%, #1e293b 100%);
-                padding: 25px 30px;
-                border-radius: 12px;
+                padding: 26px 32px;
+                border-radius: 14px;
                 color: #ffffff;
                 margin-bottom: 25px;
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+                box-shadow: 0 10px 30px rgba(0,0,0,0.15);
             }
             .vbc-admin-header h1 {
                 color: #ffffff;
-                font-size: 24px;
+                font-size: 25px;
                 font-weight: 800;
                 margin: 0 0 6px 0;
                 display: flex;
@@ -146,9 +236,9 @@ function vbc_render_admin_settings_page() {
                 background: rgba(37,99,235,0.25);
                 color: #60a5fa;
                 border: 1px solid rgba(59,130,246,0.35);
-                padding: 4px 12px;
+                padding: 5px 14px;
                 border-radius: 20px;
-                font-size: 12px;
+                font-size: 13px;
                 font-weight: 700;
             }
             .vbc-nav-tab-wrapper {
@@ -156,14 +246,15 @@ function vbc_render_admin_settings_page() {
                 border-bottom: 2px solid #e2e8f0;
                 display: flex;
                 gap: 8px;
+                flex-wrap: wrap;
             }
             .vbc-nav-tab {
-                padding: 12px 20px;
+                padding: 13px 22px;
                 text-decoration: none;
                 font-weight: 700;
-                font-size: 14px;
+                font-size: 14.5px;
                 color: #64748b;
-                border-radius: 8px 8px 0 0;
+                border-radius: 10px 10px 0 0;
                 background: #f1f5f9;
                 transition: all 0.2s;
                 border: 1px solid #e2e8f0;
@@ -181,23 +272,24 @@ function vbc_render_admin_settings_page() {
                 background: #ffffff;
                 border-top: 3px solid #2563eb;
                 margin-bottom: -2px;
-                padding-bottom: 13px;
+                padding-bottom: 14px;
+                box-shadow: 0 -2px 10px rgba(0,0,0,0.02);
             }
             .vbc-card {
                 background: #ffffff;
-                border-radius: 12px;
+                border-radius: 14px;
                 border: 1px solid #e2e8f0;
                 padding: 30px;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+                box-shadow: 0 4px 20px rgba(0,0,0,0.03);
                 margin-bottom: 25px;
             }
             .vbc-card h2 {
-                font-size: 18px;
+                font-size: 19px;
                 font-weight: 800;
                 color: #0f172a;
                 margin-top: 0;
-                margin-bottom: 15px;
-                padding-bottom: 12px;
+                margin-bottom: 16px;
+                padding-bottom: 14px;
                 border-bottom: 1px solid #f1f5f9;
                 display: flex;
                 align-items: center;
@@ -206,20 +298,20 @@ function vbc_render_admin_settings_page() {
             .vbc-grid-2 {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                gap: 20px;
+                gap: 22px;
             }
             @media (max-width: 782px) {
                 .vbc-grid-2 { grid-template-columns: 1fr; }
             }
             .vbc-form-group {
-                margin-bottom: 18px;
+                margin-bottom: 20px;
             }
             .vbc-form-group label {
                 display: block;
                 font-weight: 700;
-                font-size: 13px;
-                color: #334155;
-                margin-bottom: 6px;
+                font-size: 13.5px;
+                color: #1e293b;
+                margin-bottom: 7px;
             }
             .vbc-form-group input[type="text"],
             .vbc-form-group input[type="password"],
@@ -227,16 +319,138 @@ function vbc_render_admin_settings_page() {
             .vbc-form-group textarea,
             .vbc-form-group select {
                 width: 100%;
-                border: 1px solid #cbd5e1;
-                border-radius: 6px;
-                padding: 8px 12px;
+                border: 1.5px solid #cbd5e1;
+                border-radius: 8px;
+                padding: 10px 14px;
                 font-size: 14px;
+                box-sizing: border-box;
+                transition: border-color 0.2s, box-shadow 0.2s;
+            }
+            .vbc-form-group input:focus,
+            .vbc-form-group textarea:focus {
+                border-color: #2563eb;
+                outline: none;
+                box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+            }
+            .vbc-field-row {
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+                border-radius: 10px;
+                padding: 18px 20px;
+                margin-bottom: 16px;
+                transition: all 0.2s;
+            }
+            .vbc-field-row:hover {
+                border-color: #93c5fd;
+                background: #ffffff;
+                box-shadow: 0 4px 12px rgba(37,99,235,0.05);
+            }
+            .vbc-field-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 8px;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .vbc-shortcode-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                background: #e0f2fe;
+                color: #0369a1;
+                border: 1px solid #bae6fd;
+                padding: 4px 10px;
+                border-radius: 6px;
+                font-size: 12px;
+                font-family: Consolas, Monaco, monospace;
+                font-weight: 600;
+            }
+            .vbc-copy-btn {
+                background: #ffffff;
+                color: #2563eb;
+                border: 1px solid #bfdbfe;
+                border-radius: 6px;
+                padding: 3px 10px;
+                font-size: 11.5px;
+                font-weight: 700;
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                transition: all 0.2s;
+            }
+            .vbc-copy-btn:hover {
+                background: #2563eb;
+                color: #ffffff;
+                border-color: #2563eb;
+            }
+            .vbc-copy-btn.copied {
+                background: #10b981 !important;
+                color: #ffffff !important;
+                border-color: #10b981 !important;
+            }
+            .vbc-field-desc {
+                font-size: 12px;
+                color: #64748b;
+                margin-top: 6px;
+                line-height: 1.5;
+            }
+            .vbc-btn-save {
+                background: linear-gradient(135deg, #2563eb, #1d4ed8);
+                color: #ffffff !important;
+                border: none;
+                padding: 13px 32px;
+                font-size: 15px;
+                font-weight: 800;
+                border-radius: 8px;
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                box-shadow: 0 4px 15px rgba(37,99,235,0.3);
+                transition: all 0.2s;
+            }
+            .vbc-btn-save:hover {
+                background: linear-gradient(135deg, #1d4ed8, #1e40af);
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(37,99,235,0.4);
+            }
+            .vbc-btn-export {
+                background: linear-gradient(135deg, #059669, #047857);
+                color: #ffffff !important;
+                border: none;
+                padding: 14px 34px;
+                font-size: 16px;
+                font-weight: 800;
+                border-radius: 8px;
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                gap: 10px;
+                box-shadow: 0 4px 15px rgba(5,150,105,0.35);
+                transition: all 0.2s;
+            }
+            .vbc-btn-export:hover {
+                background: linear-gradient(135deg, #047857, #065f46);
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(5,150,105,0.45);
+            }
+            .vbc-info-box {
+                background: #eff6ff;
+                border-left: 4px solid #3b82f6;
+                padding: 16px 22px;
+                border-radius: 0 10px 10px 0;
+                margin-bottom: 25px;
+                color: #1e3a8a;
+                font-size: 13.5px;
+                line-height: 1.6;
             }
             .vbc-checkbox-item {
                 background: #f8fafc;
                 border: 1px solid #e2e8f0;
-                border-radius: 8px;
-                padding: 14px 18px;
+                border-radius: 10px;
+                padding: 15px 20px;
                 margin-bottom: 12px;
                 display: flex;
                 align-items: flex-start;
@@ -263,79 +477,380 @@ function vbc_render_admin_settings_page() {
                 color: #64748b;
                 line-height: 1.5;
             }
-            .vbc-btn-export {
-                background: linear-gradient(135deg, #2563eb, #1d4ed8);
-                color: #ffffff !important;
-                border: none;
-                padding: 14px 32px;
-                font-size: 16px;
-                font-weight: 800;
-                border-radius: 8px;
-                cursor: pointer;
-                display: inline-flex;
-                align-items: center;
-                gap: 10px;
-                box-shadow: 0 4px 15px rgba(37,99,235,0.35);
-                transition: all 0.2s;
-            }
-            .vbc-btn-export:hover {
-                background: linear-gradient(135deg, #1d4ed8, #1e40af);
-                transform: translateY(-2px);
-                box-shadow: 0 6px 20px rgba(37,99,235,0.45);
-            }
-            .vbc-info-box {
-                background: #eff6ff;
-                border-left: 4px solid #3b82f6;
-                padding: 15px 20px;
-                border-radius: 0 8px 8px 0;
-                margin-bottom: 20px;
-                color: #1e3a8a;
-                font-size: 13px;
-                line-height: 1.6;
-            }
         </style>
 
         <!-- Header -->
         <div class="vbc-admin-header">
             <div>
-                <h1><span class="dashicons dashicons-superhero-alt" style="font-size: 28px; width: 28px; height: 28px;"></span> Ultimate Flatsome VibeCode</h1>
-                <p><?php _e('Trình mở rộng chuyên sâu UX Builder & Cổng tự động hóa Landing Page chuẩn CRO', 'vibecode'); ?></p>
+                <h1><span class="dashicons dashicons-admin-site-alt3" style="font-size: 28px; width: 28px; height: 28px;"></span> Ultimate Flatsome</h1>
+                <p><?php _e('Trung tâm quản trị website tập trung & Tiện ích mở rộng cao cấp cho Flatsome Theme', 'vibecode'); ?></p>
             </div>
             <div style="text-align: right;">
-                <span class="vbc-badge">Phiên bản 1.7.0</span>
+                <span class="vbc-badge">Phiên bản <?php echo esc_html( VBC_VERSION ); ?></span>
             </div>
         </div>
 
-        <?php if (isset($_GET['saved']) && $_GET['saved'] === '1'): ?>
-            <div class="notice notice-success is-dismissible" style="margin-bottom: 20px; border-left-color: #10b981;">
-                <p><strong><?php _e('✓ Đã lưu cài đặt cấu hình thành công!', 'vibecode'); ?></strong></p>
+        <?php if ( isset( $_GET['saved'] ) && $_GET['saved'] === '1' ) : ?>
+            <div class="notice notice-success is-dismissible" style="margin-bottom: 25px; border-left-color: #10b981; padding: 12px 18px; border-radius: 8px;">
+                <p style="font-size: 14px; font-weight: 700; color: #065f46; margin: 0;">
+                    <?php _e('✓ Đã lưu toàn bộ cài đặt và đồng bộ thành công vào wp_options!', 'vibecode'); ?>
+                </p>
             </div>
         <?php endif; ?>
 
         <!-- Tabs Navigation -->
         <div class="vbc-nav-tab-wrapper">
-            <a href="?page=vibecode-settings&tab=export" class="vbc-nav-tab <?php echo $current_tab === 'export' ? 'active' : ''; ?>">
-                <span class="dashicons dashicons-download"></span> <?php _e('Xuất Dự Án Antigravity', 'vibecode'); ?>
+            <a href="?page=ultimate-flatsome&tab=general" class="vbc-nav-tab <?php echo $current_tab === 'general' ? 'active' : ''; ?>">
+                <span class="dashicons dashicons-admin-generic"></span> <?php _e('Cài Đặt Chung', 'vibecode'); ?>
             </a>
-            <a href="?page=vibecode-settings&tab=api" class="vbc-nav-tab <?php echo $current_tab === 'api' ? 'active' : ''; ?>">
+            <a href="?page=ultimate-flatsome&tab=vibecode" class="vbc-nav-tab <?php echo $current_tab === 'vibecode' ? 'active' : ''; ?>">
+                <span class="dashicons dashicons-download"></span> <?php _e('VibeCode Hub & Xuất Dự Án', 'vibecode'); ?>
+            </a>
+            <a href="?page=ultimate-flatsome&tab=api" class="vbc-nav-tab <?php echo $current_tab === 'api' ? 'active' : ''; ?>">
                 <span class="dashicons dashicons-rest-api"></span> <?php _e('API & Xác Thực', 'vibecode'); ?>
             </a>
-            <a href="?page=vibecode-settings&tab=config" class="vbc-nav-tab <?php echo $current_tab === 'config' ? 'active' : ''; ?>">
-                <span class="dashicons dashicons-admin-settings"></span> <?php _e('FTP & Thương Hiệu', 'vibecode'); ?>
-            </a>
-            <a href="?page=vibecode-settings&tab=docs" class="vbc-nav-tab <?php echo $current_tab === 'docs' ? 'active' : ''; ?>">
+            <a href="?page=ultimate-flatsome&tab=docs" class="vbc-nav-tab <?php echo $current_tab === 'docs' ? 'active' : ''; ?>">
                 <span class="dashicons dashicons-book"></span> <?php _e('Hướng Dẫn & Shortcodes', 'vibecode'); ?>
             </a>
         </div>
 
-        <!-- TAB 1: EXPORT TO ANTIGRAVITY PROJECT -->
-        <?php if ($current_tab === 'export'): ?>
+        <!-- =========================================================================
+             TAB 1: CÀI ĐẶT CHUNG (GENERAL SETTINGS & WP_OPTIONS SYNC)
+             ========================================================================= -->
+        <?php if ( $current_tab === 'general' ) : ?>
             <div class="vbc-info-box">
-                <strong>💡 Antigravity Project Package:</strong> Khi xuất file ZIP, hệ thống sẽ đóng gói toàn bộ thư mục <code>skills/</code> (gồm các script clone và tạo landing page tự động) cùng tệp <code>vbc-config.json</code> chứa dữ liệu ngữ cảnh website. Antigravity AI sẽ đọc hiểu toàn bộ thông tin này để tạo Landing Page chuẩn xác theo ngữ cảnh của website bạn.
+                <strong>💡 Quản Lý Thông Tin Tập Trung:</strong> Toàn bộ thông tin nhập tại đây được lưu trực tiếp vào bảng <code>wp_options</code> của WordPress và đồng bộ 2 chiều với Cài đặt Tổng quan. Bạn có thể sử dụng các mã Shortcode tương ứng để chèn số điện thoại, email, địa chỉ hoặc bản quyền vào bất kỳ đâu trên website (UX Builder, Header, Footer, Trang liên hệ...). Khi cần thay đổi, chỉ cần sửa tại đây 1 lần là toàn bộ web sẽ tự động cập nhật!
             </div>
 
             <form method="POST" action="">
-                <?php wp_nonce_field('vbc_export_project_nonce', 'vbc_export_nonce'); ?>
+                <?php wp_nonce_field( 'vbc_save_settings_nonce', 'vbc_settings_nonce' ); ?>
+                <input type="hidden" name="vbc_action" value="save_general_settings" />
+                <input type="hidden" name="current_tab" value="general" />
+
+                <!-- 1. Thông Tin Cơ Bản Website (WP Core Sync) -->
+                <div class="vbc-card">
+                    <h2><span class="dashicons dashicons-admin-home"></span> 1. Thông Tin Cơ Bản Website (Đồng bộ với Cài đặt WordPress)</h2>
+                    <p style="color: #64748b; font-size: 13px; margin-top: -6px; margin-bottom: 20px;">
+                        Các trường này đồng bộ trực tiếp 2 chiều với <code>wp_options: blogname, blogdescription, admin_email</code>.
+                    </p>
+
+                    <div class="vbc-field-row">
+                        <div class="vbc-field-header">
+                            <label style="font-weight: 700; color: #1e293b;"><?php _e('Tên Website (Site Title)', 'vibecode'); ?></label>
+                            <div>
+                                <span class="vbc-shortcode-badge">[uf_info field="site_name"]</span>
+                                <button type="button" class="vbc-copy-btn" data-clipboard='[uf_info field="site_name"]'>📋 Copy</button>
+                            </div>
+                        </div>
+                        <input type="text" name="blogname" value="<?php echo esc_attr( get_option( 'blogname' ) ); ?>" placeholder="Ví dụ: Kyna English" />
+                        <div class="vbc-field-desc"><?php _e('Tên thương hiệu chính của website.', 'vibecode'); ?></div>
+                    </div>
+
+                    <div class="vbc-field-row">
+                        <div class="vbc-field-header">
+                            <label style="font-weight: 700; color: #1e293b;"><?php _e('Khẩu Hiệu / Slogan (Tagline)', 'vibecode'); ?></label>
+                            <div>
+                                <span class="vbc-shortcode-badge">[uf_info field="tagline"]</span>
+                                <button type="button" class="vbc-copy-btn" data-clipboard='[uf_info field="tagline"]'>📋 Copy</button>
+                            </div>
+                        </div>
+                        <input type="text" name="blogdescription" value="<?php echo esc_attr( get_option( 'blogdescription' ) ); ?>" placeholder="Ví dụ: Nền Tảng Học Tiếng Anh 1 Kèm 1 Hàng Đầu" />
+                        <div class="vbc-field-desc"><?php _e('Khẩu hiệu hoặc mô tả ngắn của website.', 'vibecode'); ?></div>
+                    </div>
+
+                    <div class="vbc-field-row">
+                        <div class="vbc-field-header">
+                            <label style="font-weight: 700; color: #1e293b;"><?php _e('Email Quản Trị Hệ Thống', 'vibecode'); ?></label>
+                            <div>
+                                <span class="vbc-shortcode-badge">[uf_info field="admin_email"]</span>
+                                <button type="button" class="vbc-copy-btn" data-clipboard='[uf_info field="admin_email"]'>📋 Copy</button>
+                            </div>
+                        </div>
+                        <input type="email" name="admin_email" value="<?php echo esc_attr( get_option( 'admin_email' ) ); ?>" />
+                        <div class="vbc-field-desc"><?php _e('Email nhận các thông báo hệ thống và quản trị viên.', 'vibecode'); ?></div>
+                    </div>
+                </div>
+
+                <!-- 2. Thông Tin Liên Hệ & Thương Hiệu Doanh Nghiệp -->
+                <div class="vbc-card">
+                    <h2><span class="dashicons dashicons-phone"></span> 2. Thông Tin Liên Hệ & Doanh Nghiệp</h2>
+                    <p style="color: #64748b; font-size: 13px; margin-top: -6px; margin-bottom: 20px;">
+                        Các trường lưu trữ trực tiếp trong <code>wp_options</code>. Tự động hỗ trợ click-to-call khi dùng tham số <code>link="true"</code>.
+                    </p>
+
+                    <div class="vbc-grid-2">
+                        <!-- Tên công ty -->
+                        <div class="vbc-field-row">
+                            <div class="vbc-field-header">
+                                <label style="font-weight: 700; color: #1e293b;"><?php _e('Tên Doanh Nghiệp / Công Ty', 'vibecode'); ?></label>
+                                <div>
+                                    <span class="vbc-shortcode-badge">[uf_company]</span>
+                                    <button type="button" class="vbc-copy-btn" data-clipboard='[uf_company]'>📋 Copy</button>
+                                </div>
+                            </div>
+                            <input type="text" name="uf_company_name" value="<?php echo esc_attr( get_option( 'uf_company_name', '' ) ); ?>" placeholder="CÔNG TY CỔ PHẦN DREAM VIET EDUCATION" />
+                        </div>
+
+                        <!-- Hotline chính -->
+                        <div class="vbc-field-row">
+                            <div class="vbc-field-header">
+                                <label style="font-weight: 700; color: #1e293b;"><?php _e('Hotline / Số Điện Thoại Chính', 'vibecode'); ?></label>
+                                <div>
+                                    <span class="vbc-shortcode-badge">[uf_phone link="true"]</span>
+                                    <button type="button" class="vbc-copy-btn" data-clipboard='[uf_phone link="true"]'>📋 Copy</button>
+                                </div>
+                            </div>
+                            <input type="text" name="uf_phone" value="<?php echo esc_attr( Ultimate_Flatsome_General_Settings::get_field_value( 'phone' ) ); ?>" placeholder="1900 6364 09 hoặc 0912 345 678" />
+                        </div>
+
+                        <!-- Hotline phụ -->
+                        <div class="vbc-field-row">
+                            <div class="vbc-field-header">
+                                <label style="font-weight: 700; color: #1e293b;"><?php _e('Hotline Phụ / Kỹ Thuật', 'vibecode'); ?></label>
+                                <div>
+                                    <span class="vbc-shortcode-badge">[uf_phone_2 link="true"]</span>
+                                    <button type="button" class="vbc-copy-btn" data-clipboard='[uf_phone_2 link="true"]'>📋 Copy</button>
+                                </div>
+                            </div>
+                            <input type="text" name="uf_phone_2" value="<?php echo esc_attr( get_option( 'uf_phone_2', '' ) ); ?>" placeholder="0987 654 321" />
+                        </div>
+
+                        <!-- Zalo -->
+                        <div class="vbc-field-row">
+                            <div class="vbc-field-header">
+                                <label style="font-weight: 700; color: #1e293b;"><?php _e('Số Zalo / Link Chat Zalo', 'vibecode'); ?></label>
+                                <div>
+                                    <span class="vbc-shortcode-badge">[uf_zalo link="true"]</span>
+                                    <button type="button" class="vbc-copy-btn" data-clipboard='[uf_zalo link="true"]'>📋 Copy</button>
+                                </div>
+                            </div>
+                            <input type="text" name="uf_zalo" value="<?php echo esc_attr( Ultimate_Flatsome_General_Settings::get_field_value( 'zalo' ) ); ?>" placeholder="0912 345 678 hoặc https://zalo.me/0912345678" />
+                        </div>
+
+                        <!-- Email liên hệ khách -->
+                        <div class="vbc-field-row">
+                            <div class="vbc-field-header">
+                                <label style="font-weight: 700; color: #1e293b;"><?php _e('Email Liên Hệ / Hỗ Trợ CSKH', 'vibecode'); ?></label>
+                                <div>
+                                    <span class="vbc-shortcode-badge">[uf_email link="true"]</span>
+                                    <button type="button" class="vbc-copy-btn" data-clipboard='[uf_email link="true"]'>📋 Copy</button>
+                                </div>
+                            </div>
+                            <input type="email" name="uf_email" value="<?php echo esc_attr( Ultimate_Flatsome_General_Settings::get_field_value( 'email' ) ); ?>" placeholder="hotro@domain.com" />
+                        </div>
+
+                        <!-- Giờ làm việc -->
+                        <div class="vbc-field-row">
+                            <div class="vbc-field-header">
+                                <label style="font-weight: 700; color: #1e293b;"><?php _e('Thời Gian Làm Việc', 'vibecode'); ?></label>
+                                <div>
+                                    <span class="vbc-shortcode-badge">[uf_info field="hours"]</span>
+                                    <button type="button" class="vbc-copy-btn" data-clipboard='[uf_info field="hours"]'>📋 Copy</button>
+                                </div>
+                            </div>
+                            <input type="text" name="uf_working_hours" value="<?php echo esc_attr( Ultimate_Flatsome_General_Settings::get_field_value( 'working_hours' ) ); ?>" placeholder="8:00 - 18:00 (Thứ 2 - Thứ 7)" />
+                        </div>
+                    </div>
+
+                    <!-- Địa chỉ trụ sở chính -->
+                    <div class="vbc-field-row">
+                        <div class="vbc-field-header">
+                            <label style="font-weight: 700; color: #1e293b;"><?php _e('Địa Chỉ Trụ Sở Chính', 'vibecode'); ?></label>
+                            <div>
+                                <span class="vbc-shortcode-badge">[uf_address]</span>
+                                <button type="button" class="vbc-copy-btn" data-clipboard='[uf_address]'>📋 Copy</button>
+                            </div>
+                        </div>
+                        <input type="text" name="uf_address" value="<?php echo esc_attr( Ultimate_Flatsome_General_Settings::get_field_value( 'address' ) ); ?>" placeholder="P903, Tầng 9, Tòa nhà Diamond Plaza, 34 Lê Duẩn, P. Bến Nghé, Quận 1, TP.HCM" />
+                    </div>
+
+                    <!-- Địa chỉ chi nhánh -->
+                    <div class="vbc-field-row">
+                        <div class="vbc-field-header">
+                            <label style="font-weight: 700; color: #1e293b;"><?php _e('Địa Chỉ Chi Nhánh / Văn Phòng 2', 'vibecode'); ?></label>
+                            <div>
+                                <span class="vbc-shortcode-badge">[uf_info field="address_branch"]</span>
+                                <button type="button" class="vbc-copy-btn" data-clipboard='[uf_info field="address_branch"]'>📋 Copy</button>
+                            </div>
+                        </div>
+                        <input type="text" name="uf_address_branch" value="<?php echo esc_attr( get_option( 'uf_address_branch', '' ) ); ?>" placeholder="Tầng 5, Keangnam Landmark 72, Nam Từ Liêm, Hà Nội" />
+                    </div>
+
+                    <div class="vbc-grid-2">
+                        <!-- Mã số thuế -->
+                        <div class="vbc-field-row">
+                            <div class="vbc-field-header">
+                                <label style="font-weight: 700; color: #1e293b;"><?php _e('Mã Số Thuế / Giấy Phép ĐKKD', 'vibecode'); ?></label>
+                                <div>
+                                    <span class="vbc-shortcode-badge">[uf_info field="tax_code"]</span>
+                                    <button type="button" class="vbc-copy-btn" data-clipboard='[uf_info field="tax_code"]'>📋 Copy</button>
+                                </div>
+                            </div>
+                            <input type="text" name="uf_tax_code" value="<?php echo esc_attr( get_option( 'uf_tax_code', '' ) ); ?>" placeholder="0313589030 do Sở KH&ĐT TP.HCM cấp" />
+                        </div>
+
+                        <!-- Link Google Maps -->
+                        <div class="vbc-field-row">
+                            <div class="vbc-field-header">
+                                <label style="font-weight: 700; color: #1e293b;"><?php _e('Link Bản Đồ Google Maps', 'vibecode'); ?></label>
+                                <div>
+                                    <span class="vbc-shortcode-badge">[uf_info field="maps"]</span>
+                                    <button type="button" class="vbc-copy-btn" data-clipboard='[uf_info field="maps"]'>📋 Copy</button>
+                                </div>
+                            </div>
+                            <input type="text" name="uf_google_maps" value="<?php echo esc_attr( get_option( 'uf_google_maps', '' ) ); ?>" placeholder="https://maps.google.com/?q=..." />
+                        </div>
+                    </div>
+
+                    <!-- Bản quyền Footer -->
+                    <div class="vbc-field-row">
+                        <div class="vbc-field-header">
+                            <label style="font-weight: 700; color: #1e293b;"><?php _e('Bản Quyền Chân Trang (Copyright)', 'vibecode'); ?></label>
+                            <div>
+                                <span class="vbc-shortcode-badge">[uf_copyright]</span>
+                                <button type="button" class="vbc-copy-btn" data-clipboard='[uf_copyright]'>📋 Copy</button>
+                            </div>
+                        </div>
+                        <input type="text" name="uf_copyright" value="<?php echo esc_attr( Ultimate_Flatsome_General_Settings::get_field_value( 'copyright' ) ); ?>" placeholder="© {year} {site_name}. All rights reserved." />
+                        <div class="vbc-field-desc"><?php _e('Tự động thay {year} bằng năm hiện tại và {site_name} bằng tên website.', 'vibecode'); ?></div>
+                    </div>
+                </div>
+
+                <!-- 3. Mạng Xã Hội (Social Media Links) -->
+                <div class="vbc-card">
+                    <h2><span class="dashicons dashicons-share"></span> 3. Mạng Xã Hội (Social Links)</h2>
+                    <p style="color: #64748b; font-size: 13px; margin-top: -6px; margin-bottom: 20px;">
+                        Điền link các kênh mạng xã hội chính thức của doanh nghiệp.
+                    </p>
+
+                    <div class="vbc-grid-2">
+                        <div class="vbc-field-row">
+                            <div class="vbc-field-header">
+                                <label style="font-weight: 700; color: #1e293b;">Facebook Fanpage / URL</label>
+                                <div>
+                                    <span class="vbc-shortcode-badge">[uf_info field="facebook"]</span>
+                                    <button type="button" class="vbc-copy-btn" data-clipboard='[uf_info field="facebook"]'>📋 Copy</button>
+                                </div>
+                            </div>
+                            <input type="text" name="uf_facebook" value="<?php echo esc_attr( get_option( 'uf_facebook', '' ) ); ?>" placeholder="https://facebook.com/fanpage" />
+                        </div>
+
+                        <div class="vbc-field-row">
+                            <div class="vbc-field-header">
+                                <label style="font-weight: 700; color: #1e293b;">Kênh YouTube URL</label>
+                                <div>
+                                    <span class="vbc-shortcode-badge">[uf_info field="youtube"]</span>
+                                    <button type="button" class="vbc-copy-btn" data-clipboard='[uf_info field="youtube"]'>📋 Copy</button>
+                                </div>
+                            </div>
+                            <input type="text" name="uf_youtube" value="<?php echo esc_attr( get_option( 'uf_youtube', '' ) ); ?>" placeholder="https://youtube.com/@channel" />
+                        </div>
+
+                        <div class="vbc-field-row">
+                            <div class="vbc-field-header">
+                                <label style="font-weight: 700; color: #1e293b;">Kênh TikTok URL</label>
+                                <div>
+                                    <span class="vbc-shortcode-badge">[uf_info field="tiktok"]</span>
+                                    <button type="button" class="vbc-copy-btn" data-clipboard='[uf_info field="tiktok"]'>📋 Copy</button>
+                                </div>
+                            </div>
+                            <input type="text" name="uf_tiktok" value="<?php echo esc_attr( get_option( 'uf_tiktok', '' ) ); ?>" placeholder="https://tiktok.com/@kynaenglish" />
+                        </div>
+
+                        <div class="vbc-field-row">
+                            <div class="vbc-field-header">
+                                <label style="font-weight: 700; color: #1e293b;">Tài Khoản Instagram URL</label>
+                                <div>
+                                    <span class="vbc-shortcode-badge">[uf_info field="instagram"]</span>
+                                    <button type="button" class="vbc-copy-btn" data-clipboard='[uf_info field="instagram"]'>📋 Copy</button>
+                                </div>
+                            </div>
+                            <input type="text" name="uf_instagram" value="<?php echo esc_attr( get_option( 'uf_instagram', '' ) ); ?>" placeholder="https://instagram.com/kynaenglish" />
+                        </div>
+
+                        <div class="vbc-field-row">
+                            <div class="vbc-field-header">
+                                <label style="font-weight: 700; color: #1e293b;">Facebook Messenger URL</label>
+                                <div>
+                                    <span class="vbc-shortcode-badge">[uf_info field="messenger"]</span>
+                                    <button type="button" class="vbc-copy-btn" data-clipboard='[uf_info field="messenger"]'>📋 Copy</button>
+                                </div>
+                            </div>
+                            <input type="text" name="uf_messenger" value="<?php echo esc_attr( get_option( 'uf_messenger', '' ) ); ?>" placeholder="https://m.me/kynaenglish" />
+                        </div>
+
+                        <div class="vbc-field-row">
+                            <div class="vbc-field-header">
+                                <label style="font-weight: 700; color: #1e293b;">Kênh / Nhóm Telegram URL</label>
+                                <div>
+                                    <span class="vbc-shortcode-badge">[uf_info field="telegram"]</span>
+                                    <button type="button" class="vbc-copy-btn" data-clipboard='[uf_info field="telegram"]'>📋 Copy</button>
+                                </div>
+                            </div>
+                            <input type="text" name="uf_telegram" value="<?php echo esc_attr( get_option( 'uf_telegram', '' ) ); ?>" placeholder="https://t.me/kynaenglish" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Mã Nhúng Scripts & Tracking (Header / Footer) -->
+                <div class="vbc-card">
+                    <h2><span class="dashicons dashicons-code-standards"></span> 4. Mã Nhúng Scripts & Tracking (Tự Động Inject Vào Header/Footer)</h2>
+                    <p style="color: #64748b; font-size: 13px; margin-top: -6px; margin-bottom: 20px;">
+                        Tự động chèn các mã theo dõi mà không cần chỉnh sửa file <code>header.php</code> hoặc <code>footer.php</code> của theme.
+                    </p>
+
+                    <div class="vbc-grid-2">
+                        <div class="vbc-field-row">
+                            <div class="vbc-field-header">
+                                <label style="font-weight: 700; color: #1e293b;">Google Analytics (GA4 ID hoặc GTM ID)</label>
+                            </div>
+                            <input type="text" name="uf_ga_id" value="<?php echo esc_attr( get_option( 'uf_ga_id', '' ) ); ?>" placeholder="G-XXXXXXXXXX hoặc GTM-XXXXXXX" />
+                            <div class="vbc-field-desc"><?php _e('Nhập mã GA4 hoặc GTM. Hệ thống tự sinh mã theo dõi vào thẻ <head>.', 'vibecode'); ?></div>
+                        </div>
+
+                        <div class="vbc-field-row">
+                            <div class="vbc-field-header">
+                                <label style="font-weight: 700; color: #1e293b;">Meta Pixel ID (Facebook Pixel)</label>
+                            </div>
+                            <input type="text" name="uf_fb_pixel_id" value="<?php echo esc_attr( get_option( 'uf_fb_pixel_id', '' ) ); ?>" placeholder="Ví dụ: 123456789012345" />
+                            <div class="vbc-field-desc"><?php _e('Nhập ID Meta Pixel để đo lường chuyển đổi quảng cáo Facebook.', 'vibecode'); ?></div>
+                        </div>
+                    </div>
+
+                    <div class="vbc-field-row">
+                        <div class="vbc-field-header">
+                            <label style="font-weight: 700; color: #1e293b;"><?php _e('Mã Nhúng Đầu Trang (Chèn vào trước </head>)', 'vibecode'); ?></label>
+                        </div>
+                        <textarea name="uf_header_scripts" rows="4" style="font-family: Consolas, Monaco, monospace; font-size: 13px;" placeholder="<script> /* Mã Javascript chèn vào Head */ </script>"><?php echo esc_textarea( get_option( 'uf_header_scripts', '' ) ); ?></textarea>
+                    </div>
+
+                    <div class="vbc-field-row">
+                        <div class="vbc-field-header">
+                            <label style="font-weight: 700; color: #1e293b;"><?php _e('Mã Nhúng Cuối Trang (Chèn vào trước </body>)', 'vibecode'); ?></label>
+                        </div>
+                        <textarea name="uf_footer_scripts" rows="4" style="font-family: Consolas, Monaco, monospace; font-size: 13px;" placeholder="<script> /* Mã Chatbot, Livechat, Script thống kê */ </script>"><?php echo esc_textarea( get_option( 'uf_footer_scripts', '' ) ); ?></textarea>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div style="text-align: right; margin-top: 25px;">
+                    <button type="submit" class="vbc-btn-save">
+                        <span class="dashicons dashicons-saved" style="font-size: 18px;"></span>
+                        <?php _e('Lưu Toàn Bộ Cài Đặt Chung', 'vibecode'); ?>
+                    </button>
+                </div>
+            </form>
+
+        <!-- =========================================================================
+             TAB 2: VIBECODE HUB & XUẤT DỰ ÁN ANTIGRAVITY (GIỮ NGUYÊN)
+             ========================================================================= -->
+        <?php elseif ( $current_tab === 'vibecode' ) : ?>
+            <div class="vbc-info-box">
+                <strong>💡 VibeCode AI Project Package:</strong> Khi xuất file ZIP, hệ thống sẽ đóng gói toàn bộ thư mục <code>skills/</code> (gồm các script clone và tạo landing page tự động) cùng tệp <code>vbc-config.json</code> chứa dữ liệu ngữ cảnh website. Antigravity AI sẽ đọc hiểu toàn bộ thông tin này để tạo Landing Page chuẩn xác theo ngữ cảnh của website bạn.
+            </div>
+
+            <form method="POST" action="">
+                <?php wp_nonce_field( 'vbc_export_project_nonce', 'vbc_export_nonce' ); ?>
                 <input type="hidden" name="vbc_action" value="export_antigravity_project" />
 
                 <!-- 1. Kết Nối API & Token -->
@@ -344,11 +859,11 @@ function vbc_render_admin_settings_page() {
                     <div class="vbc-grid-2">
                         <div class="vbc-form-group">
                             <label><?php _e('WordPress REST API Endpoint', 'vibecode'); ?></label>
-                            <input type="text" value="<?php echo esc_attr($api_url); ?>" readonly style="background:#f8fafc; font-family:monospace; color:#2563eb;" />
+                            <input type="text" value="<?php echo esc_attr( $api_url ); ?>" readonly style="background:#f8fafc; font-family:monospace; color:#2563eb;" />
                         </div>
                         <div class="vbc-form-group">
                             <label><?php _e('VibeCode API Token (User Admin)', 'vibecode'); ?></label>
-                            <input type="text" value="<?php echo esc_attr($token); ?>" readonly style="background:#f8fafc; font-family:monospace; color:#059669;" />
+                            <input type="text" value="<?php echo esc_attr( $token ); ?>" readonly style="background:#f8fafc; font-family:monospace; color:#059669;" />
                         </div>
                     </div>
                 </div>
@@ -362,21 +877,21 @@ function vbc_render_admin_settings_page() {
                     <div class="vbc-grid-2">
                         <div class="vbc-form-group">
                             <label><?php _e('FTP Host', 'vibecode'); ?></label>
-                            <input type="text" name="ftp_host" value="<?php echo esc_attr($ftp_host); ?>" placeholder="Ví dụ: 103.161.172.211 hoặc ftp.domain.com" />
+                            <input type="text" name="ftp_host" value="<?php echo esc_attr( $ftp_host ); ?>" placeholder="Ví dụ: 103.161.172.211 hoặc ftp.domain.com" />
                         </div>
                         <div class="vbc-form-group">
                             <label><?php _e('FTP User', 'vibecode'); ?></label>
-                            <input type="text" name="ftp_user" value="<?php echo esc_attr($ftp_user); ?>" placeholder="Ví dụ: myuser@domain.com" />
+                            <input type="text" name="ftp_user" value="<?php echo esc_attr( $ftp_user ); ?>" placeholder="Ví dụ: myuser@domain.com" />
                         </div>
                         <div class="vbc-form-group">
                             <label><?php _e('FTP Password', 'vibecode'); ?></label>
-                            <input type="password" name="ftp_password" value="<?php echo esc_attr($ftp_password); ?>" placeholder="••••••••••••" />
+                            <input type="password" name="ftp_password" value="<?php echo esc_attr( $ftp_password ); ?>" placeholder="••••••••••••" />
                         </div>
                         <div class="vbc-form-group">
                             <label><?php _e('Đường dẫn thư mục gốc Website trên Hosting (Root Path)', 'vibecode'); ?></label>
-                            <input type="text" name="ftp_path" value="<?php echo esc_attr($ftp_path); ?>" placeholder="<?php echo esc_attr($detected_root_path); ?>" />
+                            <input type="text" name="ftp_path" value="<?php echo esc_attr( $ftp_path ); ?>" placeholder="<?php echo esc_attr( $detected_root_path ); ?>" />
                             <span style="font-size: 11px; color: #64748b; margin-top: 4px; display: block;">
-                                <?php printf(__('Tự động nhận diện thư mục gốc chứa wp-config.php: <code>%s</code>', 'vibecode'), esc_html($detected_root_path)); ?>
+                                <?php printf( __( 'Tự động nhận diện thư mục gốc chứa wp-config.php: <code>%s</code>', 'vibecode' ), esc_html( $detected_root_path ) ); ?>
                             </span>
                         </div>
                     </div>
@@ -386,7 +901,7 @@ function vbc_render_admin_settings_page() {
                 <div class="vbc-card">
                     <h2><span class="dashicons dashicons-database"></span> 3. Chọn Dữ Liệu Ngữ Cảnh Website Đóng Gói Vào vbc-config.json</h2>
                     <p style="color: #64748b; font-size: 13px; margin-top: -5px; margin-bottom: 15px;">
-                        Tích chọn những dữ liệu bạn muốn đưa vào file cấu hình. Bất kỳ trường nào không chọn hoặc trống dữ liệu sẽ tự động được gán là <code>&lt;none&gt;</code> để AI nhận diện và yêu cầu nhập lại nếu cần.
+                        Tích chọn những dữ liệu bạn muốn đưa vào file cấu hình để AI hiểu sâu về website.
                     </p>
 
                     <!-- Checkbox Site Name & Tagline -->
@@ -395,7 +910,7 @@ function vbc_render_admin_settings_page() {
                         <div>
                             <label for="chk_site_name" class="vbc-chk-title"><?php _e('Tên Website & Khẩu Hiệu (Site Name & Tagline)', 'vibecode'); ?></label>
                             <div class="vbc-chk-desc">
-                                Hiện tại: <strong><?php echo esc_html(get_bloginfo('name')); ?></strong> — <em><?php echo esc_html(get_bloginfo('description')); ?></em>
+                                Hiện tại: <strong><?php echo esc_html( get_bloginfo( 'name' ) ); ?></strong> — <em><?php echo esc_html( get_bloginfo( 'description' ) ); ?></em>
                             </div>
                         </div>
                     </div>
@@ -403,28 +918,10 @@ function vbc_render_admin_settings_page() {
                     <!-- Checkbox Contact Info -->
                     <div class="vbc-checkbox-item">
                         <input type="checkbox" name="include_contact" id="chk_contact" value="1" checked />
-                        <div style="width: 100%;">
+                        <div>
                             <label for="chk_contact" class="vbc-chk-title"><?php _e('Thông Tin Thương Hiệu & Liên Hệ (Phone, Email, Địa chỉ, Zalo)', 'vibecode'); ?></label>
-                            <div class="vbc-chk-desc" style="margin-bottom: 10px;">
-                                Antigravity AI sẽ tự động điền các thông tin này vào Hero Banner, Nút Hotline và Footer của Landing Page.
-                            </div>
-                            <div class="vbc-grid-2" style="margin-top: 10px;">
-                                <div>
-                                    <label style="font-size: 12px; font-weight: 700;"><?php _e('Hotline / Số điện thoại', 'vibecode'); ?></label>
-                                    <input type="text" name="brand_phone" value="<?php echo esc_attr($brand_phone); ?>" placeholder="0912 345 678" style="width:100%;" />
-                                </div>
-                                <div>
-                                    <label style="font-size: 12px; font-weight: 700;"><?php _e('Email Liên Hệ', 'vibecode'); ?></label>
-                                    <input type="email" name="brand_email" value="<?php echo esc_attr($brand_email); ?>" placeholder="contact@domain.com" style="width:100%;" />
-                                </div>
-                                <div>
-                                    <label style="font-size: 12px; font-weight: 700;"><?php _e('Địa chỉ Doanh Nghiệp', 'vibecode'); ?></label>
-                                    <input type="text" name="brand_address" value="<?php echo esc_attr($brand_address); ?>" placeholder="Số 123 Đường ABC, Hà Nội" style="width:100%;" />
-                                </div>
-                                <div>
-                                    <label style="font-size: 12px; font-weight: 700;"><?php _e('Link Zalo / Chat Hotline', 'vibecode'); ?></label>
-                                    <input type="text" name="brand_zalo" value="<?php echo esc_attr($brand_zalo); ?>" placeholder="https://zalo.me/0912345678" style="width:100%;" />
-                                </div>
+                            <div class="vbc-chk-desc">
+                                Đồng bộ từ Tab Cài Đặt Chung (Hotline: <strong><?php echo esc_html( Ultimate_Flatsome_General_Settings::get_field_value( 'phone' ) ); ?></strong>, Email: <strong><?php echo esc_html( Ultimate_Flatsome_General_Settings::get_field_value( 'email' ) ); ?></strong>).
                             </div>
                         </div>
                     </div>
@@ -435,7 +932,7 @@ function vbc_render_admin_settings_page() {
                         <div>
                             <label for="chk_styles" class="vbc-chk-title"><?php _e('Toàn Bộ Cài Đặt Flatsome Theme (Customizer & wp_options)', 'vibecode'); ?></label>
                             <div class="vbc-chk-desc">
-                                Trích xuất toàn bộ cấu hình Flatsome trong bảng <code>wp_options</code> và Customizer (Bảng màu Primary/Secondary/Success/Alert, Typography, Header, Footer, Site Width, Layout, Custom CSS, Social Links...). Antigravity AI sẽ đồng bộ 100% style của Landing Page với giao diện tổng thể website.
+                                Trích xuất toàn bộ bảng màu Flatsome (Primary/Secondary/Success/Alert), Typography, Header, Footer, Site Width, Layout, Custom CSS.
                             </div>
                         </div>
                     </div>
@@ -446,19 +943,8 @@ function vbc_render_admin_settings_page() {
                         <div>
                             <label for="chk_products" class="vbc-chk-title"><?php _e('Danh Sách Sản Phẩm (WooCommerce Products)', 'vibecode'); ?> <?php echo $product_count > 0 ? "($product_count sản phẩm)" : '(Chưa có sản phẩm)'; ?></label>
                             <div class="vbc-chk-desc">
-                                Xuất tên sản phẩm, giá bán, danh mục, link chi tiết và ảnh đại diện để AI chèn bảng giá/card sản phẩm.
+                                Xuất tên sản phẩm, giá bán, danh mục, link chi tiết và ảnh đại diện.
                             </div>
-                            <?php if ($product_count > 0): ?>
-                                <div style="margin-top: 8px;">
-                                    <label style="font-size: 12px; font-weight: 600;"><?php _e('Số lượng sản phẩm cần lấy:', 'vibecode'); ?></label>
-                                    <select name="products_count" style="width: 120px; font-size: 12px;">
-                                        <option value="5">5 sản phẩm</option>
-                                        <option value="10" selected>10 sản phẩm</option>
-                                        <option value="20">20 sản phẩm</option>
-                                        <option value="50">50 sản phẩm</option>
-                                    </select>
-                                </div>
-                            <?php endif; ?>
                         </div>
                     </div>
 
@@ -468,7 +954,7 @@ function vbc_render_admin_settings_page() {
                         <div>
                             <label for="chk_services" class="vbc-chk-title"><?php _e('Danh Sách Dịch Vụ & Trang Quan Trọng', 'vibecode'); ?> (<?php echo $page_count; ?> trang)</label>
                             <div class="vbc-chk-desc">
-                                Xuất danh sách trang tĩnh, tiêu đề, tóm tắt và đường dẫn để AI hiểu các dịch vụ trọng tâm của website.
+                                Xuất danh sách trang tĩnh, tiêu đề, tóm tắt và đường dẫn.
                             </div>
                         </div>
                     </div>
@@ -481,47 +967,39 @@ function vbc_render_admin_settings_page() {
                             <div class="vbc-chk-desc">
                                 Xuất tiêu đề bài viết, chuyên mục, link và tóm tắt.
                             </div>
-                            <?php if ($post_count > 0): ?>
-                                <div style="margin-top: 8px;">
-                                    <label style="font-size: 12px; font-weight: 600;"><?php _e('Số lượng bài viết cần lấy:', 'vibecode'); ?></label>
-                                    <select name="posts_count" style="width: 120px; font-size: 12px;">
-                                        <option value="5">5 bài viết</option>
-                                        <option value="10" selected>10 bài viết</option>
-                                        <option value="20">20 bài viết</option>
-                                    </select>
-                                </div>
-                            <?php endif; ?>
                         </div>
                     </div>
 
                     <!-- Custom Prompt Instruction -->
                     <div class="vbc-form-group" style="margin-top: 20px;">
                         <label><?php _e('Ghi Chú / Yêu Cầu Đặc Biệt Cho Antigravity AI (Tùy chọn)', 'vibecode'); ?></label>
-                        <textarea name="custom_instructions" rows="3" placeholder="Ví dụ: Trang web chuyên cung cấp dịch vụ máy chủ và hosting tốc độ cao, tone màu ưu tiên Dark Tech Sleek..."></textarea>
+                        <textarea name="custom_instructions" rows="3" placeholder="Ví dụ: Tone màu ưu tiên tông xanh lá pastel kết hợp hồng phấn..."></textarea>
                     </div>
 
                     <div style="margin-top: 15px;">
                         <label style="font-weight: 600; font-size: 13px; cursor: pointer;">
                             <input type="checkbox" name="vbc_save_config_data" value="1" checked />
-                            <?php _e('Lưu lại thông tin liên hệ và FTP ở trên vào website để tiện cho các lần xuất sau', 'vibecode'); ?>
+                            <?php _e('Lưu lại thông tin FTP ở trên vào website để tiện cho các lần xuất sau', 'vibecode'); ?>
                         </label>
                     </div>
                 </div>
 
                 <!-- Export Action Button -->
-                <div style="margin-top: 20px; text-align: center; padding: 20px; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0;">
+                <div style="margin-top: 20px; text-align: center; padding: 25px; background: #ffffff; border-radius: 14px; border: 1px solid #e2e8f0;">
                     <button type="submit" class="vbc-btn-export">
                         <span class="dashicons dashicons-archive" style="font-size: 20px;"></span>
-                        <?php printf(__('Xuất File Dự Án %s-vibecode-project.zip', 'vibecode'), esc_html($clean_domain)); ?>
+                        <?php printf( __( 'Xuất Gói Dự Án %s-vibecode-project.zip', 'vibecode' ), esc_html( $clean_domain ) ); ?>
                     </button>
                     <p style="color: #64748b; font-size: 13px; margin-top: 10px; margin-bottom: 0;">
-                        Tệp ZIP xuất ra chứa toàn bộ thư mục <code>skills/</code> và tệp <code>vbc-config.json</code> đã được cấu hình đầy đủ.
+                        Tệp ZIP xuất ra chứa toàn bộ thư mục <code>skills/</code> và tệp <code>vbc-config.json</code> để kéo thả trực tiếp vào Antigravity IDE.
                     </p>
                 </div>
             </form>
 
-        <!-- TAB 2: API & TOKEN -->
-        <?php elseif ($current_tab === 'api'): ?>
+        <!-- =========================================================================
+             TAB 3: API & XÁC THỰC (GIỮ NGUYÊN)
+             ========================================================================= -->
+        <?php elseif ( $current_tab === 'api' ) : ?>
             <div class="vbc-card">
                 <h2><span class="dashicons dashicons-rest-api"></span> <?php _e('Thông Tin Xác Thực API', 'vibecode'); ?></h2>
                 <p style="color: #64748b; font-size: 13px;">
@@ -529,18 +1007,18 @@ function vbc_render_admin_settings_page() {
                 </p>
 
                 <form method="POST" action="">
-                    <?php wp_nonce_field('vbc_save_settings_nonce', 'vbc_settings_nonce'); ?>
+                    <?php wp_nonce_field( 'vbc_save_settings_nonce', 'vbc_settings_nonce' ); ?>
                     <input type="hidden" name="vbc_action" value="save_general_settings" />
                     <input type="hidden" name="current_tab" value="api" />
 
                     <div class="vbc-form-group">
                         <label><?php _e('WordPress REST API Base URL', 'vibecode'); ?></label>
-                        <input type="text" value="<?php echo esc_attr($api_url); ?>" readonly style="background:#f8fafc; font-family:monospace;" />
+                        <input type="text" value="<?php echo esc_attr( $api_url ); ?>" readonly style="background:#f8fafc; font-family:monospace;" />
                     </div>
 
                     <div class="vbc-form-group">
                         <label><?php _e('API Token Hiện Tại', 'vibecode'); ?></label>
-                        <input type="text" value="<?php echo esc_attr($token); ?>" readonly style="background:#f8fafc; font-family:monospace; font-size:16px; font-weight:700; color:#2563eb;" />
+                        <input type="text" value="<?php echo esc_attr( $token ); ?>" readonly style="background:#f8fafc; font-family:monospace; font-size:16px; font-weight:700; color:#2563eb;" />
                     </div>
 
                     <div class="vbc-form-group">
@@ -550,84 +1028,109 @@ function vbc_render_admin_settings_page() {
                         </label>
                     </div>
 
-                    <button type="submit" class="button button-primary"><?php _e('Lưu Thay Đổi & Cập Nhật Token', 'vibecode'); ?></button>
+                    <button type="submit" class="vbc-btn-save"><?php _e('Lưu Thay Đổi & Cập Nhật Token', 'vibecode'); ?></button>
                 </form>
 
                 <hr style="margin: 25px 0; border: none; border-top: 1px solid #f1f5f9;">
 
                 <h3><?php _e('Kiểm Tra REST API Endpoints', 'vibecode'); ?></h3>
                 <ul style="list-style: disc; margin-left: 20px; color: #475569; font-size: 13px; line-height: 1.8;">
-                    <li><strong>Upload Media:</strong> <code>POST <?php echo esc_html($api_url); ?>/vbc/v1/upload</code> (Header: <code>X-VBC-Token: <?php echo esc_html(substr($token, 0, 8)); ?>...</code>)</li>
-                    <li><strong>Đăng / Cập nhật Trang:</strong> <code>POST <?php echo esc_html($api_url); ?>/vbc/v1/page</code></li>
-                    <li><strong>Lấy nội dung Trang:</strong> <code>GET <?php echo esc_html($api_url); ?>/vbc/v1/page?slug=trang-mau</code></li>
+                    <li><strong>Upload Media:</strong> <code>POST <?php echo esc_html( $api_url ); ?>vbc/v1/upload</code> (Header: <code>X-VBC-Token: <?php echo esc_html( substr( $token, 0, 8 ) ); ?>...</code>)</li>
+                    <li><strong>Tạo Form CF7:</strong> <code>POST <?php echo esc_html( $api_url ); ?>vbc/v1/cf7</code></li>
+                    <li><strong>Đăng / Cập nhật Trang:</strong> <code>POST <?php echo esc_html( $api_url ); ?>vbc/v1/page</code></li>
+                    <li><strong>Lấy nội dung Trang:</strong> <code>GET <?php echo esc_html( $api_url ); ?>vbc/v1/page?slug=trang-mau</code></li>
                 </ul>
             </div>
 
-        <!-- TAB 3: FTP & BRAND CONFIG -->
-        <?php elseif ($current_tab === 'config'): ?>
-            <form method="POST" action="">
-                <?php wp_nonce_field('vbc_save_settings_nonce', 'vbc_settings_nonce'); ?>
-                <input type="hidden" name="vbc_action" value="save_general_settings" />
-                <input type="hidden" name="current_tab" value="config" />
-
-                <div class="vbc-card">
-                    <h2><span class="dashicons dashicons-cloud"></span> <?php _e('Cài Đặt FTP Hosting Mặc Định', 'vibecode'); ?></h2>
-                    <div class="vbc-grid-2">
-                        <div class="vbc-form-group">
-                            <label><?php _e('FTP Host', 'vibecode'); ?></label>
-                            <input type="text" name="ftp_host" value="<?php echo esc_attr($ftp_host); ?>" placeholder="103.161.172.211" />
-                        </div>
-                        <div class="vbc-form-group">
-                            <label><?php _e('FTP User', 'vibecode'); ?></label>
-                            <input type="text" name="ftp_user" value="<?php echo esc_attr($ftp_user); ?>" placeholder="user@domain.com" />
-                        </div>
-                        <div class="vbc-form-group">
-                            <label><?php _e('FTP Password', 'vibecode'); ?></label>
-                            <input type="password" name="ftp_password" value="<?php echo esc_attr($ftp_password); ?>" placeholder="••••••••••••" />
-                        </div>
-                        <div class="vbc-form-group">
-                            <label><?php _e('Đường dẫn thư mục gốc Website trên Hosting (Root Path)', 'vibecode'); ?></label>
-                            <input type="text" name="ftp_path" value="<?php echo esc_attr($ftp_path); ?>" placeholder="<?php echo esc_attr($detected_root_path); ?>" />
-                            <span style="font-size: 11px; color: #64748b; margin-top: 4px; display: block;">
-                                <?php printf(__('Tự động nhận diện thư mục gốc chứa wp-config.php: <code>%s</code>', 'vibecode'), esc_html($detected_root_path)); ?>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="vbc-card">
-                    <h2><span class="dashicons dashicons-businessperson"></span> <?php _e('Thông Tin Thương Hiệu Doanh Nghiệp', 'vibecode'); ?></h2>
-                    <div class="vbc-grid-2">
-                        <div class="vbc-form-group">
-                            <label><?php _e('Số điện thoại / Hotline', 'vibecode'); ?></label>
-                            <input type="text" name="brand_phone" value="<?php echo esc_attr($brand_phone); ?>" placeholder="0912 345 678" />
-                        </div>
-                        <div class="vbc-form-group">
-                            <label><?php _e('Email liên hệ', 'vibecode'); ?></label>
-                            <input type="email" name="brand_email" value="<?php echo esc_attr($brand_email); ?>" />
-                        </div>
-                        <div class="vbc-form-group">
-                            <label><?php _e('Địa chỉ công ty', 'vibecode'); ?></label>
-                            <input type="text" name="brand_address" value="<?php echo esc_attr($brand_address); ?>" />
-                        </div>
-                        <div class="vbc-form-group">
-                            <label><?php _e('Link Zalo / Tư vấn', 'vibecode'); ?></label>
-                            <input type="text" name="brand_zalo" value="<?php echo esc_attr($brand_zalo); ?>" />
-                        </div>
-                        <div class="vbc-form-group">
-                            <label><?php _e('Giờ làm việc', 'vibecode'); ?></label>
-                            <input type="text" name="brand_hours" value="<?php echo esc_attr($brand_hours); ?>" />
-                        </div>
-                    </div>
-
-                    <button type="submit" class="button button-primary" style="margin-top: 10px;"><?php _e('Lưu Cấu Hình Mặc Định', 'vibecode'); ?></button>
-                </div>
-            </form>
-
-        <!-- TAB 4: DOCS -->
-        <?php elseif ($current_tab === 'docs'): ?>
+        <!-- =========================================================================
+             TAB 4: HƯỚNG DẪN & SHORTCODES
+             ========================================================================= -->
+        <?php elseif ( $current_tab === 'docs' ) : ?>
             <div class="vbc-card">
-                <h2><span class="dashicons dashicons-book"></span> <?php _e('Danh Sách Shortcode VibeCode Phổ Biến', 'vibecode'); ?></h2>
+                <h2><span class="dashicons dashicons-admin-generic"></span> 1. Shortcodes Thông Tin Website (Dùng Cho Toàn Bộ Website)</h2>
+                <p style="color: #64748b; font-size: 13px;">
+                    Dán các shortcode này vào bất kỳ bài viết, trang, UX Builder hoặc widget footer để hiển thị thông tin động:
+                </p>
+                <table class="widefat striped" style="margin-top: 15px;">
+                    <thead>
+                        <tr>
+                            <th style="width: 220px;"><strong>Shortcode</strong></th>
+                            <th style="width: 260px;"><strong>Cú pháp có Link bấm gọi/mở</strong></th>
+                            <th><strong>Mô Tả & Công Dụng</strong></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>[uf_phone]</code></td>
+                            <td><code>[uf_phone link="true"]</code></td>
+                            <td>Hiển thị số điện thoại Hotline. Thuộc tính <code>link="true"</code> tự động tạo thẻ gọi <code>&lt;a href="tel:..."&gt;</code>.</td>
+                        </tr>
+                        <tr>
+                            <td><code>[uf_phone_2]</code></td>
+                            <td><code>[uf_phone_2 link="true"]</code></td>
+                            <td>Hiển thị số điện thoại phụ / kỹ thuật.</td>
+                        </tr>
+                        <tr>
+                            <td><code>[uf_zalo]</code></td>
+                            <td><code>[uf_zalo link="true"]</code></td>
+                            <td>Hiển thị số Zalo hoặc link chat Zalo OA.</td>
+                        </tr>
+                        <tr>
+                            <td><code>[uf_email]</code></td>
+                            <td><code>[uf_email link="true"]</code></td>
+                            <td>Hiển thị email liên hệ. Thuộc tính <code>link="true"</code> tạo link <code>&lt;a href="mailto:..."&gt;</code>.</td>
+                        </tr>
+                        <tr>
+                            <td><code>[uf_address]</code></td>
+                            <td><code>[uf_address]</code></td>
+                            <td>Hiển thị địa chỉ trụ sở chính của doanh nghiệp.</td>
+                        </tr>
+                        <tr>
+                            <td><code>[uf_company]</code></td>
+                            <td><code>[uf_company]</code></td>
+                            <td>Hiển thị tên công ty / doanh nghiệp.</td>
+                        </tr>
+                        <tr>
+                            <td><code>[uf_copyright]</code></td>
+                            <td><code>[uf_copyright]</code></td>
+                            <td>Hiển thị bản quyền chân trang (tự động cập nhật năm hiện tại).</td>
+                        </tr>
+                        <tr>
+                            <td><code>[uf_info field="site_name"]</code></td>
+                            <td><code>[uf_info field="site_name"]</code></td>
+                            <td>Hiển thị Tên website (lấy từ wp_options: blogname).</td>
+                        </tr>
+                        <tr>
+                            <td><code>[uf_info field="tagline"]</code></td>
+                            <td><code>[uf_info field="tagline"]</code></td>
+                            <td>Hiển thị Khẩu hiệu website (lấy từ wp_options: blogdescription).</td>
+                        </tr>
+                        <tr>
+                            <td><code>[uf_info field="hours"]</code></td>
+                            <td><code>[uf_info field="hours"]</code></td>
+                            <td>Hiển thị Thời gian làm việc của công ty.</td>
+                        </tr>
+                        <tr>
+                            <td><code>[uf_info field="tax_code"]</code></td>
+                            <td><code>[uf_info field="tax_code"]</code></td>
+                            <td>Hiển thị Mã số thuế / ĐKKD.</td>
+                        </tr>
+                        <tr>
+                            <td><code>[uf_info field="facebook"]</code></td>
+                            <td><code>[uf_info field="facebook" link="true"]</code></td>
+                            <td>Hiển thị URL hoặc nút link mở Facebook Fanpage.</td>
+                        </tr>
+                        <tr>
+                            <td><code>[uf_option key="..."]</code></td>
+                            <td><code>[uf_option key="blogname"]</code></td>
+                            <td>Truy xuất an toàn bất kỳ giá trị nào trong bảng <code>wp_options</code>.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="vbc-card">
+                <h2><span class="dashicons dashicons-layout"></span> 2. Danh Sách Shortcode VibeCode Elements (UX Builder)</h2>
                 <table class="widefat striped" style="margin-top: 15px;">
                     <thead>
                         <tr>
@@ -637,6 +1140,14 @@ function vbc_render_admin_settings_page() {
                     </thead>
                     <tbody>
                         <tr>
+                            <td><code>[vbc_section]</code></td>
+                            <td>Khối section chuyên nghiệp có hỗ trợ CSS Engine: <code>[vbc_section custom_css="selector { ... }"] ... [/vbc_section]</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>[vbc_post]</code></td>
+                            <td>Truy vấn bài viết & sản phẩm: <code>[vbc_post post_type="post" posts_per_page="3" columns="3" layout="grid"]</code></td>
+                        </tr>
+                        <tr>
                             <td><code>[vbc_icon]</code></td>
                             <td>Thư viện vector icon thông minh: <code>[vbc_icon pack="lucide" name="shield-check" color="#2563eb" size="24px"]</code></td>
                         </tr>
@@ -645,60 +1156,74 @@ function vbc_render_admin_settings_page() {
                             <td>Khối thẻ card kính mờ: <code>[vbc_card variant="glass" border_radius="20px"] ... [/vbc_card]</code></td>
                         </tr>
                         <tr>
-                            <td><code>[vbc_testimonial]</code></td>
-                            <td>Đánh giá khách hàng: <code>[vbc_testimonial name="Nguyễn Văn A" stars="5" avatar_url="..."] Nhận xét... [/vbc_testimonial]</code></td>
-                        </tr>
-                        <tr>
                             <td><code>[vbc_accordion]</code></td>
-                            <td>Khối hỏi đáp SEO FAQ: <code>[vbc_accordion][vbc_accordion_item title="Câu hỏi?"]Trả lời...[/vbc_accordion_item][/vbc_accordion]</code></td>
+                            <td>Khối hỏi đáp SEO FAQ / Accordion: <code>[accordion][accordion-item title="Tiêu đề?"]Nội dung...[/accordion-item][/accordion]</code></td>
                         </tr>
                         <tr>
-                            <td><code>[vbc_button]</code></td>
-                            <td>Nút bấm chuyển đổi: <code>[vbc_button text="Xem Thêm" url="#link" variant="danger"]</code></td>
-                        </tr>
-                        <tr>
-                            <td><code>[vbc_slider]</code></td>
-                            <td>Khối trượt Splide: <code>[vbc_slider per_page="1"][vbc_slide]...[/vbc_slide][/vbc_slider]</code></td>
-                        </tr>
-                        <tr>
-                            <td><code>[vbc_fullpage]</code></td>
-                            <td>Cuộn full-screen từng màn hình: <code>[vbc_fullpage]...[/vbc_fullpage]</code></td>
+                            <td><code>[vbc_tabs]</code></td>
+                            <td>Khối chuyển tab tương tác: <code>[vbc_tabs style="pills"][vbc_tab title="Tab 1"]Nội dung 1[/vbc_tab][/vbc_tabs]</code></td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         <?php endif; ?>
     </div>
+
+    <!-- Script copy 1-click clipboard -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var copyBtns = document.querySelectorAll('.vbc-copy-btn');
+        copyBtns.forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                var text = this.getAttribute('data-clipboard');
+                if (!text) return;
+                navigator.clipboard.writeText(text).then(function() {
+                    var originalHTML = btn.innerHTML;
+                    btn.innerHTML = '✓ Đã copy!';
+                    btn.classList.add('copied');
+                    setTimeout(function() {
+                        btn.innerHTML = originalHTML;
+                        btn.classList.remove('copied');
+                    }, 2000);
+                }).catch(function(err) {
+                    prompt('Copy shortcode bên dưới:', text);
+                });
+            });
+        });
+    });
+    </script>
     <?php
 }
 
-// Giữ lại trường hiển thị Token trong User Profile cá nhân (chỉ dành riêng cho Administrator)
-add_action('show_user_profile', 'vbc_user_profile_fields');
-add_action('edit_user_profile', 'vbc_user_profile_fields');
+/**
+ * 4. Trường User Profile (Chỉ dành riêng cho Administrator)
+ */
+add_action( 'show_user_profile', 'vbc_user_profile_fields' );
+add_action( 'edit_user_profile', 'vbc_user_profile_fields' );
 
-function vbc_user_profile_fields($user) {
-    // Chỉ duy nhất Administrator mới được tạo và hiển thị trường VibeCode API Settings
-    if (!current_user_can('manage_options') || !user_can($user, 'administrator')) {
+function vbc_user_profile_fields( $user ) {
+    if ( ! current_user_can( 'manage_options' ) || ! user_can( $user, 'administrator' ) ) {
         return;
     }
 
-    $token = get_user_meta($user->ID, 'vbc_api_token', true);
-    if (empty($token)) {
-        $token = bin2hex(random_bytes(20));
-        update_user_meta($user->ID, 'vbc_api_token', $token);
+    $token = get_user_meta( $user->ID, 'vbc_api_token', true );
+    if ( empty( $token ) ) {
+        $token = bin2hex( random_bytes( 20 ) );
+        update_user_meta( $user->ID, 'vbc_api_token', $token );
     }
     ?>
-    <h3><?php _e('VibeCode API Settings', 'vibecode'); ?></h3>
+    <h3><?php _e( 'Ultimate Flatsome API Settings', 'vibecode' ); ?></h3>
     <table class="form-table">
         <tr>
-            <th><label for="vbc_api_token"><?php _e('API Token', 'vibecode'); ?></label></th>
+            <th><label for="vbc_api_token"><?php _e( 'API Token', 'vibecode' ); ?></label></th>
             <td>
-                <input type="text" name="vbc_api_token" id="vbc_api_token" value="<?php echo esc_attr($token); ?>" class="regular-text" readonly style="background-color: #f0f0f0; font-family: monospace;" />
-                <p class="description"><?php _e('Token này được sử dụng để xác thực các yêu cầu API bên ngoài (ví dụ: Antigravity skill để tạo Landing Page).', 'vibecode'); ?></p>
+                <input type="text" name="vbc_api_token" id="vbc_api_token" value="<?php echo esc_attr( $token ); ?>" class="regular-text" readonly style="background-color: #f0f0f0; font-family: monospace;" />
+                <p class="description"><?php _e( 'Token này được sử dụng để xác thực các yêu cầu API bên ngoài (Antigravity skills).', 'vibecode' ); ?></p>
                 <br>
                 <label>
                     <input type="checkbox" name="vbc_regenerate_token" value="1" />
-                    <?php _e('Tạo lại token mới (Regenerate API Token)', 'vibecode'); ?>
+                    <?php _e( 'Tạo lại token mới (Regenerate API Token)', 'vibecode' ); ?>
                 </label>
             </td>
         </tr>
@@ -706,21 +1231,15 @@ function vbc_user_profile_fields($user) {
     <?php
 }
 
-add_action('personal_options_update', 'vbc_save_user_profile_fields');
-add_action('edit_user_profile_update', 'vbc_save_user_profile_fields');
+add_action( 'personal_options_update', 'vbc_save_user_profile_fields' );
+add_action( 'edit_user_profile_update', 'vbc_save_user_profile_fields' );
 
-function vbc_save_user_profile_fields($user_id) {
-    if (!current_user_can('edit_user', $user_id) || !current_user_can('manage_options') || !user_can($user_id, 'administrator')) {
+function vbc_save_user_profile_fields( $user_id ) {
+    if ( ! current_user_can( 'edit_user', $user_id ) || ! current_user_can( 'manage_options' ) || ! user_can( $user_id, 'administrator' ) ) {
         return;
     }
-    if (!empty($_POST['vbc_regenerate_token'])) {
-        $new_token = bin2hex(random_bytes(20));
-        update_user_meta($user_id, 'vbc_api_token', $new_token);
+    if ( ! empty( $_POST['vbc_regenerate_token'] ) ) {
+        $new_token = bin2hex( random_bytes( 20 ) );
+        update_user_meta( $user_id, 'vbc_api_token', $new_token );
     }
 }
-
-
-/**
- * 4. CỔNG REST API (UPLOAD & PAGE CREATOR)
- */
-add_action('rest_api_init', 'vbc_register_rest_routes');

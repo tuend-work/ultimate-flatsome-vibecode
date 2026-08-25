@@ -171,3 +171,40 @@ Tài liệu tra cứu đầy đủ các thuộc tính và cách kết hợp tố
   ```html
   [vbc_post post_type="product" posts_per_page="4" columns="4" columns__sm="1" layout="grid" fields="thumbnail:100%, categories:100%, title:100%, price:50%, button:50%" button_text="Mua Ngay" card_radius="16px"]
   ```
+
+---
+
+## ⚙️ PHẦN 3: SHORTCODES THÔNG TIN TỔNG QUAN WEBSITE (ULTIMATE FLATSOME GENERAL SETTINGS)
+
+Toàn bộ thông tin được quản lý tập trung tại **Ultimate Flatsome > Cài Đặt Chung** và lưu trữ đồng bộ trong `wp_options`. Sử dụng các shortcode này ở bất kỳ đâu trên website:
+
+### 1. Shortcodes Liên Hệ & Doanh Nghiệp Nhanh:
+- `[uf_phone]`: Hiển thị số Hotline (Text thuần).
+- `[uf_phone link="true"]`: Hiển thị Hotline dạng link bấm gọi `<a href="tel:...">`.
+- `[uf_phone_2 link="true"]`: Hiển thị số Hotline phụ / Kỹ thuật.
+- `[uf_zalo link="true"]`: Hiển thị link chat Zalo OA (`https://zalo.me/...`).
+- `[uf_email link="true"]`: Hiển thị email dạng link `mailto:`.
+- `[uf_address]`: Hiển thị Địa chỉ trụ sở chính.
+- `[uf_company]`: Hiển thị Tên công ty / Doanh nghiệp.
+- `[uf_copyright]`: Hiển thị Bản quyền footer (tự động cập nhật `{year}` theo năm hiện tại).
+
+### 2. Shortcode Tổng Hợp `[uf_info]`:
+- Cú pháp: `[uf_info field="field_name" link="true|false" prefix="" suffix="" default=""]`
+- Danh sách các `field`:
+  - `site_name` / `site_title`: Tên website (từ `wp_options: blogname`).
+  - `tagline`: Khẩu hiệu website (từ `wp_options: blogdescription`).
+  - `admin_email`: Email quản trị viên.
+  - `company`: Tên công ty.
+  - `phone` / `phone_2`: Số điện thoại.
+  - `zalo`: Link Zalo.
+  - `email`: Email liên hệ.
+  - `address` / `address_branch`: Địa chỉ chính / chi nhánh.
+  - `hours`: Giờ làm việc.
+  - `tax_code`: Mã số thuế.
+  - `copyright`: Bản quyền chân trang.
+  - `facebook`, `youtube`, `tiktok`, `instagram`, `messenger`, `telegram`: Link mạng xã hội (hỗ trợ `link="true"`).
+  - `maps`: Link Google Maps.
+
+### 3. Shortcode Truy Xuất Option Tùy Ý `[uf_option]`:
+- Cú pháp: `[uf_option key="option_name" default=""]`
+- Ví dụ: `[uf_option key="blogname"]` lấy tên website từ `wp_options`.

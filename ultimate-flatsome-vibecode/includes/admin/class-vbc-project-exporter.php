@@ -67,11 +67,24 @@ function vbc_handle_export_project_request() {
     $timezone = wp_timezone_string() ?: '<none>';
 
     $contact = array(
-        'phone' => isset($_POST['include_contact']) ? (!empty($_POST['brand_phone']) ? trim($_POST['brand_phone']) : (get_option('vbc_brand_phone') ?: '<none>')) : '<none>',
-        'email' => isset($_POST['include_contact']) ? (!empty($_POST['brand_email']) ? trim($_POST['brand_email']) : (get_option('vbc_brand_email') ?: (get_option('admin_email') ?: '<none>'))) : '<none>',
-        'address' => isset($_POST['include_contact']) ? (!empty($_POST['brand_address']) ? trim($_POST['brand_address']) : (get_option('vbc_brand_address') ?: '<none>')) : '<none>',
-        'zalo' => isset($_POST['include_contact']) ? (!empty($_POST['brand_zalo']) ? trim($_POST['brand_zalo']) : (get_option('vbc_brand_zalo') ?: '<none>')) : '<none>',
-        'working_hours' => isset($_POST['include_contact']) ? (!empty($_POST['brand_hours']) ? trim($_POST['brand_hours']) : (get_option('vbc_brand_hours') ?: '<none>')) : '<none>',
+        'company_name' => isset($_POST['include_contact']) ? (class_exists('Ultimate_Flatsome_General_Settings') ? (Ultimate_Flatsome_General_Settings::get_field_value('company_name') ?: '<none>') : '<none>') : '<none>',
+        'phone' => isset($_POST['include_contact']) ? (!empty($_POST['brand_phone']) ? trim($_POST['brand_phone']) : (class_exists('Ultimate_Flatsome_General_Settings') ? (Ultimate_Flatsome_General_Settings::get_field_value('phone') ?: '<none>') : (get_option('vbc_brand_phone') ?: '<none>'))) : '<none>',
+        'phone_2' => isset($_POST['include_contact']) ? (class_exists('Ultimate_Flatsome_General_Settings') ? (Ultimate_Flatsome_General_Settings::get_field_value('phone_2') ?: '<none>') : '<none>') : '<none>',
+        'email' => isset($_POST['include_contact']) ? (!empty($_POST['brand_email']) ? trim($_POST['brand_email']) : (class_exists('Ultimate_Flatsome_General_Settings') ? (Ultimate_Flatsome_General_Settings::get_field_value('email') ?: (get_option('admin_email') ?: '<none>')) : (get_option('vbc_brand_email') ?: (get_option('admin_email') ?: '<none>')))) : '<none>',
+        'address' => isset($_POST['include_contact']) ? (!empty($_POST['brand_address']) ? trim($_POST['brand_address']) : (class_exists('Ultimate_Flatsome_General_Settings') ? (Ultimate_Flatsome_General_Settings::get_field_value('address') ?: '<none>') : (get_option('vbc_brand_address') ?: '<none>'))) : '<none>',
+        'address_branch' => isset($_POST['include_contact']) ? (class_exists('Ultimate_Flatsome_General_Settings') ? (Ultimate_Flatsome_General_Settings::get_field_value('address_branch') ?: '<none>') : '<none>') : '<none>',
+        'zalo' => isset($_POST['include_contact']) ? (!empty($_POST['brand_zalo']) ? trim($_POST['brand_zalo']) : (class_exists('Ultimate_Flatsome_General_Settings') ? (Ultimate_Flatsome_General_Settings::get_field_value('zalo') ?: '<none>') : (get_option('vbc_brand_zalo') ?: '<none>'))) : '<none>',
+        'working_hours' => isset($_POST['include_contact']) ? (!empty($_POST['brand_hours']) ? trim($_POST['brand_hours']) : (class_exists('Ultimate_Flatsome_General_Settings') ? (Ultimate_Flatsome_General_Settings::get_field_value('working_hours') ?: '<none>') : (get_option('vbc_brand_hours') ?: '<none>'))) : '<none>',
+        'tax_code' => isset($_POST['include_contact']) ? (class_exists('Ultimate_Flatsome_General_Settings') ? (Ultimate_Flatsome_General_Settings::get_field_value('tax_code') ?: '<none>') : '<none>') : '<none>',
+        'copyright' => isset($_POST['include_contact']) ? (class_exists('Ultimate_Flatsome_General_Settings') ? (Ultimate_Flatsome_General_Settings::get_field_value('copyright') ?: '<none>') : '<none>') : '<none>',
+        'social' => array(
+            'facebook' => class_exists('Ultimate_Flatsome_General_Settings') ? (Ultimate_Flatsome_General_Settings::get_field_value('facebook') ?: '<none>') : '<none>',
+            'youtube' => class_exists('Ultimate_Flatsome_General_Settings') ? (Ultimate_Flatsome_General_Settings::get_field_value('youtube') ?: '<none>') : '<none>',
+            'tiktok' => class_exists('Ultimate_Flatsome_General_Settings') ? (Ultimate_Flatsome_General_Settings::get_field_value('tiktok') ?: '<none>') : '<none>',
+            'instagram' => class_exists('Ultimate_Flatsome_General_Settings') ? (Ultimate_Flatsome_General_Settings::get_field_value('instagram') ?: '<none>') : '<none>',
+            'messenger' => class_exists('Ultimate_Flatsome_General_Settings') ? (Ultimate_Flatsome_General_Settings::get_field_value('messenger') ?: '<none>') : '<none>',
+            'telegram' => class_exists('Ultimate_Flatsome_General_Settings') ? (Ultimate_Flatsome_General_Settings::get_field_value('telegram') ?: '<none>') : '<none>',
+        ),
     );
 
     // Toàn bộ cài đặt Flatsome (Customizer theme_mods + các options Flatsome trong wp_options)

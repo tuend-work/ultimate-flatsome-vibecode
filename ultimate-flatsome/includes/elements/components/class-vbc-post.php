@@ -640,7 +640,7 @@ function vbc_post_shortcode($atts, $content = null) {
                             $display_val = is_array($val) ? implode(', ', $val) : $val;
                             $suffix = !empty($f['extra']) ? ' ' . $f['extra'] : '';
                             $output .= '<div class="vbc-post-field vbc-post-field-meta vbc-meta-' . esc_attr($meta_k) . '" style="' . $flex_css . ' font-size: 14px; color: #334155;">';
-                            $output .= '<strong>' . esc_html($meta_k) . ':</strong> ' . esc_html($display_val . $suffix);
+                            $output .= esc_html($display_val . $suffix);
                             $output .= '</div>';
                         }
                     }
@@ -652,7 +652,7 @@ function vbc_post_shortcode($atts, $content = null) {
                             $display_val = is_array($val) ? (isset($val['url']) ? '<img src="' . esc_url($val['url']) . '" style="max-width: 100%; border-radius: 8px;">' : implode(', ', $val)) : esc_html($val);
                             $suffix = !empty($f['extra']) ? ' ' . $f['extra'] : '';
                             $output .= '<div class="vbc-post-field vbc-post-field-acf vbc-acf-' . esc_attr($acf_k) . '" style="' . $flex_css . ' font-size: 14px; color: #334155;">';
-                            $output .= '<strong>' . esc_html($acf_k) . ':</strong> ' . $display_val . $suffix;
+                            $output .= $display_val . $suffix;
                             $output .= '</div>';
                         }
                     }

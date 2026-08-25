@@ -13,6 +13,7 @@ function vbc_accordion_shortcode($atts, $content = null) {
     $atts = shortcode_atts(array(
         'content' => '',
         'faq_schema' => 'true',
+        'dark' => 'false',
         'class' => '',
         'custom_class' => '',
         'custom_css' => '',
@@ -32,22 +33,34 @@ function vbc_accordion_shortcode($atts, $content = null) {
 
     $schema_attr = ($atts['faq_schema'] === 'true') ? ' itemscope itemtype="https://schema.org/FAQPage"' : '';
 
-    $padding = !empty($atts['padding']) ? $atts['padding'] : '35px 45px';
-    $radius = !empty($atts['border_radius']) ? $atts['border_radius'] : '24px';
-    $border = !empty($atts['border_color']) ? $atts['border_color'] : 'rgba(255,255,255,0.08)';
-    $bg = !empty($atts['background_color']) ? $atts['background_color'] : 'rgba(255,255,255,0.02)';
+    $is_dark = in_array(strtolower($atts['dark']), array('true', 'yes', '1'), true);
+
+    $padding = !empty($atts['padding']) ? $atts['padding'] : ($is_dark ? '35px 45px' : '10px 0');
+    $radius = !empty($atts['border_radius']) ? $atts['border_radius'] : ($is_dark ? '24px' : '0');
+    $border = !empty($atts['border_color']) ? $atts['border_color'] : ($is_dark ? 'rgba(255,255,255,0.08)' : 'transparent');
+    $bg = !empty($atts['background_color']) ? $atts['background_color'] : ($is_dark ? 'rgba(255,255,255,0.02)' : 'transparent');
 
     $res = vbc_compile_element_css($atts, 'vbc-acc');
     $unique_class = $res['class'];
     $compiled_css = $res['css'];
 
     $acc_rules = '.' . $unique_class . ' { ';
-    $acc_rules .= 'background: ' . $bg . '; ';
-    $acc_rules .= 'backdrop-filter: blur(16px); ';
-    $acc_rules .= 'border: 1px solid ' . $border . '; ';
-    $acc_rules .= 'border-radius: ' . $radius . '; ';
-    $acc_rules .= 'padding: ' . $padding . '; ';
-    $acc_rules .= 'box-shadow: 0 15px 40px rgba(0,0,0,0.3); ';
+    if (!empty($bg) && $bg !== 'transparent') {
+        $acc_rules .= 'background: ' . $bg . '; ';
+    }
+    if ($is_dark) {
+        $acc_rules .= 'backdrop-filter: blur(16px); ';
+        $acc_rules .= 'box-shadow: 0 15px 40px rgba(0,0,0,0.3); ';
+    }
+    if (!empty($border) && $border !== 'transparent') {
+        $acc_rules .= 'border: 1px solid ' . $border . '; ';
+    }
+    if (!empty($radius) && $radius !== '0') {
+        $acc_rules .= 'border-radius: ' . $radius . '; ';
+    }
+    if (!empty($padding) && $padding !== '0') {
+        $acc_rules .= 'padding: ' . $padding . '; ';
+    }
     $acc_rules .= '} ';
 
     $acc_rules = str_replace(array("\r", "\n"), ' ', $acc_rules);
@@ -75,20 +88,25 @@ function vbc_accordion_item_shortcode($atts, $content = null) {
         'open' => 'false',
         'title_color' => '',
         'content_color' => '',
-        'font_size' => '',
+        'icon_color' => '#F5568F',
+        'border_color' => '#edf2f7',
+        'bg_color' => '#ffffff',
+        'font_size' => '17px',
     ), $atts);
 
     $open_attr = ($atts['open'] === 'true') ? ' open' : '';
     
-    $title_color = !empty($atts['title_color']) ? $atts['title_color'] : '#ffffff';
-    $content_color = !empty($atts['content_color']) ? $atts['content_color'] : '#cbd5e1';
-    $font_size = !empty($atts['font_size']) ? $atts['font_size'] : '18px';
+    $title_color = !empty($atts['title_color']) ? $atts['title_color'] : '#1e1e3f';
+    $content_color = !empty($atts['content_color']) ? $atts['content_color'] : '#4a4a6a';
+    $font_size = !empty($atts['font_size']) ? $atts['font_size'] : '17px';
+    $icon_color = !empty($atts['icon_color']) ? $atts['icon_color'] : '#F5568F';
+    $border_color = !empty($atts['border_color']) ? $atts['border_color'] : '#edf2f7';
 
-    $html = '<details class="vbc-faq-item" style="border-bottom: 1px solid rgba(255,255,255,0.08); padding: 15px 0;" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question"' . $open_attr . '>';
-    $html .= '<summary style="color: ' . esc_attr($title_color) . '; font-size: ' . esc_attr($font_size) . '; font-weight: 700; cursor: pointer; outline: none; list-style: none; display: flex; justify-content: space-between; align-items: center;" itemprop="name">';
-    $html .= '<span>' . esc_html($atts['title']) . '</span><span style="font-size: 20px; color: #f87171;">+</span>';
+    $html = '<details class="vbc-faq-item" style="border: 1.5px solid ' . esc_attr($border_color) . '; border-radius: 14px; margin-bottom: 14px; overflow: hidden; background: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.02); transition: all 0.2s;" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question"' . $open_attr . '>';
+    $html .= '<summary style="color: ' . esc_attr($title_color) . '; font-size: ' . esc_attr($font_size) . '; font-weight: 800; cursor: pointer; outline: none; list-style: none; display: flex; justify-content: space-between; align-items: center; padding: 18px 24px; user-select: none;" itemprop="name">';
+    $html .= '<span>' . esc_html($atts['title']) . '</span><span style="font-size: 22px; font-weight: 900; color: ' . esc_attr($icon_color) . '; line-height: 1; flex-shrink: 0; margin-left: 12px;">+</span>';
     $html .= '</summary>';
-    $html .= '<div style="color: ' . esc_attr($content_color) . '; font-size: 15px; line-height: 1.7; margin-top: 15px; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">';
+    $html .= '<div style="color: ' . esc_attr($content_color) . '; font-size: 15px; line-height: 1.75; padding: 0 24px 20px 24px; background: #ffffff;" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">';
     $html .= '<div itemprop="text">' . do_shortcode(vbc_clean_inner_content($content)) . '</div>';
     $html .= '</div>';
     $html .= '</details>';

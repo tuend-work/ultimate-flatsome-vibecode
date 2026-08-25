@@ -134,6 +134,14 @@ function vbc_post_shortcode($atts, $content = null) {
         'ignore_sticky_posts' => true,
     );
 
+    // Loại trừ bài viết hiện tại nếu đang ở trang xem chi tiết
+    if (is_singular() && empty($atts['ids'])) {
+        $curr_id = get_the_ID();
+        if ($curr_id > 0) {
+            $query_args['post__not_in'] = array($curr_id);
+        }
+    }
+
     // Lọc theo IDs cụ thể
     if (!empty($atts['ids'])) {
         $id_list = array_filter(array_map('intval', explode(',', $atts['ids'])));
@@ -494,11 +502,10 @@ function vbc_post_shortcode($atts, $content = null) {
                     $output .= '<div class="vbc-post-field vbc-post-field-thumb" style="' . $flex_css . ' margin-bottom: 6px;">';
                     $output .= '<div class="vbc-post-thumb-wrap" style="position: relative; width: 100%; height: ' . esc_attr($image_height) . '; overflow: hidden; border-radius: ' . esc_attr($card_radius) . ';">';
                     $output .= $sale_badge_html;
-                    if ($thumb_url) {
-                        $output .= '<a href="' . esc_url($permalink) . '" style="display: block; width: 100%; height: 100%;"><img src="' . esc_url($thumb_url) . '" alt="' . esc_attr($post_title) . '" class="vbc-post-thumb-img" style="width: 100%; height: 100%; object-fit: ' . esc_attr($image_fit) . '; display: block; transition: transform 0.4s ease;"></a>';
-                    } else {
-                        $output .= '<div style="width: 100%; height: 100%; background: #f1f5f9; display: flex; align-items: center; justify-content: center;"><i data-lucide="file-text" style="width: 36px; height: 36px; color: #cbd5e1;"></i></div>';
+                    if (empty($thumb_url)) {
+                        $thumb_url = 'https://vieduenglish.com/wp-content/uploads/2026/08/mau-giao-1.png';
                     }
+                    $output .= '<a href="' . esc_url($permalink) . '" style="display: block; width: 100%; height: 100%;"><img src="' . esc_url($thumb_url) . '" alt="' . esc_attr($post_title) . '" class="vbc-post-thumb-img" style="width: 100%; height: 100%; object-fit: ' . esc_attr($image_fit) . '; display: block; transition: transform 0.4s ease;"></a>';
                     $output .= '</div></div>';
                 } elseif ($f_type === 'title') {
                     $clamp_css = $title_lines > 0 ? 'display: -webkit-box; -webkit-line-clamp: ' . $title_lines . '; -webkit-box-orient: vertical; overflow: hidden;' : '';

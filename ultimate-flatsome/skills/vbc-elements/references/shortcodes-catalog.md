@@ -208,3 +208,50 @@ Toàn bộ thông tin được quản lý tập trung tại **Ultimate Flatsome 
 ### 3. Shortcode Truy Xuất Option Tùy Ý `[uf_option]`:
 - Cú pháp: `[uf_option key="option_name" default=""]`
 - Ví dụ: `[uf_option key="blogname"]` lấy tên website từ `wp_options`.
+
+---
+
+## 🎨 PHẦN 4: THẺ ĐỘNG UX BLOCK TEMPLATES (POST TYPES & TAXONOMIES)
+
+Sử dụng khi thiết kế **UX Block** làm template giao diện hiển thị cho Single Post Types hoặc Taxonomy Archives:
+
+### 1. `[uf_post_title]`
+- **Mô tả:** Tự động hiển thị Tiêu đề bài viết / Tên chuyên mục đang xem.
+- **Thuộc tính:** `tag="h1|h2|h3|h4"`, `font_size="36px"`, `font_weight="800"`, `color="#0f172a"`, `text_align="left|center|right"`, `link="true|false"`.
+
+### 2. `[uf_post_content]`
+- **Mô tả:** Hiển thị toàn bộ nội dung bài viết gốc (`the_content`) bao gồm các blocks, shortcodes và trình bày văn bản.
+
+### 3. `[uf_post_thumbnail]`
+- **Mô tả:** Hiển thị Ảnh đại diện (Featured Image) của bài viết.
+- **Thuộc tính:** `size="full|large|medium"`, `border_radius="16px"`, `aspect_ratio="16/9|4/3|1/1"`, `box_shadow`, `fit="cover|contain"`, `link="true|false"`.
+
+### 4. `[uf_post_meta]`
+- **Mô tả:** Hiển thị thông tin siêu dữ liệu bài viết kèm icon.
+- **Thuộc tính:** `type="date|author|categories|comments_count|custom"`, `field="custom_key"`, `icon="yes|no"`, `color="#64748b"`, `font_size="13.5px"`.
+
+### 5. `[uf_post_author]`
+- **Mô tả:** Box Tác giả bài viết chuyên nghiệp.
+- **Thuộc tính:** `avatar_size="80"`, `show_bio="yes|no"`, `bg_color="#f8fafc"`, `border_radius="16px"`, `padding="24px"`.
+
+### 6. `[uf_post_comments]`
+- **Mô tả:** Hiển thị khung bình luận và form thảo luận chuẩn WordPress / Flatsome (`comments_template`).
+
+### 7. `[uf_post_navigation]`
+- **Mô tả:** Thẻ điều hướng Bài trước (Previous Post) và Bài sau (Next Post).
+
+### 8. `[uf_post_terms]`
+- **Mô tả:** Danh sách các chuyên mục / thẻ gắn với bài viết dạng badge pills bo góc.
+- **Thuộc tính:** `taxonomy="category|post_tag"`, `bg_color="#eff6ff"`, `color="#2563eb"`, `border_radius="20px"`.
+
+### 9. `[uf_breadcrumb]`
+- **Mô tả:** Thanh điều hướng phân cấp Breadcrumbs chuẩn Flatsome.
+
+### 10. `[uf_archive_title]`
+- **Mô tả:** Tiêu đề và mô tả chuyên mục cho trang lưu trữ / category archive.
+- **Thuộc tính:** `tag="h1"`, `font_size="38px"`, `color="#ffffff"`, `show_description="yes|no"`.
+
+### 11. `[uf_archive_posts]`
+- **Mô tả:** Lưới danh sách bài viết / sản phẩm thuộc Category đang xem kèm phân trang Flatsome chuẩn.
+- **Thuộc tính:** `columns="3"`, `columns__md="2"`, `columns__sm="1"`, `image_height="220px"`, `card_radius="16px"`.
+

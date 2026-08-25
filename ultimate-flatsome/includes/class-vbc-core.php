@@ -67,7 +67,10 @@ class Ultimate_Flatsome_VibeCode_Core {
         // 6. General Website Settings & Shortcodes Hub (Frontend & Backend)
         require_once $inc_dir . 'admin/class-vbc-general-settings.php';
 
-        // 7. Admin Panel, Settings, Project Exporter & GitHub Updater
+        // 7. Dynamic UX Block Templates Hub for Post Types & Taxonomies
+        require_once $inc_dir . 'templates/class-uf-template-builder.php';
+
+        // 8. Admin Panel, Settings, Project Exporter & GitHub Updater
         if ( is_admin() || ( defined( 'DOING_CRON' ) && DOING_CRON ) ) {
             require_once $inc_dir . 'admin/class-vbc-admin.php';
             require_once $inc_dir . 'admin/class-vbc-project-exporter.php';

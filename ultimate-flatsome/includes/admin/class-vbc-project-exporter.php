@@ -381,6 +381,22 @@ function vbc_handle_export_project_request() {
                     array( 'shortcode' => '[vbc_testimonial]', 'params' => array( 'name', 'stars', 'avatar_url' ), 'description' => 'Đánh giá của khách hàng' ),
                     array( 'shortcode' => '[vbc_fullpage]', 'description' => 'Cuộn toàn màn hình từng trang (fullPage.js)' )
                 )
+            ),
+            'dynamic_templates' => array(
+                'description' => 'Hệ thống thẻ động UX Block Templates cho Single Post Types và Taxonomies',
+                'items' => array(
+                    array( 'shortcode' => '[uf_post_title]', 'params' => array( 'tag', 'font_size', 'color', 'link' ), 'description' => 'Tiêu đề bài viết / chuyên mục tự động' ),
+                    array( 'shortcode' => '[uf_post_content]', 'description' => 'Toàn bộ nội dung bài viết gốc (the_content)' ),
+                    array( 'shortcode' => '[uf_post_thumbnail]', 'params' => array( 'size', 'border_radius', 'aspect_ratio', 'fit' ), 'description' => 'Ảnh đại diện (Featured Image) bài viết' ),
+                    array( 'shortcode' => '[uf_post_meta]', 'params' => array( 'type', 'field', 'icon' ), 'description' => 'Meta bài viết: date, author, categories, comments_count' ),
+                    array( 'shortcode' => '[uf_post_author]', 'params' => array( 'avatar_size', 'show_bio', 'bg_color', 'border_radius' ), 'description' => 'Box tác giả chuyên nghiệp' ),
+                    array( 'shortcode' => '[uf_post_comments]', 'description' => 'Form bình luận và thảo luận chuẩn Flatsome' ),
+                    array( 'shortcode' => '[uf_post_navigation]', 'description' => 'Điều hướng Bài trước / Bài sau' ),
+                    array( 'shortcode' => '[uf_post_terms]', 'params' => array( 'taxonomy', 'bg_color', 'color', 'border_radius' ), 'description' => 'Danh sách chuyên mục / thẻ dạng badge pills' ),
+                    array( 'shortcode' => '[uf_breadcrumb]', 'description' => 'Thanh điều hướng phân cấp Breadcrumb chuẩn Flatsome' ),
+                    array( 'shortcode' => '[uf_archive_title]', 'params' => array( 'tag', 'show_description', 'color' ), 'description' => 'Tiêu đề & mô tả chuyên mục Category' ),
+                    array( 'shortcode' => '[uf_archive_posts]', 'params' => array( 'columns', 'image_height', 'card_radius' ), 'description' => 'Lưới danh sách bài viết category kèm phân trang Flatsome' )
+                )
             )
         )
     );

@@ -9,6 +9,54 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+if ( ! function_exists( 'vbc_get_current_or_sample_post_id' ) ) {
+    /**
+     * Lấy ID bài viết hiện tại, hoặc tự động lấy bài viết mẫu (mới nhất)
+     * khi đang xem trong UX Builder editor, xem UX Block hoặc không có context bài viết.
+     */
+    function vbc_get_current_or_sample_post_id( $preferred_id = 0 ) {
+        if ( ! empty( $preferred_id ) ) {
+            $p = get_post( $preferred_id );
+            if ( $p && $p->post_type !== 'blocks' ) {
+                return $p->ID;
+            }
+        }
+        
+        $current_id = get_the_ID();
+        if ( ! empty( $current_id ) ) {
+            $p = get_post( $current_id );
+            if ( $p && $p->post_type !== 'blocks' ) {
+                return $p->ID;
+            }
+        }
+        
+        if ( isset( $GLOBALS['post']->ID ) ) {
+            $p = $GLOBALS['post'];
+            if ( $p && $p->post_type !== 'blocks' ) {
+                return $p->ID;
+            }
+        }
+
+        // Lấy bài viết mẫu mới nhất để luôn có dữ liệu hiển thị trực quan trong UX Builder
+        static $sample_post_id = null;
+        if ( is_null( $sample_post_id ) ) {
+            $sample_posts = get_posts( array(
+                'post_type'      => 'post',
+                'posts_per_page' => 1,
+                'post_status'    => 'publish',
+                'orderby'        => 'date',
+                'order'          => 'DESC',
+            ) );
+            if ( ! empty( $sample_posts ) ) {
+                $sample_post_id = $sample_posts[0]->ID;
+            } else {
+                $sample_post_id = 0;
+            }
+        }
+        return $sample_post_id;
+    }
+}
+
 function vbc_register_shortcodes() {
     $tags = array(
         'div', 'box', 'block', 'container', 'p', 'i', 'span', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
@@ -348,7 +396,14 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
             $img_url = '';
             $img_id = 0;
 
-            if (!empty($atts['src'])) {
+            $current_post_id = vbc_get_current_or_sample_post_id();
+
+            if ($atts['img_source'] === 'featured_image' || $atts['img_source'] === 'post_thumbnail' || $atts['src'] === 'featured_image' || $atts['src'] === 'post_thumbnail' || $atts['src'] === '{{thumbnail}}' || $atts['src'] === '{{post_thumbnail}}') {
+                $img_url = get_the_post_thumbnail_url($current_post_id, 'full');
+                if (empty($img_url)) {
+                    $img_url = 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=1200&h=630&fit=crop';
+                }
+            } elseif (!empty($atts['src'])) {
                 $img_url = $atts['src'];
             } elseif (!empty($atts['img_url'])) {
                 $img_url = $atts['img_url'];
@@ -364,7 +419,7 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
             } elseif ($atts['img_source'] === 'manual' && !empty($atts['img_url'])) {
                 $img_url = $atts['img_url'];
             } elseif ($atts['img_source'] === 'post_meta' && !empty($atts['img_meta_key'])) {
-                $meta_val = get_post_meta(get_the_ID(), $atts['img_meta_key'], true);
+                $meta_val = get_post_meta($current_post_id, $atts['img_meta_key'], true);
                 if (is_numeric($meta_val)) {
                     $img_url = wp_get_attachment_image_url(intval($meta_val), 'full');
                 } else {
@@ -374,7 +429,7 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
                 $acf_key = $atts['img_acf_key'];
                 if (!empty($acf_key)) {
                     if (function_exists('get_field')) {
-                        $val = get_field($acf_key);
+                        $val = get_field($acf_key, $current_post_id);
                         if (is_array($val) && isset($val['url'])) {
                             $img_url = $val['url'];
                             if (isset($val['id'])) {
@@ -387,7 +442,7 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
                             $img_url = $val;
                         }
                     } else {
-                        $val = get_post_meta(get_the_ID(), $acf_key, true);
+                        $val = get_post_meta($current_post_id, $acf_key, true);
                         if (is_numeric($val)) {
                             $img_id = intval($val);
                             $img_url = wp_get_attachment_image_url($img_id, 'full');
@@ -402,6 +457,9 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
             $alt = esc_attr($atts['alt']);
             if (empty($alt) && $img_id > 0) {
                 $alt = esc_attr(get_post_meta($img_id, '_wp_attachment_image_alt', true));
+            }
+            if (empty($alt)) {
+                $alt = esc_attr(get_the_title($current_post_id));
             }
             
             if (empty($img_url)) {
@@ -418,22 +476,20 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
     // 4. Render các thẻ Container
     // Xử lý dữ liệu động
     $dynamic_content = '';
-    $current_post_id = get_the_ID();
-    if (!$current_post_id && isset($_GET['post'])) {
-        $current_post_id = intval($_GET['post']);
-    }
-    if (!$current_post_id && isset($GLOBALS['post']->ID)) {
-        $current_post_id = $GLOBALS['post']->ID;
-    }
+    $current_post_id = vbc_get_current_or_sample_post_id(!empty($_GET['post']) ? intval($_GET['post']) : 0);
 
     if ($atts['content_source'] === 'post_title' || $atts['content_source'] === 'title') {
         $dynamic_content = get_the_title($current_post_id);
     } elseif ($atts['content_source'] === 'post_excerpt' || $atts['content_source'] === 'excerpt') {
         $dynamic_content = get_the_excerpt($current_post_id);
+    } elseif ($atts['content_source'] === 'post_content' || $atts['content_source'] === 'content') {
+        $p = get_post($current_post_id);
+        $dynamic_content = $p ? apply_filters('the_content', $p->post_content) : '';
     } elseif ($atts['content_source'] === 'post_date' || $atts['content_source'] === 'date') {
         $dynamic_content = get_the_date('', $current_post_id);
     } elseif ($atts['content_source'] === 'post_author' || $atts['content_source'] === 'author') {
-        $dynamic_content = get_the_author();
+        $auth_id = get_post_field('post_author', $current_post_id);
+        $dynamic_content = get_the_author_meta('display_name', $auth_id) ?: get_the_author();
     } elseif ($atts['content_source'] === 'manual') {
         $dynamic_content = $atts['content_manual'];
     } elseif ($atts['content_source'] === 'post_meta') {
@@ -444,10 +500,14 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
                 $dynamic_content = get_the_title($current_post_id);
             } elseif ($meta_key_lower === 'post_excerpt' || $meta_key_lower === 'excerpt') {
                 $dynamic_content = get_the_excerpt($current_post_id);
+            } elseif ($meta_key_lower === 'post_content' || $meta_key_lower === 'content') {
+                $p = get_post($current_post_id);
+                $dynamic_content = $p ? apply_filters('the_content', $p->post_content) : '';
             } elseif ($meta_key_lower === 'post_date' || $meta_key_lower === 'date') {
                 $dynamic_content = get_the_date('', $current_post_id);
             } elseif ($meta_key_lower === 'post_author' || $meta_key_lower === 'author') {
-                $dynamic_content = get_the_author();
+                $auth_id = get_post_field('post_author', $current_post_id);
+                $dynamic_content = get_the_author_meta('display_name', $auth_id) ?: get_the_author();
             } elseif ($meta_key_lower === 'post_url' || $meta_key_lower === 'permalink') {
                 $dynamic_content = get_permalink($current_post_id);
             } elseif ($meta_key_lower === 'id' || $meta_key_lower === 'post_id') {
@@ -482,9 +542,9 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
     $inner_content_to_render = !empty($atts['content']) ? $atts['content'] : (!empty($atts['text']) ? $atts['text'] : (!empty($atts['title']) && in_array($html_tag, array('h1','h2','h3','h4','h5','h6','a','span','p','b','strong')) ? $atts['title'] : $content));
     $inner_content_to_render = vbc_clean_inner_content($inner_content_to_render);
 
-    // Tự động thay thế placeholders động nếu có: {{post_title}}, {{title}}, {{post_excerpt}}, {{date}}, {{permalink}}, {{meta:key}}, {{acf:key}}
-    if (!empty($inner_content_to_render) && strpos($inner_content_to_render, '{{') !== false) {
-        $inner_content_to_render = preg_replace_callback('/\{\{([a-zA-Z0-9_\-:]+)\}\}/', function($matches) use ($current_post_id) {
+    // Tự động thay thế placeholders động nếu có: {post_title}, {{post_title}}, {date}, {{date}}, etc.
+    if (!empty($inner_content_to_render) && strpos($inner_content_to_render, '{') !== false) {
+        $inner_content_to_render = preg_replace_callback('/\{+([a-zA-Z0-9_\-:]+)\}+/', function($matches) use ($current_post_id) {
             $tag = strtolower(trim($matches[1]));
             if ($tag === 'post_title' || $tag === 'title') {
                 return get_the_title($current_post_id);
@@ -492,14 +552,29 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
             if ($tag === 'post_excerpt' || $tag === 'excerpt') {
                 return get_the_excerpt($current_post_id);
             }
+            if ($tag === 'post_content' || $tag === 'content') {
+                $p = get_post($current_post_id);
+                return $p ? apply_filters('the_content', $p->post_content) : '';
+            }
             if ($tag === 'post_date' || $tag === 'date') {
                 return get_the_date('', $current_post_id);
             }
             if ($tag === 'post_author' || $tag === 'author') {
-                return get_the_author();
+                $auth_id = get_post_field('post_author', $current_post_id);
+                return get_the_author_meta('display_name', $auth_id) ?: get_the_author();
             }
             if ($tag === 'post_url' || $tag === 'permalink') {
                 return get_permalink($current_post_id);
+            }
+            if ($tag === 'post_thumbnail' || $tag === 'thumbnail') {
+                return get_the_post_thumbnail_url($current_post_id, 'full') ?: '';
+            }
+            if ($tag === 'category' || $tag === 'categories') {
+                $cats = get_the_category($current_post_id);
+                return !empty($cats) ? $cats[0]->name : '';
+            }
+            if ($tag === 'comments_count') {
+                return sprintf( _n( '%s bình luận', '%s bình luận', get_comments_number($current_post_id), 'vibecode' ), number_format_i18n( get_comments_number($current_post_id) ) );
             }
             if (strpos($tag, 'meta:') === 0) {
                 $meta_key = substr($tag, 5);

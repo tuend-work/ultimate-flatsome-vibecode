@@ -177,7 +177,19 @@ class Ultimate_Flatsome_Template_Builder {
      */
     public static function get_template_rules() {
         $rules = get_option( 'uf_template_rules', array() );
-        return is_array( $rules ) ? $rules : array();
+        if ( ! is_array( $rules ) ) {
+            $rules = array();
+        }
+        if ( empty( $rules['single_post'] ) && get_post_status( 348 ) === 'publish' ) {
+            $rules['single_post'] = 348;
+        }
+        if ( empty( $rules['taxonomy_category'] ) && get_post_status( 403 ) === 'publish' ) {
+            $rules['taxonomy_category'] = 403;
+        }
+        if ( empty( $rules['archive_post'] ) && get_post_status( 403 ) === 'publish' ) {
+            $rules['archive_post'] = 403;
+        }
+        return $rules;
     }
 
     /**
@@ -193,26 +205,28 @@ class Ultimate_Flatsome_Template_Builder {
         $block_id = null;
         $context = '';
 
-        // A. Xử lý Single Post Types (Bài viết, Trang, Sản phẩm, CPTs)
+        // A. Xử lý Single Post / Singular Custom Post Types
         if ( is_singular() ) {
-            global $post;
-            if ( ! $post ) return $template;
+            $post_id = get_the_ID();
+            $post_type = get_post_type( $post_id );
 
-            // 1. Kiểm tra Post Meta Override trước
-            $meta_block = get_post_meta( $post->ID, '_uf_custom_uxblock_template', true );
-            if ( ! empty( $meta_block ) ) {
-                $block_id = $meta_block;
-                $context = 'single_post_meta';
-            } else {
+            // Không can thiệp nếu post type là UX Block hoặc trang nội bộ
+            if ( $post_type !== 'blocks' && $post_type !== 'flatsome_custom_post' ) {
+                // 1. Kiểm tra Post Meta Override (gán trực tiếp cho từng bài)
+                $meta_block = get_post_meta( $post_id, '_uf_custom_uxblock_template', true );
+                if ( ! empty( $meta_block ) ) {
+                    $block_id = $meta_block;
+                    $context = 'post_meta';
+                }
+
                 // 2. Kiểm tra Primary Category Term Meta
-                $post_type = $post->post_type;
-                if ( $post_type === 'post' ) {
-                    $cats = get_the_category( $post->ID );
+                if ( empty( $block_id ) && $post_type === 'post' ) {
+                    $cats = get_the_category( $post_id );
                     if ( ! empty( $cats ) ) {
                         $cat_block = get_term_meta( $cats[0]->term_id, '_uf_custom_uxblock_template', true );
                         if ( ! empty( $cat_block ) ) {
                             $block_id = $cat_block;
-                            $context = 'category_term_meta';
+                            $context = 'category_meta';
                         }
                     }
                 }
@@ -246,6 +260,17 @@ class Ultimate_Flatsome_Template_Builder {
                         $context = 'taxonomy_' . $term->taxonomy;
                     }
                 }
+            }
+        }
+        // C. Xử lý Blog Home & General Post Archives
+        elseif ( is_home() || is_archive() ) {
+            $rules = self::get_template_rules();
+            if ( ! empty( $rules['archive_post'] ) ) {
+                $block_id = $rules['archive_post'];
+                $context = 'archive_post';
+            } elseif ( ! empty( $rules['taxonomy_category'] ) ) {
+                $block_id = $rules['taxonomy_category'];
+                $context = 'taxonomy_category';
             }
         }
 
@@ -307,15 +332,20 @@ class Ultimate_Flatsome_Template_Builder {
             'class'       => '',
         ), $atts );
 
+        $post_id = function_exists('vbc_get_current_or_sample_post_id') ? vbc_get_current_or_sample_post_id() : get_the_ID();
         $title = '';
-        if ( is_singular() ) {
-            $title = get_the_title();
+        if ( is_singular() && $post_id > 0 ) {
+            $title = get_the_title( $post_id );
         } elseif ( is_category() || is_tag() || is_tax() ) {
             $title = single_term_title( '', false );
         } elseif ( is_archive() ) {
             $title = get_the_archive_title();
         } else {
-            $title = get_the_title();
+            $title = get_the_title( $post_id );
+        }
+
+        if ( empty( $title ) && $post_id > 0 ) {
+            $title = get_the_title( $post_id );
         }
 
         if ( empty( $title ) ) return '';
@@ -332,8 +362,8 @@ class Ultimate_Flatsome_Template_Builder {
         $tag = in_array( strtolower( $atts['tag'] ), array( 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'div', 'span', 'p' ), true ) ? strtolower( $atts['tag'] ) : 'h1';
 
         $inner_title = esc_html( $title );
-        if ( in_array( strtolower( $atts['link'] ), array( 'true', 'yes', '1' ), true ) && is_singular() ) {
-            $inner_title = '<a href="' . esc_url( get_permalink() ) . '">' . $inner_title . '</a>';
+        if ( in_array( strtolower( $atts['link'] ), array( 'true', 'yes', '1' ), true ) && $post_id > 0 ) {
+            $inner_title = '<a href="' . esc_url( get_permalink( $post_id ) ) . '">' . $inner_title . '</a>';
         }
 
         return '<' . $tag . $class_attr . $style_attr . '>' . $inner_title . '</' . $tag . '>';
@@ -353,14 +383,19 @@ class Ultimate_Flatsome_Template_Builder {
             'class' => '',
         ), $atts );
 
-        global $post;
+        $post_id = function_exists('vbc_get_current_or_sample_post_id') ? vbc_get_current_or_sample_post_id() : get_the_ID();
         $content = '';
 
-        if ( is_singular() && $post ) {
-            $content = apply_filters( 'the_content', $post->post_content );
-        } elseif ( is_admin() || ( isset( $_GET['app'] ) && $_GET['app'] === 'uxbuilder' ) ) {
+        if ( $post_id > 0 ) {
+            $target_post = get_post( $post_id );
+            if ( $target_post ) {
+                $content = apply_filters( 'the_content', $target_post->post_content );
+            }
+        }
+
+        if ( empty( $content ) && ( is_admin() || ( isset( $_GET['app'] ) && $_GET['app'] === 'uxbuilder' ) ) ) {
             $content = '<div class="uf-preview-content" style="padding: 20px; background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 8px; color: #64748b; line-height: 1.8;">'
-                . '<p><strong>[Nội dung bài viết gốc (the_content) sẽ tự động hiển thị tại đây khi ra trang xem bài viết thực tế.]</strong></p>'
+                . '<p><strong>[Nội dung bài viết mẫu (the_content)]</strong></p>'
                 . '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam...</p>'
                 . '</div>';
         }
@@ -382,9 +417,10 @@ class Ultimate_Flatsome_Template_Builder {
             'class'     => '',
         ), $atts );
 
+        $post_id = function_exists('vbc_get_current_or_sample_post_id') ? vbc_get_current_or_sample_post_id() : get_the_ID();
         $excerpt = '';
-        if ( is_singular() ) {
-            $excerpt = get_the_excerpt();
+        if ( $post_id > 0 ) {
+            $excerpt = get_the_excerpt( $post_id );
         } elseif ( is_category() || is_tag() || is_tax() ) {
             $excerpt = term_description();
         }
@@ -411,16 +447,16 @@ class Ultimate_Flatsome_Template_Builder {
             'class'         => '',
         ), $atts );
 
+        $post_id = function_exists('vbc_get_current_or_sample_post_id') ? vbc_get_current_or_sample_post_id() : get_the_ID();
         $thumb_url = '';
         $alt_text = '';
 
-        if ( is_singular() && has_post_thumbnail() ) {
-            $thumb_id = get_post_thumbnail_id();
+        if ( $post_id > 0 && has_post_thumbnail( $post_id ) ) {
+            $thumb_id = get_post_thumbnail_id( $post_id );
             $thumb_url = wp_get_attachment_image_url( $thumb_id, $atts['size'] );
-            $alt_text = get_post_meta( $thumb_id, '_wp_attachment_image_alt', true ) ?: get_the_title();
+            $alt_text = get_post_meta( $thumb_id, '_wp_attachment_image_alt', true ) ?: get_the_title( $post_id );
         } elseif ( is_category() || is_tag() || is_tax() ) {
             $term = get_queried_object();
-            // Lấy ảnh danh mục Flatsome / WooCommerce nếu có
             $thumb_id = get_term_meta( $term->term_id, 'thumbnail_id', true );
             if ( $thumb_id ) {
                 $thumb_url = wp_get_attachment_image_url( $thumb_id, $atts['size'] );
@@ -429,12 +465,10 @@ class Ultimate_Flatsome_Template_Builder {
         }
 
         // Placeholder cho UX Builder preview nếu chưa có ảnh
-        if ( empty( $thumb_url ) && ( is_admin() || ( isset( $_GET['app'] ) && $_GET['app'] === 'uxbuilder' ) ) ) {
+        if ( empty( $thumb_url ) ) {
             $thumb_url = 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=1200&h=630&fit=crop';
             $alt_text = 'Featured Image Preview';
         }
-
-        if ( empty( $thumb_url ) ) return '';
 
         $styles = array(
             'display: block',
@@ -450,8 +484,8 @@ class Ultimate_Flatsome_Template_Builder {
         $style_attr = ' style="' . implode( ';', $styles ) . '"';
         $img_html = '<img src="' . esc_url( $thumb_url ) . '" alt="' . esc_attr( $alt_text ) . '"' . $style_attr . ' class="uf-featured-image ' . esc_attr( $atts['class'] ) . '" />';
 
-        if ( in_array( strtolower( $atts['link'] ), array( 'true', 'yes', '1' ), true ) && is_singular() ) {
-            return '<a href="' . esc_url( get_permalink() ) . '">' . $img_html . '</a>';
+        if ( in_array( strtolower( $atts['link'] ), array( 'true', 'yes', '1' ), true ) && $post_id > 0 ) {
+            return '<a href="' . esc_url( get_permalink( $post_id ) ) . '">' . $img_html . '</a>';
         }
 
         return $img_html;
@@ -471,18 +505,20 @@ class Ultimate_Flatsome_Template_Builder {
             'date_format' => get_option( 'date_format' ),
         ), $atts );
 
+        $post_id = function_exists('vbc_get_current_or_sample_post_id') ? vbc_get_current_or_sample_post_id() : get_the_ID();
         $type = sanitize_key( $atts['type'] );
         $val = '';
         $icon_html = '';
 
         if ( $type === 'date' ) {
-            $val = get_the_date( $atts['date_format'] );
+            $val = get_the_date( $atts['date_format'], $post_id );
             $icon_html = '<span class="dashicons dashicons-calendar-alt" style="font-size:15px; width:15px; height:15px; margin-right:4px;"></span>';
         } elseif ( $type === 'author' ) {
-            $val = get_the_author();
+            $auth_id = get_post_field( 'post_author', $post_id );
+            $val = get_the_author_meta( 'display_name', $auth_id ) ?: get_the_author();
             $icon_html = '<span class="dashicons dashicons-admin-users" style="font-size:15px; width:15px; height:15px; margin-right:4px;"></span>';
         } elseif ( $type === 'categories' || $type === 'category' ) {
-            $categories = get_the_category();
+            $categories = get_the_category( $post_id );
             if ( ! empty( $categories ) ) {
                 $cat_links = array();
                 foreach ( $categories as $cat ) {
@@ -492,10 +528,10 @@ class Ultimate_Flatsome_Template_Builder {
             }
             $icon_html = '<span class="dashicons dashicons-category" style="font-size:15px; width:15px; height:15px; margin-right:4px;"></span>';
         } elseif ( $type === 'comments_count' ) {
-            $val = sprintf( _n( '%s bình luận', '%s bình luận', get_comments_number(), 'vibecode' ), number_format_i18n( get_comments_number() ) );
+            $val = sprintf( _n( '%s bình luận', '%s bình luận', get_comments_number( $post_id ), 'vibecode' ), number_format_i18n( get_comments_number( $post_id ) ) );
             $icon_html = '<span class="dashicons dashicons-admin-comments" style="font-size:15px; width:15px; height:15px; margin-right:4px;"></span>';
         } elseif ( $type === 'custom' && ! empty( $atts['field'] ) ) {
-            $val = get_post_meta( get_the_ID(), sanitize_key( $atts['field'] ), true );
+            $val = get_post_meta( $post_id, sanitize_key( $atts['field'] ), true );
         }
 
         if ( empty( $val ) ) return '';
@@ -521,7 +557,8 @@ class Ultimate_Flatsome_Template_Builder {
             'class'         => '',
         ), $atts );
 
-        $author_id = get_the_author_meta( 'ID' );
+        $post_id = function_exists('vbc_get_current_or_sample_post_id') ? vbc_get_current_or_sample_post_id() : get_the_ID();
+        $author_id = get_post_field( 'post_author', $post_id );
         if ( ! $author_id ) {
             $author_id = 1;
         }
@@ -559,13 +596,13 @@ class Ultimate_Flatsome_Template_Builder {
      * Shortcode: [uf_post_comments]
      */
     public function render_post_comments( $atts ) {
-        if ( ! is_singular() ) {
+        if ( ! is_singular() && ! ( is_admin() || ( isset( $_GET['app'] ) && $_GET['app'] === 'uxbuilder' ) ) ) {
             return '';
         }
 
         ob_start();
         echo '<div class="uf-comments-wrapper" style="margin-top: 40px; padding-top: 30px; border-top: 1px solid #e2e8f0;">';
-        if ( comments_open() || get_comments_number() ) {
+        if ( comments_open() || get_comments_number() || is_admin() || ( isset( $_GET['app'] ) && $_GET['app'] === 'uxbuilder' ) ) {
             comments_template();
         }
         echo '</div>';
@@ -576,10 +613,16 @@ class Ultimate_Flatsome_Template_Builder {
      * Shortcode: [uf_post_navigation]
      */
     public function render_post_navigation( $atts ) {
-        if ( ! is_singular( 'post' ) ) return '';
-
         $prev_post = get_previous_post();
         $next_post = get_next_post();
+
+        if ( ! $prev_post && ! $next_post ) {
+            $sample_posts = get_posts( array( 'post_type' => 'post', 'posts_per_page' => 2 ) );
+            if ( count( $sample_posts ) >= 2 ) {
+                $prev_post = $sample_posts[0];
+                $next_post = $sample_posts[1];
+            }
+        }
 
         if ( ! $prev_post && ! $next_post ) return '';
 
@@ -621,7 +664,15 @@ class Ultimate_Flatsome_Template_Builder {
             'class'         => '',
         ), $atts );
 
-        $terms = get_the_terms( get_the_ID(), sanitize_key( $atts['taxonomy'] ) );
+        $post_id = function_exists('vbc_get_current_or_sample_post_id') ? vbc_get_current_or_sample_post_id() : get_the_ID();
+        $terms = get_the_terms( $post_id, sanitize_key( $atts['taxonomy'] ) );
+        if ( empty( $terms ) || is_wp_error( $terms ) ) {
+            // Fallback terms for preview
+            $all_terms = get_terms( array( 'taxonomy' => sanitize_key( $atts['taxonomy'] ), 'number' => 2 ) );
+            if ( ! empty( $all_terms ) && ! is_wp_error( $all_terms ) ) {
+                $terms = $all_terms;
+            }
+        }
         if ( empty( $terms ) || is_wp_error( $terms ) ) return '';
 
         $html = '<div class="uf-post-terms-list ' . esc_attr( $atts['class'] ) . '" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;">';

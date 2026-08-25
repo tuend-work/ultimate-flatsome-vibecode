@@ -170,6 +170,7 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
     }
 
     $defaults = array(
+        'id' => '',
         'content' => '',
         'text' => '',
         'title' => '',
@@ -313,10 +314,22 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
 
     // Biên dịch CSS (desktop → inline style="", responsive → accumulated <style>)
     $compiled = vbc_compile_element_css($atts, 'vbc-css');
-    $class_attr   = trim($atts['custom_class'] . ' ' . $compiled['class']);
-    $inline_style = $compiled['inline_style'];
+    
+    $all_classes = array();
+    if (!empty($atts['class'])) {
+        $all_classes[] = $atts['class'];
+    }
+    if (!empty($atts['custom_class']) && $atts['custom_class'] !== $atts['class']) {
+        $all_classes[] = $atts['custom_class'];
+    }
+    if (!empty($compiled['class'])) {
+        $all_classes[] = $compiled['class'];
+    }
+    $class_attr = implode(' ', array_unique(array_filter(explode(' ', implode(' ', $all_classes)))));
 
     $class_attr_str  = !empty($class_attr)  ? ' class="'  . esc_attr($class_attr)  . '"' : '';
+    $id_attr_str     = !empty($atts['id'])   ? ' id="'     . esc_attr($atts['id'])   . '"' : '';
+    $inline_style = $compiled['inline_style'];
     $style_attr_str  = !empty($inline_style) ? ' style="'  . esc_attr($inline_style) . '"' : '';
     $custom_attrs    = !empty($atts['custom_attributes']) ? ' ' . trim($atts['custom_attributes']) : '';
 
@@ -327,7 +340,7 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
             return '<br>';
         }
         if ($html_tag === 'hr') {
-            return '<hr' . $class_attr_str . $style_attr_str . $custom_attrs . '>';
+            return '<hr' . $id_attr_str . $class_attr_str . $style_attr_str . $custom_attrs . '>';
         }
         if ($html_tag === 'img') {
             $img_url = '';
@@ -348,20 +361,14 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
                 }
             } elseif ($atts['img_source'] === 'manual' && !empty($atts['img_url'])) {
                 $img_url = $atts['img_url'];
-            }
-            
-            if ($atts['img_source'] === 'post_meta') {
-                $meta_key = $atts['img_meta_key'];
-                if (!empty($meta_key)) {
-                    $val = get_post_meta(get_the_ID(), $meta_key, true);
-                    if (is_numeric($val)) {
-                        $img_id = intval($val);
-                        $img_url = wp_get_attachment_image_url($img_id, 'full');
-                    } else {
-                        $img_url = $val;
-                    }
+            } elseif ($atts['img_source'] === 'post_meta' && !empty($atts['img_meta_key'])) {
+                $meta_val = get_post_meta(get_the_ID(), $atts['img_meta_key'], true);
+                if (is_numeric($meta_val)) {
+                    $img_url = wp_get_attachment_image_url(intval($meta_val), 'full');
+                } else {
+                    $img_url = strval($meta_val);
                 }
-            } elseif ($atts['img_source'] === 'acf') {
+            } elseif ($atts['img_source'] === 'acf' && !empty($atts['img_acf_key'])) {
                 $acf_key = $atts['img_acf_key'];
                 if (!empty($acf_key)) {
                     if (function_exists('get_field')) {
@@ -602,7 +609,7 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
     }
 
     // Desktop CSS applied via style="" attribute — always works in UX Builder, frontend, AJAX
-    return '<' . $html_tag . $class_attr_str . $style_attr_str . $tag_attrs . $custom_attrs . '>' . $final_content . '</' . $html_tag . '>';
+    return '<' . $html_tag . $id_attr_str . $class_attr_str . $style_attr_str . $tag_attrs . $custom_attrs . '>' . $final_content . '</' . $html_tag . '>';
 }
 
 

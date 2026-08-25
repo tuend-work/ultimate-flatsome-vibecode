@@ -35,9 +35,21 @@ function vbc_get_common_options($tag_type) {
         'type' => 'group',
         'heading' => 'Định dạng & CSS',
         'options' => array(
-            'custom_class' => array(
+            'id' => array(
+                'type' => 'textfield',
+                'heading' => 'Element ID',
+                'default' => '',
+                'description' => 'ID duy nhất cho phần tử.',
+            ),
+            'class' => array(
                 'type' => 'textfield',
                 'heading' => 'CSS Class',
+                'default' => '',
+                'description' => 'Class CSS cho phần tử (ví dụ: benefit-check, my-card).',
+            ),
+            'custom_class' => array(
+                'type' => 'textfield',
+                'heading' => 'Custom Class (Bí danh)',
                 'default' => '',
             ),
             'custom_css' => array(
@@ -866,9 +878,19 @@ function vbc_register_ux_builder_elements() {
                 'heading' => 'Font chữ (Google Font)',
                 'default' => '',
             ),
-            'custom_class' => array(
+            'id' => array(
+                'type' => 'textfield',
+                'heading' => 'Element ID',
+                'default' => '',
+            ),
+            'class' => array(
                 'type' => 'textfield',
                 'heading' => 'CSS Class',
+                'default' => '',
+            ),
+            'custom_class' => array(
+                'type' => 'textfield',
+                'heading' => 'Custom Class (Bí danh)',
                 'default' => '',
             ),
             'custom_css' => array(
@@ -972,9 +994,19 @@ function vbc_register_ux_builder_elements() {
                 'heading' => 'Font chữ (Google Font)',
                 'default' => '',
             ),
-            'custom_class' => array(
+            'id' => array(
+                'type' => 'textfield',
+                'heading' => 'Element ID',
+                'default' => '',
+            ),
+            'class' => array(
                 'type' => 'textfield',
                 'heading' => 'CSS Class',
+                'default' => '',
+            ),
+            'custom_class' => array(
+                'type' => 'textfield',
+                'heading' => 'Custom Class (Bí danh)',
                 'default' => '',
             ),
             'custom_css' => array(
@@ -1050,9 +1082,19 @@ function vbc_register_ux_builder_elements() {
                 'heading' => 'Font chữ (Google Font)',
                 'default' => '',
             ),
-            'custom_class' => array(
+            'id' => array(
+                'type' => 'textfield',
+                'heading' => 'Element ID',
+                'default' => '',
+            ),
+            'class' => array(
                 'type' => 'textfield',
                 'heading' => 'CSS Class',
+                'default' => '',
+            ),
+            'custom_class' => array(
+                'type' => 'textfield',
+                'heading' => 'Custom Class (Bí danh)',
                 'default' => '',
             ),
             'custom_css' => array(
@@ -1191,9 +1233,19 @@ function vbc_register_ux_builder_elements() {
                 'heading' => 'Font chữ (Google Font)',
                 'default' => '',
             ),
-            'custom_class' => array(
+            'id' => array(
+                'type' => 'textfield',
+                'heading' => 'Element ID',
+                'default' => '',
+            ),
+            'class' => array(
                 'type' => 'textfield',
                 'heading' => 'CSS Class',
+                'default' => '',
+            ),
+            'custom_class' => array(
+                'type' => 'textfield',
+                'heading' => 'Custom Class (Bí danh)',
                 'default' => '',
             ),
             'custom_css' => array(
@@ -1224,9 +1276,14 @@ function vbc_register_ux_builder_elements() {
                 'heading' => 'Custom ID cho Pane (Tùy chọn)',
                 'default' => '',
             ),
-            'custom_class' => array(
+            'class' => array(
                 'type' => 'textfield',
                 'heading' => 'CSS Class cho Pane',
+                'default' => '',
+            ),
+            'custom_class' => array(
+                'type' => 'textfield',
+                'heading' => 'Custom Class (Bí danh)',
                 'default' => '',
             ),
             'custom_css' => array(
@@ -1321,9 +1378,19 @@ function vbc_register_ux_builder_elements() {
                 'heading' => 'Font chữ (Google Font)',
                 'default' => '',
             ),
-            'custom_class' => array(
+            'id' => array(
+                'type' => 'textfield',
+                'heading' => 'Element ID',
+                'default' => '',
+            ),
+            'class' => array(
                 'type' => 'textfield',
                 'heading' => 'CSS Class',
+                'default' => '',
+            ),
+            'custom_class' => array(
+                'type' => 'textfield',
+                'heading' => 'Custom Class (Bí danh)',
                 'default' => '',
             ),
             'custom_css' => array(
@@ -1381,9 +1448,19 @@ function vbc_register_ux_builder_elements() {
                 'heading' => 'Khoảng cách giữa các Slide',
                 'default' => '20px',
             ),
-            'custom_class' => array(
+            'id' => array(
+                'type' => 'textfield',
+                'heading' => 'Element ID',
+                'default' => '',
+            ),
+            'class' => array(
                 'type' => 'textfield',
                 'heading' => 'CSS Class',
+                'default' => '',
+            ),
+            'custom_class' => array(
+                'type' => 'textfield',
+                'heading' => 'Custom Class (Bí danh)',
                 'default' => '',
             ),
             'custom_css' => array(
@@ -1415,9 +1492,19 @@ function vbc_register_ux_builder_elements() {
                 'heading' => 'Padding',
                 'default' => '',
             ),
-            'custom_class' => array(
+            'id' => array(
+                'type' => 'textfield',
+                'heading' => 'Element ID',
+                'default' => '',
+            ),
+            'class' => array(
                 'type' => 'textfield',
                 'heading' => 'CSS Class',
+                'default' => '',
+            ),
+            'custom_class' => array(
+                'type' => 'textfield',
+                'heading' => 'Custom Class (Bí danh)',
                 'default' => '',
             ),
             'custom_css' => array(
@@ -1460,9 +1547,19 @@ function vbc_register_ux_builder_elements() {
                     'false' => 'Không',
                 ),
             ),
-            'custom_class' => array(
+            'id' => array(
+                'type' => 'textfield',
+                'heading' => 'Element ID',
+                'default' => '',
+            ),
+            'class' => array(
                 'type' => 'textfield',
                 'heading' => 'CSS Class',
+                'default' => '',
+            ),
+            'custom_class' => array(
+                'type' => 'textfield',
+                'heading' => 'Custom Class (Bí danh)',
                 'default' => '',
             ),
         ),
@@ -1754,9 +1851,19 @@ function vbc_register_ux_builder_elements() {
                             'none' => 'Không hiệu ứng',
                         ),
                     ),
-                    'custom_class' => array(
+                    'id' => array(
+                        'type' => 'textfield',
+                        'heading' => 'Element ID',
+                        'default' => '',
+                    ),
+                    'class' => array(
                         'type' => 'textfield',
                         'heading' => 'CSS Class',
+                        'default' => '',
+                    ),
+                    'custom_class' => array(
+                        'type' => 'textfield',
+                        'heading' => 'Custom Class (Bí danh)',
                         'default' => '',
                     ),
                     'custom_css' => array(

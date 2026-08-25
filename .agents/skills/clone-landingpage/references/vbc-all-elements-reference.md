@@ -301,6 +301,23 @@ Mọi shortcode VBC (`[vbc_div]`, `[vbc_box]`, `[vbc_block]`, `[vbc_container]`,
 [/vbc_slider]
 ```
 
+### 5.7. `[contact-form-7]` — Biểu Mẫu Thu Thập Thông Tin Khách Hàng (BẮT BUỘC)
+Tất cả các biểu mẫu đăng ký, tư vấn, nhận ưu đãi trên Landing Page **PHẢI** sử dụng biểu mẫu Contact Form 7 thực tế:
+
+1. **Tạo Form qua lệnh Python**:
+```bash
+python .agents/skills/clone-landingpage/scripts/create_cf7.py --title "Form Tư Vấn Khóa Học" --fields "name,phone,email,course,message" --button "Đăng Ký Tư Vấn Miễn Phí"
+```
+2. **Nhúng Shortcode vào Layout VBC**:
+```html
+[vbc_div bg_color="#F5568F" padding="70px 0" display="block"]
+    [vbc_container max_width="800px" margin="0 auto" padding="40px" bg_color="#ffffff" border_radius="24px" display="block"]
+        [vbc_h3 color="#1e293b" font_size="28px" font_weight="800" text_align="center" margin="0 0 24px 0" text="Nhận tư vấn và học thử miễn phí"]
+        [contact-form-7 id="1391" title="Form Đăng Ký Tư Vấn - Tiếng Anh Mẫu Giáo"]
+    [/vbc_container]
+[/vbc_div]
+```
+
 ---
 
 ## NHÓM 6: HỆ THỐNG ICON VECTOR 5 BỘ

@@ -99,10 +99,10 @@ AI viết trực tiếp file mã nguồn lưu tại `tmp/<slug>/compiled_vbc.txt
 
 #### 🏛️ Kiến Trúc Bố Cục Ưu Tiên (Layout Backbone):
 1. **Khung xương Bố cục (Structure)**: **Ưu tiên sử dụng `[section]` + `[row]` + `[col]` chuẩn của Flatsome**:
-   - `[section bg_color="#..." bg="<img_url>" padding="60px" dark="true|false"]`: Quản lý toàn bộ Section full-width, màu nền, padding và divider.
-   - `[row width="custom" custom_width="1140px" v_align="middle|top" col_bg="#..." col_bg_radius="16" padding="20px"]`: Quản lý lưới căn giữa, độ rộng container, flexbox vertical align và màu nền các cột.
+   - `[section class="section-hero" bg_color="#..." padding="60px" dark="true|false"]`: **BẮT BUỘC gán `class="section-<tên>"` cho mỗi section** để làm CSS scope selector.
+   - `[row width="custom" custom_width="1140px" v_align="middle|top"]`: **Toàn bộ `[row]` PHẢI nằm bên trong `[section]`** — tuyệt đối không đặt `[row]` độc lập ngoài section.
    - `[col span="4" span__md="6" span__sm="12" align="center|left" bg_color="#..." bg_radius="16" padding="24px"]`: Quản lý hệ thống 12 cột responsive chuẩn Flatsome UX Builder.
-   *(Lưu ý: Đối với các layout flex/grid phức tạp đặc thù, có thể sử dụng `[vbc_div]` $\to$ `[vbc_container]` $\to$ `[vbc_box]` $\to$ `[vbc_block]`)*.
+   *(Lưu ý: Đối với các layout flex/grid phức tạp đặc thù, có thể sử dụng `[vbc_div]` $\to$ `[vbc_container]` $\to$ `[vbc_box]` $\to$ `[vbc_block]` — không dùng `[col]` bên trong `[col]`)*.
 
 2. **Phần tử Con Nguyên Tử (Atomic Elements)**: Đặt trực tiếp bên trong `[col]` hoặc `[vbc_block]`:
    - `[vbc_h1]-[vbc_h6]`: Tiêu đề kèm thuộc tính `text="..."`, `color`, `font_size`, `font_weight`, `text_align`.
@@ -118,7 +118,35 @@ AI viết trực tiếp file mã nguồn lưu tại `tmp/<slug>/compiled_vbc.txt
 3. **Ràng buộc quan trọng**:
    - Thay thế 100% link ảnh bằng URL WordPress từ `media_map.json`.
    - **Truyền nội dung qua input (`text="..."` / `content="..."`)**: Tuyệt đối không lồng thẻ thô hoặc `<img>` vào giữa cặp thẻ `[vbc_p]...[/vbc_p]` hay `[vbc_h1]-[vbc_h6]`, vì WordPress `wpautop` sẽ tự động chèn thẻ `<p>` rác làm vỡ layout.
-   - **Zero same-type nesting**: Tuyệt đối không lồng cùng loại thẻ vào nhau (ví dụ: không lồng `[row]` trong `[row]`, dùng `[row_inner]` nếu cần sub-grid).
+   - **Zero same-type nesting**: Tuyệt đối không lồng cùng loại thẻ vào nhau (ví dụ: không lồng `[row]` trong `[row]` hoặc `[col]` trong `[col]`, dùng `[row_inner]` / `[vbc_box]` nếu cần sub-grid).
+
+4. **BẮT BUỘC — CSS Scoped Theo Section Class (Nhúng `<style>` Trong Content)**:
+   - Mỗi section có màu sắc, font, form đặc thù PHẢI dùng CSS scoped theo class của section đó.
+   - **Cơ chế**: Nhúng trực tiếp `<style>` block vào **đầu file `compiled_vbc.txt`** (trước các shortcodes), trong đó dùng class của `[section]` làm selector cha:
+     ```html
+     <style>
+     /* === Section Hero === */
+     .section-hero .title { font-size: 40px; }
+     /* === Section Register (Form CF7) === */
+     .section-register .wpcf7-form input[type="text"],
+     .section-register .wpcf7-form input[type="tel"],
+     .section-register .wpcf7-form input[type="email"],
+     .section-register .wpcf7-form textarea {
+       width: 100%; padding: 12px 16px;
+       border: 1.5px solid #e2e8f0; border-radius: 10px;
+       font-size: 15px; background: #f8fafc; box-sizing: border-box;
+     }
+     .section-register .wpcf7-form input[type="submit"] {
+       width: 100%; padding: 14px;
+       background: #F5568F; color: #fff;
+       font-weight: 700; border: none; border-radius: 50px; cursor: pointer;
+     }
+     .section-register .wpcf7-form input[type="submit"]:hover { background: #e0447c; }
+     </style>
+     ```
+   - **Quy tắc đặt tên class section**: Dùng slug mô tả rõ ràng: `section-hero`, `section-features`, `section-faq`, `section-teachers`, `section-register`, `section-testimonials`, v.v.
+   - **Tại sao nhúng `<style>` trong content?** Publisher script (`publisher.py`) cho phép nội dung HTML tự do trong `content` — WordPress lưu nguyên vẹn cho admin user. CSS nhúng trong content hoạt động ngay lập tức, không cần API riêng.
+   - **TUYỆT ĐỐI KHÔNG** để CSS form `[contact-form-7]` rời rạc trong file ngoài — PHẢI embed cùng content để đảm bảo áp dụng đúng.
 
 ### Bước 5: Xuất bản Lên WordPress Qua REST API
 Chạy script xuất bản trang:

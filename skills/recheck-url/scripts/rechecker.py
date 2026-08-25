@@ -364,6 +364,35 @@ class LandingPageRechecker:
             return False
         return True
 
+    def check_text_leak_and_corruptions(self, html):
+        """Kiểm tra rò rỉ mã nguồn, cú pháp shortcode, CSS thô hay dấu ngoặc bị tràn ra màn hình"""
+        # Loại bỏ các thẻ script và style hợp lệ trước khi quét text hiển thị
+        body_text_only = re.sub(r'<style\b[^>]*>[\s\S]*?<\/style>', '', html, flags=re.IGNORECASE)
+        body_text_only = re.sub(r'<script\b[^>]*>[\s\S]*?<\/script>', '', body_text_only, flags=re.IGNORECASE)
+        
+        leak_errors = []
+
+        # 1. Kiểm tra rò rỉ CSS selector ra ngoài màn hình (ví dụ: selector .wpcf7-form hoặc { width: ...)
+        css_leaks = re.findall(r'(?:selector\s+[.#a-zA-Z0-9_\-\s,:]*\{|selector\s*\.[a-zA-Z0-9_\-]+|\bwpcf7-form\s+input\[)', body_text_only, re.IGNORECASE)
+        if css_leaks:
+            leak_errors.append(f"Phát hiện rò rỉ mã CSS thô ra ngoài giao diện: '{css_leaks[0][:60]}...'")
+
+        # 2. Kiểm tra thuộc tính shortcode bị tràn ra text (ví dụ: class="target-text" hoặc margin="0" hoặc text="...)
+        attr_leaks = re.findall(r'(?:class=[\'"][a-zA-Z0-9_\-\s]+[\'"]|margin=[\'"][0-9\s]+px[\'"]|padding=[\'"][0-9\s]+px[\'"]|text=[\'"][^\'"]*[\'"])\s*\]', body_text_only)
+        if attr_leaks:
+            leak_errors.append(f"Phát hiện thuộc tính shortcode bị rò rỉ ra text hiển thị: '{attr_leaks[0][:50]}'")
+
+        # 3. Kiểm tra ký tự ngoặc vuông đơn lẻ hoặc cú pháp tag lỗi như ]2 kỹ năng... hoặc [[b]]...
+        bracket_leaks = re.findall(r'(?:\]\s*[a-zA-Z0-9_\-À-ỹ\s]{3,30}|\[\[\/?b\]\]|\[\/?b\]|\binput\[type=)', body_text_only)
+        if bracket_leaks:
+            leak_errors.append(f"Phát hiện lỗi vỡ cú pháp ngoặc vuông / tag chưa parse: '{bracket_leaks[0][:50]}'")
+
+        self.stats['text_leak_errors'] = leak_errors
+        if leak_errors:
+            self.issues.extend(leak_errors)
+            return False
+        return True
+
     def check_images_and_media(self, html):
         """Kiểm tra tính hợp lệ và độ đầy đủ của hình ảnh"""
         imgs = re.findall(r'<img[^>]+src=[\'"]([^\'"]*)[\'"]', html, re.IGNORECASE)
@@ -625,6 +654,7 @@ class LandingPageRechecker:
 
             self.check_unparsed_shortcodes(html)
             self.check_style_tag_corruption(html)
+            self.check_text_leak_and_corruptions(html)
             self.check_images_and_media(html)
             self.check_seo_structure_and_forms(html)
             

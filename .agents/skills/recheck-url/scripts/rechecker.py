@@ -268,6 +268,56 @@ class LandingPageRechecker:
             return False
         return True
 
+    def capture_fresh_browser_state(self, url, output_img_path, output_html_path=None):
+        """Tự động mở trình duyệt Chromium (Playwright) để chụp ảnh full screen 100% tươi mới và lấy full HTML DOM thực tế"""
+        try:
+            from playwright.sync_api import sync_playwright
+            print(f"[Fresh Browser Capture] Đang mở trình duyệt chụp ảnh toàn trang & lấy HTML DOM thực tế: {url}...")
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True)
+                context = browser.new_context(
+                    viewport={'width': 1280, 'height': 800},
+                    user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                )
+                page = context.new_page()
+                page.goto(url, wait_until='networkidle', timeout=35000)
+                
+                # Cuộn trang từ từ để kích hoạt mọi hiệu ứng và tải hết ảnh lazy-load
+                page.evaluate("""async () => {
+                    await new Promise((resolve) => {
+                        let totalHeight = 0;
+                        let distance = 350;
+                        let timer = setInterval(() => {
+                            let scrollHeight = document.body.scrollHeight;
+                            window.scrollBy(0, distance);
+                            totalHeight += distance;
+                            if (totalHeight >= scrollHeight) {
+                                clearInterval(timer);
+                                resolve();
+                            }
+                        }, 80);
+                    });
+                }""")
+                time.sleep(1)
+                
+                # Chụp Full Page Screenshot mới
+                if output_img_path:
+                    page.screenshot(path=output_img_path, full_page=True)
+                    print(f"✓ Đã chụp ảnh Full-Page mới: {output_img_path}")
+                
+                # Lấy Rendered HTML DOM mới
+                rendered_dom = page.content()
+                if output_html_path:
+                    with open(output_html_path, 'w', encoding='utf-8') as f:
+                        f.write(rendered_dom)
+                    print(f"✓ Đã lưu HTML DOM thực tế mới: {output_html_path}")
+                    
+                browser.close()
+                return rendered_dom
+        except Exception as e:
+            print(f"[CẢNH BÁO] Không thể kích hoạt Playwright ({e}). Chuyển sang HTTP fetch fallback...")
+            return None
+
     # =========================================================================
     # TRỤ CỘT 2: BROWSER RENDERED DOM & FRONTEND AESTHETICS AUDIT
     # =========================================================================
@@ -546,7 +596,7 @@ class LandingPageRechecker:
         print(f"-------------------------------------------------------")
 
         for attempt in range(1, self.max_retries + 1):
-            print(f"\n[Lần kiểm tra {attempt}/{self.max_retries}] Đang phân tích 3 TRỤ CỘT: API Meta + Rendered DOM + Full Visual...")
+            print(f"\n[Lần kiểm tra {attempt}/{self.max_retries}] Đang thực hiện 3 TRỤ CỘT: API Meta + Fresh Browser DOM + Fresh Screenshot...")
             self.issues = []
 
             # 1. TRỤ CỘT 1: API Shortcode & Meta Integrity
@@ -554,8 +604,18 @@ class LandingPageRechecker:
             if api_post:
                 self.audit_api_shortcode_structure(api_post.get('post_content', ''))
 
-            # 2. TRỤ CỘT 2: Browser Rendered DOM & Frontend Aesthetics
-            html = self.fetch_rendered_html(self.target_url)
+            # 2. TRỤ CỘT 2: Browser Rendered DOM & Frontend Aesthetics (LUÔN CHỤP ẢNH MỚI & LẤY DOM MỚI)
+            ts = int(time.time())
+            fresh_target_img = os.path.join(self.tmp_dir, f"fresh_target_{ts}.png")
+            fresh_target_html = os.path.join(self.tmp_dir, f"fresh_target_{ts}.html")
+            
+            fresh_dom = self.capture_fresh_browser_state(self.target_url, fresh_target_img, fresh_target_html)
+            if fresh_dom:
+                html = fresh_dom
+                self.target_img = fresh_target_img
+            else:
+                html = self.fetch_rendered_html(self.target_url)
+
             if not html:
                 print(f"❌ [LỖI] Không lấy được nội dung từ URL mục tiêu.")
                 if attempt < self.max_retries:
@@ -570,6 +630,13 @@ class LandingPageRechecker:
             
             # 3. TRỤ CỘT 3: Section Gap Analysis & Full Visual AI Comparison
             if self.source_url:
+                fresh_source_img = os.path.join(self.tmp_dir, f"fresh_source_{ts}.png")
+                fresh_source_html = os.path.join(self.tmp_dir, f"fresh_source_{ts}.html")
+                if not self.source_img or not os.path.exists(self.source_img):
+                    self.capture_fresh_browser_state(self.source_url, fresh_source_img, fresh_source_html)
+                    if os.path.exists(fresh_source_img):
+                        self.source_img = fresh_source_img
+
                 self.compare_with_source(html)
 
             self.run_ai_visual_comparison()

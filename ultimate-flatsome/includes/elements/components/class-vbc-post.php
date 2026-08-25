@@ -639,8 +639,18 @@ function vbc_post_shortcode($atts, $content = null) {
                         if ($val !== '') {
                             $display_val = is_array($val) ? implode(', ', $val) : $val;
                             $suffix = !empty($f['extra']) ? ' ' . $f['extra'] : '';
-                            $output .= '<div class="vbc-post-field vbc-post-field-meta vbc-meta-' . esc_attr($meta_k) . '" style="' . $flex_css . ' font-size: 14px; color: #334155;">';
-                            $output .= esc_html($display_val . $suffix);
+                            
+                            // Auto-icon detection for meta fields
+                            $icon_html = '';
+                            $k_lower = strtolower($meta_k);
+                            if (strpos($k_lower, 'date') !== false || strpos($k_lower, 'ngay') !== false || strpos($k_lower, 'time') !== false) {
+                                $icon_html = '<i data-lucide="calendar" style="width: 15px; height: 15px; color: #FF5722; flex-shrink: 0; display: inline-block; vertical-align: middle;"></i> ';
+                            } elseif (strpos($k_lower, 'location') !== false || strpos($k_lower, 'dia_diem') !== false || strpos($k_lower, 'address') !== false || strpos($k_lower, 'place') !== false) {
+                                $icon_html = '<i data-lucide="map-pin" style="width: 15px; height: 15px; color: #2563EB; flex-shrink: 0; display: inline-block; vertical-align: middle;"></i> ';
+                            }
+                            
+                            $output .= '<div class="vbc-post-field vbc-post-field-meta vbc-meta-' . esc_attr($meta_k) . '" style="' . $flex_css . ' font-size: 14px; color: #334155; display: inline-flex; align-items: center; gap: 6px;">';
+                            $output .= $icon_html . '<span>' . esc_html($display_val . $suffix) . '</span>';
                             $output .= '</div>';
                         }
                     }
@@ -651,8 +661,18 @@ function vbc_post_shortcode($atts, $content = null) {
                         if ($val !== false && $val !== null && $val !== '') {
                             $display_val = is_array($val) ? (isset($val['url']) ? '<img src="' . esc_url($val['url']) . '" style="max-width: 100%; border-radius: 8px;">' : implode(', ', $val)) : esc_html($val);
                             $suffix = !empty($f['extra']) ? ' ' . $f['extra'] : '';
-                            $output .= '<div class="vbc-post-field vbc-post-field-acf vbc-acf-' . esc_attr($acf_k) . '" style="' . $flex_css . ' font-size: 14px; color: #334155;">';
-                            $output .= $display_val . $suffix;
+                            
+                            // Auto-icon detection for ACF fields
+                            $icon_html = '';
+                            $k_lower = strtolower($acf_k);
+                            if (strpos($k_lower, 'date') !== false || strpos($k_lower, 'ngay') !== false || strpos($k_lower, 'time') !== false) {
+                                $icon_html = '<i data-lucide="calendar" style="width: 15px; height: 15px; color: #FF5722; flex-shrink: 0; display: inline-block; vertical-align: middle;"></i> ';
+                            } elseif (strpos($k_lower, 'location') !== false || strpos($k_lower, 'dia_diem') !== false || strpos($k_lower, 'address') !== false || strpos($k_lower, 'place') !== false) {
+                                $icon_html = '<i data-lucide="map-pin" style="width: 15px; height: 15px; color: #2563EB; flex-shrink: 0; display: inline-block; vertical-align: middle;"></i> ';
+                            }
+                            
+                            $output .= '<div class="vbc-post-field vbc-post-field-acf vbc-acf-' . esc_attr($acf_k) . '" style="' . $flex_css . ' font-size: 14px; color: #334155; display: inline-flex; align-items: center; gap: 6px;">';
+                            $output .= $icon_html . '<span>' . $display_val . $suffix . '</span>';
                             $output .= '</div>';
                         }
                     }

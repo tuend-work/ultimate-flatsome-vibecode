@@ -83,10 +83,32 @@ def sync_media(source_url, output_dir=None):
             media_map = {}
 
     upload_endpoint = f"{api_url}/vbc/v1/upload"
+    wp_api_base = api_url.replace('/wp-json/vbc/v1', '') if '/wp-json/vbc/v1' in api_url else api_url.rsplit('/vbc/v1', 1)[0]
     count = 0
 
+    def check_existing_wp_media(filename):
+        """Kiểm tra ảnh đã tồn tại trên WP Media Library theo tên file. Trả về URL nếu tìm thấy, None nếu chưa."""
+        search_name = os.path.splitext(filename)[0]  # bỏ extension để tìm rộng hơn
+        search_url = f"{wp_api_base}/wp-json/wp/v2/media?search={urllib.parse.quote(search_name)}&per_page=5"
+        try:
+            req = urllib.request.Request(search_url, headers={
+                'User-Agent': 'Mozilla/5.0',
+                'X-VBC-Token': token
+            })
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                items = json.loads(resp.read().decode('utf-8'))
+                for item in items:
+                    src = item.get('source_url', '')
+                    # Khớp tên file chính xác (bỏ qua -1, -2 suffix)
+                    src_base = os.path.splitext(os.path.basename(src))[0]
+                    if src_base == search_name or src_base.startswith(search_name + '-'):
+                        return src
+        except Exception:
+            pass
+        return None
+
     for img_url in img_urls:
-        if img_url in media_map and media_map[img_url]:
+        if img_url in media_map and media_map[img_url] and not media_map[img_url].startswith('http://') or img_url in media_map and media_map[img_url] and 'wpcloud.vn' in media_map[img_url]:
             continue
 
         filename = os.path.basename(urllib.parse.urlparse(img_url).path) or f"img_{abs(hash(img_url))}.jpg"
@@ -96,6 +118,15 @@ def sync_media(source_url, output_dir=None):
         local_img_path = os.path.join(output_dir, filename)
 
         try:
+            # ✅ Bước 1: Kiểm tra đã tồn tại trên WP Media Library chưa
+            existing_url = check_existing_wp_media(filename)
+            if existing_url:
+                media_map[img_url] = existing_url
+                count += 1
+                print(f" -> [{count}] Tái sử dụng (đã tồn tại): {filename} => {existing_url}")
+                continue
+
+            # ✅ Bước 2: Download về local nếu chưa có
             if not os.path.exists(local_img_path):
                 req = urllib.request.Request(img_url, headers={'User-Agent': 'Mozilla/5.0'})
                 with urllib.request.urlopen(req, timeout=15) as resp:
@@ -105,25 +136,32 @@ def sync_media(source_url, output_dir=None):
             with open(local_img_path, 'rb') as f:
                 img_data = f.read()
 
+            # ✅ Bước 3: Upload lên WP
+            ext = os.path.splitext(filename)[1].lower()
+            content_type_map = {'.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
+                                '.webp': 'image/webp', '.svg': 'image/svg+xml', '.gif': 'image/gif'}
+            content_type = content_type_map.get(ext, 'image/jpeg')
+
             upload_req = urllib.request.Request(
                 upload_endpoint,
                 data=img_data,
                 headers={
-                    'Content-Type': 'image/jpeg' if filename.endswith('.jpg') else 'image/png',
+                    'Content-Type': content_type,
                     'X-File-Name': filename,
                     'X-VBC-Token': token
                 }
             )
 
-            with urllib.request.urlopen(upload_req, timeout=20) as resp:
+            with urllib.request.urlopen(upload_req, timeout=30) as resp:
                 data = json.loads(resp.read().decode('utf-8'))
                 wp_url = data.get('url') or data.get('source_url')
                 if wp_url:
                     media_map[img_url] = wp_url
                     count += 1
-                    print(f" -> [{count}] Đã đồng bộ: {filename} => {wp_url}")
+                    print(f" -> [{count}] Đã upload mới: {filename} => {wp_url}")
         except Exception as e:
             media_map[img_url] = img_url
+            print(f" -> [WARN] Lỗi khi xử lý {filename}: {e}")
 
     with open(media_map_file, 'w', encoding='utf-8') as f:
         json.dump(media_map, f, ensure_ascii=False, indent=2)

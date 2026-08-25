@@ -20,6 +20,13 @@ python .agents/skills/clone-landingpage/scripts/sync_media.py --url "<URL_NGUON>
 ```
 - Script sẽ tải mã nguồn HTML về `tmp/<slug>/source.html`, phát hiện toàn bộ ảnh và upload lên WordPress Media Library qua REST API `/vbc/v1/upload`.
 - Kết quả ánh xạ ảnh gốc $\to$ WordPress URL được lưu trong `tmp/<slug>/media_map.json`.
+- **BẮT BUỘC — Kiểm Tra Trùng Lặp Trước Khi Upload**:
+  - Trước khi upload, script **PHẢI kiểm tra** xem ảnh cùng tên (`filename`) đã tồn tại trên WordPress Media Library hay chưa, bằng cách:
+    1. Gọi endpoint `GET /wp-json/wp/v2/media?search=<filename>&per_page=1` với header `Authorization: Bearer <token>`.
+    2. Nếu nhận được `id` và `source_url` → **dùng luôn URL đó**, bỏ qua bước upload.
+    3. Nếu chưa tồn tại → mới thực hiện upload qua `/vbc/v1/upload`.
+  - Điều này giúp **tránh tạo bản sao trùng lặp** trong thư viện media WordPress và giảm thời gian xử lý.
+  - Mọi kết quả cuối cùng (dù upload mới hay lấy từ WP) đều được ghi vào `media_map.json`.
 
 ### Bước 2: AI Đọc Hiểu & Bóc Tách Ngữ Cảnh Bố Cục (DOM & Visual Context)
 AI đọc `tmp/<slug>/source.html` và phân tích các Section chính:
@@ -42,6 +49,50 @@ Khi phát hiện form nhập liệu trên trang nguồn (hoặc khu vực CTA đ
    ```
 3. **Lấy mã Shortcode trả về** dạng `[contact-form-7 id="<ID>" title="..."]` để nhúng trực tiếp vào container VBC ở Bước 4.
 4. **Quy tắc**: 100% biểu mẫu thu thập thông tin (Lead Form) **BẮT BUỘC** phải được tạo thành form Contact Form 7 thực tế qua API, **TUYỆT ĐỐI KHÔNG** dùng văn bản giả lập tĩnh (`[vbc_p]`) thay cho form.
+5. **BẮT BUỘC — CSS Đồng Bộ Form CF7 Khớp Với Web Gốc**:
+   - Sau khi tạo form CF7, **phân tích màu sắc, font chữ, border-radius, padding và màu nền của form gốc** từ `source.html`.
+   - Viết một khối CSS tùy chỉnh (sử dụng tính năng Page Custom CSS hoặc `vbc_page_custom_css`) để style các thành phần:
+     - `input[type="text"], input[type="tel"], input[type="email"], select, textarea` → border, padding, border-radius, background, font-size.
+     - `input[type="submit"], button[type="submit"]` → background-color, color, font-weight, padding, border-radius, hover state.
+   - Ví dụ CSS chuẩn tham khảo:
+     ```css
+     .wpcf7-form input[type="text"],
+     .wpcf7-form input[type="tel"],
+     .wpcf7-form input[type="email"],
+     .wpcf7-form select,
+     .wpcf7-form textarea {
+       width: 100%;
+       padding: 12px 16px;
+       border: 1.5px solid #e2e8f0;
+       border-radius: 8px;
+       font-size: 15px;
+       background: #f8fafc;
+       margin-bottom: 12px;
+       transition: border-color 0.2s;
+     }
+     .wpcf7-form input[type="text"]:focus,
+     .wpcf7-form input[type="tel"]:focus,
+     .wpcf7-form input[type="email"]:focus {
+       border-color: #F5568F;
+       outline: none;
+     }
+     .wpcf7-form input[type="submit"] {
+       width: 100%;
+       padding: 14px;
+       background: #F5568F;
+       color: #fff;
+       font-weight: 700;
+       font-size: 16px;
+       border: none;
+       border-radius: 50px;
+       cursor: pointer;
+       transition: background 0.2s;
+     }
+     .wpcf7-form input[type="submit"]:hover {
+       background: #e0447c;
+     }
+     ```
+   - **Màu sắc, border-radius và font-size PHẢI được tùy chỉnh khớp với thiết kế gốc** — không dùng màu mặc định nếu web gốc có màu riêng.
 
 ### Bước 4: AI Sinh Mã Nguồn Kết Hợp Chuẩn Flatsome (Section + Row + Col) & VBC Elements
 AI viết trực tiếp file mã nguồn lưu tại `tmp/<slug>/compiled_vbc.txt`.

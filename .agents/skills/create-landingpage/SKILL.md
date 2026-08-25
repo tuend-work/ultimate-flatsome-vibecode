@@ -38,6 +38,33 @@ Khi thiết kế landing page có khu vực thu thập thông tin khách hàng (
    ```
 3. **Lấy mã Shortcode trả về** dạng `[contact-form-7 id="<ID>" title="..."]` để nhúng vào layout VBC.
 4. **Quy tắc**: 100% biểu mẫu thu thập thông tin khách hàng **BẮT BUỘC** phải được tạo thành form Contact Form 7 thực tế qua API, **TUYỆT ĐỐI KHÔNG** dùng văn bản giả lập tĩnh (`[vbc_p]`) thay cho form.
+5. **BẮT BUỘC — CSS Đồng Bộ Khớp Với Bảng Màu Thiết Kế**:
+   - Sau khi tạo form CF7, **viết khối CSS tùy chỉnh** để style các thành phần form khớp với bảng màu và thiết kế của landing page:
+     - `input[type="text"], input[type="tel"], input[type="email"], select, textarea` → border, padding, border-radius, background, font-size.
+     - `input[type="submit"]` → background-color (= màu CTA chính), color, font-weight, padding, border-radius, hover state.
+   - CSS này được nhúng qua `vbc_page_custom_css` hoặc trường **Page Custom CSS** trong UX Builder.
+   - **Màu sắc button PHẢI khớp với CTA Color của thiết kế** — không dùng màu xám mặc định WordPress.
+   - Ví dụ CSS template tham khảo:
+     ```css
+     .wpcf7-form input[type="text"],
+     .wpcf7-form input[type="tel"],
+     .wpcf7-form input[type="email"],
+     .wpcf7-form select,
+     .wpcf7-form textarea {
+       width: 100%; padding: 12px 16px;
+       border: 1.5px solid #e2e8f0; border-radius: 8px;
+       font-size: 15px; background: #f8fafc;
+       margin-bottom: 12px; transition: border-color 0.2s;
+     }
+     .wpcf7-form input[type="submit"] {
+       width: 100%; padding: 14px;
+       background: <CTA_COLOR>; color: #fff;
+       font-weight: 700; font-size: 16px;
+       border: none; border-radius: 50px;
+       cursor: pointer; transition: background 0.2s;
+     }
+     .wpcf7-form input[type="submit"]:hover { background: <CTA_HOVER_COLOR>; }
+     ```
 
 ### Bước 3: AI Thiết Kế Bố Cục Chuẩn Flatsome (Section + Row + Col) & VBC Elements
 AI trực tiếp viết mã nguồn lưu tại `tmp/<slug>/created_vbc.txt`.

@@ -53,6 +53,21 @@ function vbc_register_rest_routes() {
         ));
     }
 
+    // Endpoint kiểm tra nhanh sự tồn tại của ảnh trong Media Library (/vbc/v1/check-media)
+    register_rest_route('vbc/v1', '/check-media', array(
+        array(
+            'methods' => array('GET', 'POST'),
+            'callback' => 'vbc_api_check_media_handler',
+            'permission_callback' => function($request) {
+                $user = vbc_authenticate_request($request);
+                if (is_wp_error($user)) {
+                    return $user;
+                }
+                return user_can($user, 'upload_files') || user_can($user, 'edit_posts');
+            }
+        )
+    ));
+
     // Endpoint tạo & quản lý Contact Form 7
     register_rest_route('vbc/v1', '/cf7', array(
         'methods' => 'POST',
@@ -175,6 +190,109 @@ function vbc_api_upload_handler($request) {
     }
     
     return new WP_Error('vbc_no_file', 'No file was uploaded.', array('status' => 400));
+}
+
+/**
+ * Endpoint kiểm tra sự tồn tại của ảnh trong WordPress Media Library
+ * Hỗ trợ:
+ *   - GET ?filename=logo.svg
+ *   - POST {"filenames": ["a.png", "b.jpg"], "urls": ["https://.../a.png"]}
+ */
+function vbc_api_check_media_handler($request) {
+    global $wpdb;
+    
+    $filename = $request->get_param('filename');
+    $filenames = $request->get_param('filenames');
+    $urls = $request->get_param('urls');
+    
+    if (empty($filenames) && !empty($filename)) {
+        $filenames = array($filename);
+    }
+    if (!empty($urls) && is_array($urls)) {
+        if (!is_array($filenames)) {
+            $filenames = array();
+        }
+        foreach ($urls as $u) {
+            $path = parse_url($u, PHP_URL_PATH);
+            if ($path) {
+                $filenames[] = basename($path);
+            }
+        }
+    }
+    
+    if (empty($filenames) || !is_array($filenames)) {
+        return new WP_Error('vbc_invalid_param', 'Vui lòng cung cấp filename hoặc danh sách filenames.', array('status' => 400));
+    }
+    
+    $results = array();
+    $filenames = array_unique(array_filter($filenames));
+    
+    foreach ($filenames as $fname) {
+        $clean_name = sanitize_file_name($fname);
+        if (empty($clean_name)) continue;
+        
+        $base_name = pathinfo($clean_name, PATHINFO_FILENAME);
+        $ext = pathinfo($clean_name, PATHINFO_EXTENSION);
+        
+        // 1. Kiểm tra chính xác đuôi file trong meta _wp_attached_file
+        $sql = $wpdb->prepare(
+            "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_wp_attached_file' AND (meta_value = %s OR meta_value LIKE %s) ORDER BY post_id DESC LIMIT 1",
+            $clean_name,
+            '%' . $wpdb->esc_like('/' . $clean_name)
+        );
+        $post_id = $wpdb->get_var($sql);
+        
+        // 2. Nếu chưa thấy, kiểm tra theo tên gốc nếu WordPress đã đổi tên thành filename-1.ext, filename-2.ext
+        if (!$post_id && !empty($base_name) && !empty($ext)) {
+            $sql_fuzzy = $wpdb->prepare(
+                "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_wp_attached_file' AND meta_value LIKE %s ORDER BY post_id DESC LIMIT 1",
+                '%' . $wpdb->esc_like('/' . $base_name) . '%' . $wpdb->esc_like('.' . $ext)
+            );
+            $post_id = $wpdb->get_var($sql_fuzzy);
+        }
+        
+        // 3. Nếu chưa thấy, kiểm tra trong bảng wp_posts (guid)
+        if (!$post_id) {
+            $sql_guid = $wpdb->prepare(
+                "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND guid LIKE %s ORDER BY ID DESC LIMIT 1",
+                '%' . $wpdb->esc_like($clean_name)
+            );
+            $post_id = $wpdb->get_var($sql_guid);
+        }
+        
+        if ($post_id) {
+            $url = wp_get_attachment_url($post_id);
+            $results[$fname] = array(
+                'exists' => true,
+                'id' => intval($post_id),
+                'url' => $url,
+                'filename' => $clean_name,
+            );
+        } else {
+            $results[$fname] = array(
+                'exists' => false,
+                'filename' => $clean_name,
+            );
+        }
+    }
+    
+    // Nếu request đơn lẻ qua param filename
+    if (!empty($filename) && count($filenames) === 1) {
+        $res = isset($results[$filename]) ? $results[$filename] : array('exists' => false);
+        return $res;
+    }
+    
+    $found_count = 0;
+    foreach ($results as $r) {
+        if (!empty($r['exists'])) $found_count++;
+    }
+    
+    return array(
+        'success' => true,
+        'total_checked' => count($filenames),
+        'found_count' => $found_count,
+        'results' => $results,
+    );
 }
 
 /**

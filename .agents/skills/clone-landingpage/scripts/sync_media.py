@@ -83,50 +83,57 @@ def sync_media(source_url, output_dir=None):
             media_map = {}
 
     upload_endpoint = f"{api_url}/vbc/v1/upload"
-    wp_api_base = api_url.replace('/wp-json/vbc/v1', '') if '/wp-json/vbc/v1' in api_url else api_url.rsplit('/vbc/v1', 1)[0]
+    check_media_endpoint = f"{api_url}/vbc/v1/check-media"
     count = 0
 
-    def check_existing_wp_media(filename):
-        """Kiểm tra ảnh đã tồn tại trên WP Media Library theo tên file. Trả về URL nếu tìm thấy, None nếu chưa."""
-        search_name = os.path.splitext(filename)[0]  # bỏ extension để tìm rộng hơn
-        search_url = f"{wp_api_base}/wp-json/wp/v2/media?search={urllib.parse.quote(search_name)}&per_page=5"
-        try:
-            req = urllib.request.Request(search_url, headers={
-                'User-Agent': 'Mozilla/5.0',
-                'X-VBC-Token': token
-            })
-            with urllib.request.urlopen(req, timeout=10) as resp:
-                items = json.loads(resp.read().decode('utf-8'))
-                for item in items:
-                    src = item.get('source_url', '')
-                    # Khớp tên file chính xác (bỏ qua -1, -2 suffix)
-                    src_base = os.path.splitext(os.path.basename(src))[0]
-                    if src_base == search_name or src_base.startswith(search_name + '-'):
-                        return src
-        except Exception:
-            pass
-        return None
-
+    # 3. Batch Check existing media on WordPress Media Library via /vbc/v1/check-media
+    url_to_filename = {}
+    filenames_to_check = []
     for img_url in img_urls:
-        if img_url in media_map and media_map[img_url] and not media_map[img_url].startswith('http://') or img_url in media_map and media_map[img_url] and 'wpcloud.vn' in media_map[img_url]:
+        if img_url in media_map and media_map[img_url] and ('wpcloud.vn' in media_map[img_url] or '/wp-content/uploads/' in media_map[img_url]):
             continue
+        fname = os.path.basename(urllib.parse.urlparse(img_url).path) or f"img_{abs(hash(img_url))}.jpg"
+        if not re.search(r'\.(jpg|jpeg|png|webp|svg|gif)$', fname, re.IGNORECASE):
+            fname += '.jpg'
+        url_to_filename[img_url] = fname
+        filenames_to_check.append(fname)
 
-        filename = os.path.basename(urllib.parse.urlparse(img_url).path) or f"img_{abs(hash(img_url))}.jpg"
-        if not re.search(r'\.(jpg|jpeg|png|webp|svg|gif)$', filename, re.IGNORECASE):
-            filename += '.jpg'
+    checked_results = {}
+    if filenames_to_check:
+        print(f"⚡ Đang kiểm tra nhanh {len(filenames_to_check)} ảnh trên WordPress Media Library...")
+        try:
+            check_payload = json.dumps({"filenames": filenames_to_check}).encode('utf-8')
+            check_req = urllib.request.Request(
+                check_media_endpoint,
+                data=check_payload,
+                headers={
+                    'Content-Type': 'application/json',
+                    'X-VBC-Token': token,
+                    'User-Agent': 'Mozilla/5.0'
+                }
+            )
+            with urllib.request.urlopen(check_req, timeout=15) as resp:
+                check_res = json.loads(resp.read().decode('utf-8'))
+                checked_results = check_res.get('results', {})
+                found_cnt = check_res.get('found_count', 0)
+                print(f" -> ✅ Đã tìm thấy {found_cnt}/{len(filenames_to_check)} ảnh đã có sẵn trên WordPress!")
+        except Exception as e:
+            print(f" -> [WARN] Lỗi khi gọi /vbc/v1/check-media: {e}. Sẽ kiểm tra từng ảnh.")
+
+    # 4. Process each image: use existing or upload new
+    for img_url, filename in url_to_filename.items():
+        # Check if batch check found it
+        if filename in checked_results and checked_results[filename].get('exists'):
+            wp_url = checked_results[filename].get('url')
+            media_map[img_url] = wp_url
+            count += 1
+            print(f" -> [{count}] Tái sử dụng (đã có trên WP): {filename} => {wp_url}")
+            continue
 
         local_img_path = os.path.join(output_dir, filename)
 
         try:
-            # ✅ Bước 1: Kiểm tra đã tồn tại trên WP Media Library chưa
-            existing_url = check_existing_wp_media(filename)
-            if existing_url:
-                media_map[img_url] = existing_url
-                count += 1
-                print(f" -> [{count}] Tái sử dụng (đã tồn tại): {filename} => {existing_url}")
-                continue
-
-            # ✅ Bước 2: Download về local nếu chưa có
+            # Download về local nếu chưa có
             if not os.path.exists(local_img_path):
                 req = urllib.request.Request(img_url, headers={'User-Agent': 'Mozilla/5.0'})
                 with urllib.request.urlopen(req, timeout=15) as resp:
@@ -136,7 +143,7 @@ def sync_media(source_url, output_dir=None):
             with open(local_img_path, 'rb') as f:
                 img_data = f.read()
 
-            # ✅ Bước 3: Upload lên WP
+            # Upload lên WP
             ext = os.path.splitext(filename)[1].lower()
             content_type_map = {'.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
                                 '.webp': 'image/webp', '.svg': 'image/svg+xml', '.gif': 'image/gif'}

@@ -44,7 +44,8 @@ flowchart TD
 - **Dynamic Posts & Products Query**: Các khu vực danh sách bài viết blog, tin tức hoặc danh sách sản phẩm / khóa học phải sử dụng element `[vbc_post]` (`post_type="post|product"`).
 - **Page Template**: Đảm bảo meta `_wp_page_template` được gán chính xác `page-blank.php`.
 
-### 2. Trụ Cột 2: Rendered DOM & Frontend Aesthetics (Kiểm tra từ Trình duyệt)
+### 2. Trụ Cột 2: Rendered DOM & Frontend Aesthetics (Kiểm tra từ Trình duyệt Thực tế)
+- **100% Browser Rendered DOM**: Toàn bộ mã nguồn kiểm tra được trích xuất trực tiếp từ trình duyệt (Headless Chromium / Playwright) sau khi thực thi JavaScript và cuộn trang tải hết Lazy Load. Tuyệt đối không dùng code fetch thô (`file_get_contents`, `curl`, `requests`).
 - **0 Raw Shortcodes & 0 Text Leaks**:
   - 0 thẻ `[/vbc_div]`, `[row]`, `[col]` thô bị hiển thị ra ngoài màn hình người dùng.
   - 0 rò rỉ mã CSS (`selector .`, `{ width:`), 0 rò rỉ thuộc tính (`class="`, `margin="`), 0 dấu ngoặc đơn lẻ `]` trong text content.

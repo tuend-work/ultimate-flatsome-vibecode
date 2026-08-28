@@ -13,23 +13,24 @@ Sử dụng **Trí tuệ Nhân tạo (LLM)** để phân tích ngữ cảnh, b�
 
 ## Quy trình Thực hiện (Workflow)
 
-### Bước 1: Quét & Đồng bộ Media lên WordPress Media Library
+### Bước 1: Thu thập HTML Rendered Thực tế từ Trình duyệt & Đồng bộ Media
 Chạy script đồng bộ ảnh:
 ```bash
 python .agents/skills/clone-landingpage/scripts/sync_media.py --url "<URL_NGUON>"
 ```
-- Script sẽ tải mã nguồn HTML về `tmp/<slug>/source.html`, phát hiện toàn bộ ảnh và upload lên WordPress Media Library qua REST API `/vbc/v1/upload`.
-- Kết quả ánh xạ ảnh gốc $\to$ WordPress URL được lưu trong `tmp/<slug>/media_map.json`.
+- **QUY TẮC BẮT BUỘC — 100% LẤY HTML DOM TỪ TRÌNH DUYỆT (BROWSER RENDERED DOM)**:
+  - Script tự động khởi chạy **Trình duyệt thực tế (Playwright Headless Chromium)**, chờ trang render JavaScript (React/Vue/Next.js/Hydration), tự động cuộn trang để kích hoạt toàn bộ cơ chế Lazy Load và Dynamic Animation.
+  - Script trích xuất trực tiếp mã HTML DOM đã render hoàn chỉnh vào `tmp/<slug>/source.html` và chụp ảnh toàn trang `tmp/<slug>/source_screenshot.png`.
+  - **TUYỆT ĐỐI KHÔNG DÙNG** raw HTTP/code fetch (`urllib`, `file_get_contents`, `curl`, `requests.get`) vì sẽ bị mất trắng các thành phần render động, SVG icons, và ảnh lazy load.
+  - Phát hiện toàn bộ ảnh trong JavaScript runtime và upload lên WordPress Media Library qua REST API `/vbc/v1/upload`.
+  - Kết quả ánh xạ ảnh gốc $\to$ WordPress URL được lưu trong `tmp/<slug>/media_map.json`.
 - **BẮT BUỘC — Kiểm Tra Trùng Lặp Trước Khi Upload**:
-  - Trước khi upload, script **PHẢI kiểm tra** xem ảnh cùng tên (`filename`) đã tồn tại trên WordPress Media Library hay chưa, bằng cách:
-    1. Gọi endpoint `GET /wp-json/wp/v2/media?search=<filename>&per_page=1` với header `Authorization: Bearer <token>`.
-    2. Nếu nhận được `id` và `source_url` → **dùng luôn URL đó**, bỏ qua bước upload.
-    3. Nếu chưa tồn tại → mới thực hiện upload qua `/vbc/v1/upload`.
-  - Điều này giúp **tránh tạo bản sao trùng lặp** trong thư viện media WordPress và giảm thời gian xử lý.
+  - Trước khi upload, script **PHẢI kiểm tra** xem ảnh cùng tên (`filename`) đã tồn tại trên WordPress Media Library hay chưa qua endpoint `/vbc/v1/check-media` hoặc `GET /wp-json/wp/v2/media?search=<filename>`.
+  - Nếu đã tồn tại → **tái sử dụng ngay URL đó**, không tạo bản sao trùng lặp.
   - Mọi kết quả cuối cùng (dù upload mới hay lấy từ WP) đều được ghi vào `media_map.json`.
 
-### Bước 2: AI Đọc Hiểu & Bóc Tách Ngữ Cảnh Bố Cục (DOM & Visual Context)
-AI đọc `tmp/<slug>/source.html` và phân tích các Section chính:
+### Bước 2: AI Đọc Hiểu & Bóc Tách Ngữ Cảnh Bố Cục (Rendered DOM & Visual Context)
+AI đọc `tmp/<slug>/source.html` (đã được trình duyệt render 100%) kết hợp quan sát `tmp/<slug>/source_screenshot.png` và phân tích các Section chính:
 1. **Header / Topbar**: Logo, hotline, navigation links, CTA button.
 2. **Hero Section**: Tiêu đề chính H1, slogan, badge ưu đãi, bullet points lợi ích, form đăng ký, hình ảnh đại diện.
 3. **Highlights / Features Grid**: Lưới 3–4 cột với các điểm mạnh dịch vụ, icon vector trực quan.

@@ -330,18 +330,19 @@ class LandingPageRechecker:
             print(f"[CẢNH BÁO] Không thể kích hoạt Playwright ({e}). Chuyển sang HTTP fetch fallback...")
             return None
 
-    # =========================================================================
-    # TRỤ CỘT 2: BROWSER RENDERED DOM & FRONTEND AESTHETICS AUDIT
-    # =========================================================================
-    def fetch_rendered_html(self, url):
-        """Tải mã nguồn HTML rendered thực tế với cache-busting"""
+    def fetch_rendered_html(self, url, output_img_path=None, output_html_path=None):
+        """Tải mã nguồn HTML Rendered thực tế từ Trình duyệt Chromium (Playwright), fallback sang HTTP nếu cần"""
+        dom = self.capture_fresh_browser_state(url, output_img_path, output_html_path)
+        if dom:
+            return dom
+
+        # HTTP Fallback chỉ khi Playwright không khả dụng
         cache_buster = f"vbc_qa={int(time.time())}"
         fetch_url = f"{url}{'&' if '?' in url else '?'}{cache_buster}"
-        
         req = urllib.request.Request(
             fetch_url,
             headers={
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
                 'Cache-Control': 'no-cache',
                 'Pragma': 'no-cache'
             }
@@ -445,8 +446,8 @@ class LandingPageRechecker:
     # =========================================================================
     # TRỤ CỘT 3: SECTION-BY-SECTION GAP ANALYSIS & VISUAL COMPARISON
     # =========================================================================
-    def compare_with_source(self, target_html):
-        """Đối chiếu Section-by-Section giữa Web Gốc và Web Clone"""
+    def compare_with_source(self, target_html, source_html=None):
+        """Đối chiếu Section-by-Section giữa Web Gốc và Web Clone (100% từ Rendered DOM Trình duyệt)"""
         target_sections = re.findall(r'<section\b[^>]*id=[\'"]([^\'"]*)[\'"][^>]*>([\s\S]*?)<\/section>', target_html, re.IGNORECASE)
         section_audit = []
         for sec_id, sec_content in target_sections:
@@ -470,7 +471,8 @@ class LandingPageRechecker:
         if not self.source_url:
             return
 
-        source_html = self.fetch_rendered_html(self.source_url)
+        if not source_html:
+            source_html = self.fetch_rendered_html(self.source_url)
         if not source_html:
             self.issues.append(f"Không thể tải mã nguồn Web Gốc {self.source_url} để đối soát.")
             return
@@ -674,12 +676,16 @@ class LandingPageRechecker:
             if self.source_url:
                 fresh_source_img = os.path.join(self.tmp_dir, f"fresh_source_{ts}.png")
                 fresh_source_html = os.path.join(self.tmp_dir, f"fresh_source_{ts}.html")
+                source_dom = None
                 if not self.source_img or not os.path.exists(self.source_img):
-                    self.capture_fresh_browser_state(self.source_url, fresh_source_img, fresh_source_html)
+                    source_dom = self.capture_fresh_browser_state(self.source_url, fresh_source_img, fresh_source_html)
                     if os.path.exists(fresh_source_img):
                         self.source_img = fresh_source_img
+                elif os.path.exists(fresh_source_html):
+                    with open(fresh_source_html, 'r', encoding='utf-8') as sf:
+                        source_dom = sf.read()
 
-                self.compare_with_source(html)
+                self.compare_with_source(html, source_html=source_dom)
 
             self.run_ai_visual_comparison()
 
@@ -723,7 +729,7 @@ def main():
     parser.add_argument("--source_url", help="URL trang web gốc để đối chiếu")
     parser.add_argument("--source_img", help="Đường dẫn ảnh chụp màn hình web gốc")
     parser.add_argument("--target_img", help="Đường dẫn ảnh chụp màn hình web clone")
-    parser.add_argument("--threshold", type=float, default=90.0, help="Ngưỡng độ tương đồng tối thiểu (mặc định: 90.0%)")
+    parser.add_argument("--threshold", type=float, default=90.0, help="Ngưỡng độ tương đồng tối thiểu (mặc định: 90.0%%)")
     parser.add_argument("--max_retries", type=int, default=3, help="Số lần recheck tối đa (mặc định: 3)")
     parser.add_argument("--tmp_dir", help="Thư mục tmp lưu báo cáo so sánh")
 

@@ -9,6 +9,9 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+/**
+ * Helper: Parse cấu hình danh sách trường và độ rộng cột cho vbc_post
+ */
 function vbc_parse_post_fields_config($fields_str, $post_type = 'post') {
     if (empty(trim($fields_str))) {
         if ($post_type === 'product') {
@@ -97,10 +100,15 @@ function vbc_post_shortcode($atts, $content = null) {
         'excerpt_color' => '#64748b',
         'price_color' => '#2563eb',
         'price_size' => '18px',
+
+        // Button Styling
         'button_text' => 'Xem Chi Tiết',
-        'button_variant' => 'primary', // primary, secondary, alert, success, outline, dark
+        'button_variant' => 'primary', // primary, secondary, alert, success, outline, dark, custom
+        'button_bg' => '',
+        'button_color' => '',
         'button_icon' => 'lucide:arrow-right',
         'button_radius' => '8px',
+        'button_padding' => '10px 20px',
 
         // Card Styling
         'card_bg' => '#ffffff',
@@ -217,6 +225,8 @@ function vbc_post_shortcode($atts, $content = null) {
     $columns_tablet = !empty($atts['columns__md']) ? intval($atts['columns__md']) : min(2, $columns_desktop);
     $columns_mobile = !empty($atts['columns__sm']) ? intval($atts['columns__sm']) : 1;
     $gap = !empty($atts['gap']) ? $atts['gap'] : '24px';
+    $gap_md = !empty($atts['gap__md']) ? $atts['gap__md'] : $gap;
+    $gap_sm = !empty($atts['gap__sm']) ? $atts['gap__sm'] : $gap;
 
     $card_bg = !empty($atts['card_bg']) ? $atts['card_bg'] : '#ffffff';
     $card_padding = !empty($atts['card_padding']) ? $atts['card_padding'] : '20px';
@@ -229,8 +239,8 @@ function vbc_post_shortcode($atts, $content = null) {
 
     if ($atts['layout'] === 'grid') {
         $css_rules .= '.' . $grid_class . ' { display: grid; grid-template-columns: repeat(' . $columns_desktop . ', 1fr); gap: ' . $gap . '; width: 100%; box-sizing: border-box; } ';
-        $css_rules .= '@media (max-width: 849px) { .' . $grid_class . ' { grid-template-columns: repeat(' . $columns_tablet . ', 1fr); } } ';
-        $css_rules .= '@media (max-width: 549px) { .' . $grid_class . ' { grid-template-columns: repeat(' . $columns_mobile . ', 1fr); } } ';
+        $css_rules .= '@media (max-width: 849px) { .' . $grid_class . ' { grid-template-columns: repeat(' . $columns_tablet . ', 1fr); gap: ' . $gap_md . '; } } ';
+        $css_rules .= '@media (max-width: 549px) { .' . $grid_class . ' { grid-template-columns: repeat(' . $columns_mobile . ', 1fr); gap: ' . $gap_sm . '; } } ';
         
         // Card styling for Grid
         $css_rules .= '.' . $grid_class . ' .vbc-post-card { ';
@@ -260,27 +270,84 @@ function vbc_post_shortcode($atts, $content = null) {
     }
 
     if ($card_hover === 'translateY') {
-        $css_rules .= '.' . $grid_class . ' .vbc-post-card:hover { transform: translateY(-6px); box-shadow: 0 18px 35px rgba(0,0,0,0.09); } ';
+        $css_rules .= '.' . $grid_class . ' .vbc-post-card:hover { transform: translateY(-6px); box-shadow: 0 16px 32px rgba(0,0,0,0.08); } ';
     } elseif ($card_hover === 'scale') {
         $css_rules .= '.' . $grid_class . ' .vbc-post-card:hover { transform: scale(1.02); } ';
     } elseif ($card_hover === 'shadow') {
-        $css_rules .= '.' . $grid_class . ' .vbc-post-card:hover { box-shadow: 0 20px 40px rgba(0,0,0,0.12); } ';
+        $css_rules .= '.' . $grid_class . ' .vbc-post-card:hover { box-shadow: 0 18px 36px rgba(0,0,0,0.12); } ';
     }
 
-    // Hover zoom thumbnail image
-    $css_rules .= '.' . $grid_class . ' .vbc-post-card:hover .vbc-post-thumb-img { transform: scale(1.06); } ';
+    // Thumbnail container & image zoom transition
+    $css_rules .= '.' . $grid_class . ' .vbc-post-thumb-wrap { position: relative; width: 100%; overflow: hidden; border-radius: inherit; } ';
+    $css_rules .= '.' . $grid_class . ' .vbc-post-thumb-img { width: 100%; height: 100%; display: block; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); } ';
+    $css_rules .= '.' . $grid_class . ' .vbc-post-card:hover .vbc-post-thumb-img { transform: scale(1.05); } ';
 
     // Title styling
-    $title_color_css = !empty($atts['title_color']) ? 'color: ' . esc_attr($atts['title_color']) . ' !important;' : 'color: #0f172a !important;';
-    $title_hover_css = !empty($atts['title_hover_color']) ? 'color: ' . esc_attr($atts['title_hover_color']) . ' !important;' : 'color: #2563eb !important;';
-    $css_rules .= '.' . $grid_class . ' .vbc-post-title-link { ' . $title_color_css . ' text-decoration: none; transition: color 0.2s; } ';
+    $title_color_css = !empty($atts['title_color']) ? 'color: ' . esc_attr($atts['title_color']) . ';' : 'color: inherit;';
+    $title_hover_css = !empty($atts['title_hover_color']) ? 'color: ' . esc_attr($atts['title_hover_color']) . ';' : 'color: var(--primary-color, #2563eb);';
+    $css_rules .= '.' . $grid_class . ' .vbc-post-title-link { ' . $title_color_css . ' text-decoration: none; transition: color 0.2s ease; } ';
     $css_rules .= '.' . $grid_class . ' .vbc-post-title-link:hover { ' . $title_hover_css . ' } ';
 
-    // Button styling
-    $btn_rad = !empty($atts['button_radius']) ? $atts['button_radius'] : '50px';
-    $css_rules .= '.' . $grid_class . ' .vbc-post-field-button { width: 100% !important; margin-top: auto !important; padding-top: 6px !important; } ';
-    $css_rules .= '.' . $grid_class . ' .vbc-btn { display: flex !important; width: 100% !important; align-items: center !important; justify-content: center !important; gap: 8px !important; padding: 12px 22px !important; font-size: 14px !important; font-weight: 800 !important; text-decoration: none !important; transition: all 0.2s ease !important; background: linear-gradient(135deg, #F5568F, #e0447c) !important; color: #ffffff !important; box-shadow: 0 4px 14px rgba(245,86,143,0.35) !important; border-radius: ' . esc_attr($btn_rad) . ' !important; } ';
-    $css_rules .= '.' . $grid_class . ' .vbc-btn:hover { transform: translateY(-2px) !important; box-shadow: 0 8px 22px rgba(245,86,143,0.5) !important; color: #ffffff !important; } ';
+    // Button styling (Dựa trên variant hoặc custom parameters, KHÔNG HARDCODE MÀU CỐ ĐỊNH / KHÔNG DÙNG !IMPORTANT BỪA BÃI)
+    $btn_radius = !empty($atts['button_radius']) ? $atts['button_radius'] : '8px';
+    $btn_padding = !empty($atts['button_padding']) ? $atts['button_padding'] : '10px 20px';
+    $btn_variant = !empty($atts['button_variant']) ? $atts['button_variant'] : 'primary';
+
+    // Xác định màu nền và màu chữ của button
+    $btn_bg = '';
+    $btn_color = '';
+    $btn_border = 'none';
+
+    if (!empty($atts['button_bg'])) {
+        $btn_bg = esc_attr($atts['button_bg']);
+        $btn_color = !empty($atts['button_color']) ? esc_attr($atts['button_color']) : '#ffffff';
+    } else {
+        switch ($btn_variant) {
+            case 'secondary':
+                $btn_bg = 'var(--secondary-color, #64748b)';
+                $btn_color = '#ffffff';
+                break;
+            case 'alert':
+            case 'danger':
+                $btn_bg = '#ef4444';
+                $btn_color = '#ffffff';
+                break;
+            case 'success':
+                $btn_bg = '#10b981';
+                $btn_color = '#ffffff';
+                break;
+            case 'dark':
+                $btn_bg = '#1e293b';
+                $btn_color = '#ffffff';
+                break;
+            case 'outline':
+                $btn_bg = 'transparent';
+                $btn_color = !empty($atts['button_color']) ? esc_attr($atts['button_color']) : 'var(--primary-color, #2563eb)';
+                $btn_border = '1.5px solid currentColor';
+                break;
+            case 'primary':
+            default:
+                $btn_bg = 'var(--primary-color, #2563eb)';
+                $btn_color = '#ffffff';
+                break;
+        }
+        if (!empty($atts['button_color'])) {
+            $btn_color = esc_attr($atts['button_color']);
+        }
+    }
+
+    $css_rules .= '.' . $grid_class . ' .vbc-post-field-button { width: 100%; margin-top: auto; padding-top: 6px; } ';
+    $css_rules .= '.' . $grid_class . ' .vbc-btn { ';
+    $css_rules .= 'display: inline-flex; width: 100%; align-items: center; justify-content: center; gap: 8px; ';
+    $css_rules .= 'padding: ' . esc_attr($btn_padding) . '; ';
+    $css_rules .= 'font-size: 14px; font-weight: 700; text-decoration: none; box-sizing: border-box; ';
+    $css_rules .= 'background: ' . $btn_bg . '; ';
+    $css_rules .= 'color: ' . $btn_color . '; ';
+    $css_rules .= 'border: ' . $btn_border . '; ';
+    $css_rules .= 'border-radius: ' . esc_attr($btn_radius) . '; ';
+    $css_rules .= 'transition: all 0.2s ease; ';
+    $css_rules .= '} ';
+    $css_rules .= '.' . $grid_class . ' .vbc-btn:hover { transform: translateY(-2px); opacity: 0.92; color: ' . $btn_color . '; } ';
 
     // Custom CSS
     if (!empty($atts['custom_css'])) {
@@ -314,10 +381,8 @@ function vbc_post_shortcode($atts, $content = null) {
     $title_tag = in_array($atts['title_tag'], array('h2', 'h3', 'h4', 'p', 'div')) ? $atts['title_tag'] : 'h3';
     $title_size = !empty($atts['title_size']) ? $atts['title_size'] : '18px';
     $title_lines = intval($atts['title_lines']);
-    $price_color = !empty($atts['price_color']) ? $atts['price_color'] : '#2563eb';
+    $price_color = !empty($atts['price_color']) ? $atts['price_color'] : 'var(--primary-color, #2563eb)';
     $price_size = !empty($atts['price_size']) ? $atts['price_size'] : '18px';
-    $btn_variant = !empty($atts['button_variant']) ? $atts['button_variant'] : 'primary';
-    $btn_radius = !empty($atts['button_radius']) ? $atts['button_radius'] : '8px';
     $btn_text_default = !empty($atts['button_text']) ? $atts['button_text'] : 'Xem Chi Tiết';
     $image_height = !empty($atts['image_height']) ? $atts['image_height'] : '220px';
     $image_fit = !empty($atts['image_fit']) ? $atts['image_fit'] : 'cover';
@@ -362,10 +427,10 @@ function vbc_post_shortcode($atts, $content = null) {
                     if ($thumb_url) {
                         $output .= '<a href="' . esc_url($permalink) . '"><img src="' . esc_url($thumb_url) . '" alt="' . esc_attr(get_the_title()) . '" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; display: block;"></a>';
                     } else {
-                        $output .= '<div style="width: 60px; height: 60px; background: #f1f5f9; border-radius: 8px; display: flex; align-items: center; justify-content: center;"><i data-lucide="file-text" style="width: 22px; height: 22px; color: #94a3b8;"></i></div>';
+                        $output .= '<div style="width: 60px; height: 60px; background: #f1f5f9; border-radius: 8px; display: flex; align-items: center; justify-content: center;"><i data-lucide="image" style="width: 22px; height: 22px; color: #94a3b8;"></i></div>';
                     }
                 } elseif ($f['type'] === 'title') {
-                    $output .= '<a href="' . esc_url($permalink) . '" style="font-weight: 700; color: #0f172a; text-decoration: none; font-size: 15px;">' . get_the_title() . '</a>';
+                    $output .= '<a href="' . esc_url($permalink) . '" style="font-weight: 700; color: inherit; text-decoration: none; font-size: 15px;">' . get_the_title() . '</a>';
                 } elseif ($f['type'] === 'price') {
                     $price_html = '';
                     if (function_exists('wc_get_product')) {
@@ -389,7 +454,8 @@ function vbc_post_shortcode($atts, $content = null) {
                         $output .= '<span style="background: rgba(37,99,235,0.08); color: #2563eb; font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 6px;">' . esc_html($terms_list[0]->name) . '</span>';
                     }
                 } elseif ($f['type'] === 'button' || $f['type'] === 'read_more') {
-                    $output .= '<a href="' . esc_url($permalink) . '" class="vbc-btn vbc-btn-' . esc_attr($btn_variant) . '" style="padding: 6px 14px; font-size: 13px; border-radius: ' . esc_attr($btn_radius) . '; text-decoration: none; display: inline-block;">' . esc_html($btn_text_default) . '</a>';
+                    $btn_label = !empty($f['extra']) ? $f['extra'] : $btn_text_default;
+                    $output .= '<a href="' . esc_url($permalink) . '" class="vbc-btn vbc-btn-' . esc_attr($btn_variant) . '" style="padding: 6px 14px; font-size: 13px; border-radius: ' . esc_attr($btn_radius) . '; text-decoration: none; display: inline-block;">' . esc_html($btn_label) . '</a>';
                 } elseif ($f['type'] === 'meta' || $f['type'] === 'custom_field') {
                     $val = get_post_meta($post_id, $f['meta_key'], true);
                     $output .= '<span>' . esc_html($val . (!empty($f['extra']) ? ' ' . $f['extra'] : '')) . '</span>';
@@ -460,9 +526,9 @@ function vbc_post_shortcode($atts, $content = null) {
 
                         $output .= '<div class="vbc-post-list-thumb" style="width: ' . esc_attr($thumb_w) . '; flex: 0 0 ' . esc_attr($thumb_w) . '; height: ' . esc_attr($image_height) . '; overflow: hidden; border-radius: ' . esc_attr($card_radius) . '; position: relative;">';
                         if ($thumb_url) {
-                            $output .= '<a href="' . esc_url($permalink) . '" style="display: block; width: 100%; height: 100%;"><img src="' . esc_url($thumb_url) . '" alt="' . esc_attr($post_title) . '" class="vbc-post-thumb-img" style="width: 100%; height: 100%; object-fit: ' . esc_attr($image_fit) . '; display: block; transition: transform 0.4s ease;"></a>';
+                            $output .= '<a href="' . esc_url($permalink) . '" style="display: block; width: 100%; height: 100%;"><img src="' . esc_url($thumb_url) . '" alt="' . esc_attr($post_title) . '" class="vbc-post-thumb-img" style="width: 100%; height: 100%; object-fit: ' . esc_attr($image_fit) . '; display: block;"></a>';
                         } else {
-                            $output .= '<div style="width: 100%; height: 100%; background: #f1f5f9; display: flex; align-items: center; justify-content: center;"><i data-lucide="file-text" style="width: 40px; height: 40px; color: #cbd5e1;"></i></div>';
+                            $output .= '<div style="width: 100%; height: 100%; background: #f1f5f9; display: flex; align-items: center; justify-content: center;"><i data-lucide="image" style="width: 36px; height: 36px; color: #cbd5e1;"></i></div>';
                         }
                         $output .= '</div>';
                         $thumb_rendered_in_list = true;
@@ -503,22 +569,18 @@ function vbc_post_shortcode($atts, $content = null) {
                     if (function_exists('wc_get_product')) {
                         $product = wc_get_product($post_id);
                         if ($product && method_exists($product, 'is_on_sale') && $product->is_on_sale()) {
-                            $sale_badge_html = '<span style="position: absolute; top: 12px; left: 12px; z-index: 2; background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; font-size: 12px; font-weight: 800; padding: 4px 10px; border-radius: 999px; box-shadow: 0 4px 10px rgba(239,68,68,0.3);">SALE</span>';
+                            $sale_badge_html = '<span class="vbc-sale-badge" style="position: absolute; top: 12px; left: 12px; z-index: 2; background: #ef4444; color: #fff; font-size: 11px; font-weight: 800; padding: 3px 9px; border-radius: 999px; letter-spacing: 0.5px;">SALE</span>';
                         }
                     }
 
                     $output .= '<div class="vbc-post-field vbc-post-field-thumb" style="' . $flex_css . ' margin-bottom: 6px;">';
-                    $output .= '<div class="vbc-post-thumb-wrap" style="position: relative; width: 100%; height: ' . esc_attr($image_height) . '; overflow: hidden; border-radius: ' . esc_attr($card_radius) . ';">';
+                    $output .= '<div class="vbc-post-thumb-wrap" style="height: ' . esc_attr($image_height) . ';">';
                     $output .= $sale_badge_html;
-                    if (empty($thumb_url)) {
-                        $fallback_thumbs = array(
-                            'https://vieduenglish.com/wp-content/uploads/2026/08/mau-giao-1.png',
-                            'https://vieduenglish.com/wp-content/uploads/2026/08/mau-giao-2.png',
-                            'https://vieduenglish.com/wp-content/uploads/2026/08/mau-giao-3.png',
-                        );
-                        $thumb_url = $fallback_thumbs[ absint($post_id) % count($fallback_thumbs) ];
+                    if ($thumb_url) {
+                        $output .= '<a href="' . esc_url($permalink) . '" style="display: block; width: 100%; height: 100%;"><img src="' . esc_url($thumb_url) . '" alt="' . esc_attr($post_title) . '" class="vbc-post-thumb-img" style="object-fit: ' . esc_attr($image_fit) . ';"></a>';
+                    } else {
+                        $output .= '<div style="width: 100%; height: 100%; background: #f8fafc; display: flex; align-items: center; justify-content: center;"><i data-lucide="image" style="width: 36px; height: 36px; color: #cbd5e1;"></i></div>';
                     }
-                    $output .= '<a href="' . esc_url($permalink) . '" style="display: block; width: 100%; height: 100%;"><img src="' . esc_url($thumb_url) . '" alt="' . esc_attr($post_title) . '" class="vbc-post-thumb-img" style="width: 100%; height: 100%; object-fit: ' . esc_attr($image_fit) . '; display: block; transition: transform 0.4s ease;"></a>';
                     $output .= '</div></div>';
                 } elseif ($f_type === 'title') {
                     $clamp_css = $title_lines > 0 ? 'display: -webkit-box; -webkit-line-clamp: ' . $title_lines . '; -webkit-box-orient: vertical; overflow: hidden;' : '';
@@ -561,16 +623,7 @@ function vbc_post_shortcode($atts, $content = null) {
                             $raw_excerpt = '';
                         }
                     }
-                    if (empty($raw_excerpt)) {
-                        if (strpos(strtolower($post_title), 'tiểu học') !== false) {
-                            $raw_excerpt = 'Phát triển toàn diện 4 kỹ năng Nghe - Nói - Đọc - Viết, bám sát khung chuẩn quốc tế Cambridge Starters, Movers, Flyers.';
-                        } elseif (strpos(strtolower($post_title), 'thiếu niên') !== false || strpos(strtolower($post_title), 'ielts') !== false || strpos(strtolower($post_title), 'ket') !== false) {
-                            $raw_excerpt = 'Chiến lược làm bài thi thực chiến, nâng cao tư duy phản biện và rèn luyện kỹ năng viết luận học thuật cá nhân hóa.';
-                        } else {
-                            $raw_excerpt = 'Chương trình đào tạo tiếng Anh chuẩn quốc tế 1 kèm 1 cá nhân hóa, phát triển toàn diện kỹ năng giao tiếp và phản xạ tự nhiên.';
-                        }
-                    }
-                    $trimmed_excerpt = wp_trim_words($raw_excerpt, intval($atts['excerpt_length']) ?: 22, '...');
+                    $trimmed_excerpt = !empty($raw_excerpt) ? wp_trim_words($raw_excerpt, intval($atts['excerpt_length']) ?: 20, '...') : '';
                     if (!empty($trimmed_excerpt)) {
                         $output .= '<div class="vbc-post-field vbc-post-field-excerpt" style="' . $flex_css . ' margin: 4px 0 12px 0;">';
                         $output .= '<p style="margin: 0; font-size: 14px; line-height: 1.6; color: ' . esc_attr($atts['excerpt_color']) . ';">' . esc_html($trimmed_excerpt) . '</p>';
@@ -591,7 +644,7 @@ function vbc_post_shortcode($atts, $content = null) {
                         $output .= '<div class="vbc-post-field vbc-post-field-terms" style="' . $flex_css . ' margin-bottom: 4px;">';
                         $output .= '<div style="display: flex; flex-wrap: wrap; gap: 6px;">';
                         foreach (array_slice($terms_list, 0, 2) as $t) {
-                            $output .= '<span style="background: rgba(37,99,235,0.08); color: #2563eb; font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px;">' . esc_html($t->name) . '</span>';
+                            $output .= '<span style="background: rgba(37,99,235,0.08); color: var(--primary-color, #2563eb); font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px;">' . esc_html($t->name) . '</span>';
                         }
                         $output .= '</div></div>';
                     }
@@ -609,9 +662,8 @@ function vbc_post_shortcode($atts, $content = null) {
                 } elseif ($f_type === 'button' || $f_type === 'read_more' || $f_type === 'buy_now') {
                     $btn_label = !empty($f['extra']) ? $f['extra'] : $btn_text_default;
                     $align_btn = ($f_width === '100%') ? 'text-align: center;' : 'text-align: right;';
-                    $btn_width_css = ($f_width === '100%') ? 'width: 100%; box-sizing: border-box;' : '';
-                    $output .= '<div class="vbc-post-field vbc-post-field-button" style="' . $flex_css . ' ' . $align_btn . ' margin-top: auto; padding-top: 6px;">';
-                    $output .= '<a href="' . esc_url($permalink) . '" class="vbc-btn vbc-btn-' . esc_attr($btn_variant) . '" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; font-size: 14px; font-weight: 800; border-radius: ' . esc_attr($btn_radius) . '; text-decoration: none; transition: all 0.2s; background: linear-gradient(135deg, #F5568F, #e0447c) !important; color: #ffffff !important; box-shadow: 0 4px 14px rgba(245,86,143,0.35); ' . $btn_width_css . '">';
+                    $output .= '<div class="vbc-post-field vbc-post-field-button" style="' . $flex_css . ' ' . $align_btn . '">';
+                    $output .= '<a href="' . esc_url($permalink) . '" class="vbc-btn vbc-btn-' . esc_attr($btn_variant) . '">';
                     $output .= '<span>' . esc_html($btn_label) . '</span>';
                     $output .= '<i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>';
                     $output .= '</a></div>';
@@ -640,13 +692,12 @@ function vbc_post_shortcode($atts, $content = null) {
                             $display_val = is_array($val) ? implode(', ', $val) : $val;
                             $suffix = !empty($f['extra']) ? ' ' . $f['extra'] : '';
                             
-                            // Auto-icon detection for meta fields
                             $icon_html = '';
                             $k_lower = strtolower($meta_k);
                             if (strpos($k_lower, 'date') !== false || strpos($k_lower, 'ngay') !== false || strpos($k_lower, 'time') !== false) {
-                                $icon_html = '<i data-lucide="calendar" style="width: 15px; height: 15px; color: #FF5722; flex-shrink: 0; display: inline-block; vertical-align: middle;"></i> ';
+                                $icon_html = '<i data-lucide="calendar" style="width: 15px; height: 15px; opacity: 0.8; flex-shrink: 0;"></i> ';
                             } elseif (strpos($k_lower, 'location') !== false || strpos($k_lower, 'dia_diem') !== false || strpos($k_lower, 'address') !== false || strpos($k_lower, 'place') !== false) {
-                                $icon_html = '<i data-lucide="map-pin" style="width: 15px; height: 15px; color: #2563EB; flex-shrink: 0; display: inline-block; vertical-align: middle;"></i> ';
+                                $icon_html = '<i data-lucide="map-pin" style="width: 15px; height: 15px; opacity: 0.8; flex-shrink: 0;"></i> ';
                             }
                             
                             $output .= '<div class="vbc-post-field vbc-post-field-meta vbc-meta-' . esc_attr($meta_k) . '" style="' . $flex_css . ' font-size: 14px; color: #334155; display: inline-flex; align-items: center; gap: 6px;">';
@@ -662,13 +713,12 @@ function vbc_post_shortcode($atts, $content = null) {
                             $display_val = is_array($val) ? (isset($val['url']) ? '<img src="' . esc_url($val['url']) . '" style="max-width: 100%; border-radius: 8px;">' : implode(', ', $val)) : esc_html($val);
                             $suffix = !empty($f['extra']) ? ' ' . $f['extra'] : '';
                             
-                            // Auto-icon detection for ACF fields
                             $icon_html = '';
                             $k_lower = strtolower($acf_k);
                             if (strpos($k_lower, 'date') !== false || strpos($k_lower, 'ngay') !== false || strpos($k_lower, 'time') !== false) {
-                                $icon_html = '<i data-lucide="calendar" style="width: 15px; height: 15px; color: #FF5722; flex-shrink: 0; display: inline-block; vertical-align: middle;"></i> ';
+                                $icon_html = '<i data-lucide="calendar" style="width: 15px; height: 15px; opacity: 0.8; flex-shrink: 0;"></i> ';
                             } elseif (strpos($k_lower, 'location') !== false || strpos($k_lower, 'dia_diem') !== false || strpos($k_lower, 'address') !== false || strpos($k_lower, 'place') !== false) {
-                                $icon_html = '<i data-lucide="map-pin" style="width: 15px; height: 15px; color: #2563EB; flex-shrink: 0; display: inline-block; vertical-align: middle;"></i> ';
+                                $icon_html = '<i data-lucide="map-pin" style="width: 15px; height: 15px; opacity: 0.8; flex-shrink: 0;"></i> ';
                             }
                             
                             $output .= '<div class="vbc-post-field vbc-post-field-acf vbc-acf-' . esc_attr($acf_k) . '" style="' . $flex_css . ' font-size: 14px; color: #334155; display: inline-flex; align-items: center; gap: 6px;">';
@@ -713,10 +763,3 @@ function vbc_post_shortcode($atts, $content = null) {
 
     return $style_tag . $output;
 }
-
-/**
- * 3. HỆ THỐNG TRANG QUẢN TRỊ VIBECODE & XUẤT DỰ ÁN CHO ANTIGRAVITY
- */
-
-// Đăng ký Menu Quản Trị trong WordPress Admin
-add_action('admin_menu', 'vbc_register_admin_menu');

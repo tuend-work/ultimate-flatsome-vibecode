@@ -386,7 +386,8 @@ function vbc_api_page_handler($request) {
             return new WP_Error('vbc_forbidden', 'You do not have permission to edit this page.', array('status' => 403));
         }
         
-        $target_template = !empty($params['template']) ? sanitize_text_field($params['template']) : 'page-blank.php';
+        $default_tpl = ($post_type === 'post') ? 'default' : 'page-blank.php';
+        $target_template = !empty($params['template']) ? sanitize_text_field($params['template']) : $default_tpl;
         update_post_meta($post_id, '_wp_page_template', $target_template);
 
         $post_data = array(
@@ -402,6 +403,9 @@ function vbc_api_page_handler($request) {
         if (!empty($status)) {
             $post_data['post_status'] = $status;
         }
+        if (!empty($params['excerpt'])) {
+            $post_data['post_excerpt'] = sanitize_textarea_field($params['excerpt']);
+        }
         
         $updated_id = wp_update_post($post_data, true);
         if (is_wp_error($updated_id)) {
@@ -413,6 +417,29 @@ function vbc_api_page_handler($request) {
             $extracted_css = trim($extracted_css);
             update_post_meta($updated_id, '_custom_css', $extracted_css);
             update_post_meta($updated_id, 'vbc_page_css', $extracted_css);
+        }
+
+        if (!empty($params['thumbnail_id'])) {
+            set_post_thumbnail($updated_id, intval($params['thumbnail_id']));
+        }
+        if (!empty($params['categories'])) {
+            wp_set_post_categories($updated_id, array_map('intval', (array)$params['categories']));
+        } elseif (!empty($params['category_names'])) {
+            $cat_ids = array();
+            foreach ((array)$params['category_names'] as $cname) {
+                $term = term_exists($cname, 'category');
+                if ($term) {
+                    $cat_ids[] = (int)$term['term_id'];
+                } else {
+                    $new_cat = wp_insert_term($cname, 'category');
+                    if (!is_wp_error($new_cat)) {
+                        $cat_ids[] = (int)$new_cat['term_id'];
+                    }
+                }
+            }
+            if (!empty($cat_ids)) {
+                wp_set_post_categories($updated_id, $cat_ids);
+            }
         }
         
         return array(
@@ -426,7 +453,8 @@ function vbc_api_page_handler($request) {
             return new WP_Error('vbc_forbidden', 'You do not have permission to create pages.', array('status' => 403));
         }
         
-        $target_template = !empty($params['template']) ? sanitize_text_field($params['template']) : 'page-blank.php';
+        $default_tpl = ($post_type === 'post') ? 'default' : 'page-blank.php';
+        $target_template = !empty($params['template']) ? sanitize_text_field($params['template']) : $default_tpl;
         $post_data = array(
             'post_title' => !empty($title) ? $title : 'Untitled Page',
             'post_content' => $content,
@@ -435,6 +463,9 @@ function vbc_api_page_handler($request) {
         );
         if (!empty($slug)) {
             $post_data['post_name'] = $slug;
+        }
+        if (!empty($params['excerpt'])) {
+            $post_data['post_excerpt'] = sanitize_textarea_field($params['excerpt']);
         }
         
         $new_id = wp_insert_post($post_data, true);
@@ -447,6 +478,29 @@ function vbc_api_page_handler($request) {
             $extracted_css = trim($extracted_css);
             update_post_meta($new_id, '_custom_css', $extracted_css);
             update_post_meta($new_id, 'vbc_page_css', $extracted_css);
+        }
+
+        if (!empty($params['thumbnail_id'])) {
+            set_post_thumbnail($new_id, intval($params['thumbnail_id']));
+        }
+        if (!empty($params['categories'])) {
+            wp_set_post_categories($new_id, array_map('intval', (array)$params['categories']));
+        } elseif (!empty($params['category_names'])) {
+            $cat_ids = array();
+            foreach ((array)$params['category_names'] as $cname) {
+                $term = term_exists($cname, 'category');
+                if ($term) {
+                    $cat_ids[] = (int)$term['term_id'];
+                } else {
+                    $new_cat = wp_insert_term($cname, 'category');
+                    if (!is_wp_error($new_cat)) {
+                        $cat_ids[] = (int)$new_cat['term_id'];
+                    }
+                }
+            }
+            if (!empty($cat_ids)) {
+                wp_set_post_categories($new_id, $cat_ids);
+            }
         }
         
         return array(

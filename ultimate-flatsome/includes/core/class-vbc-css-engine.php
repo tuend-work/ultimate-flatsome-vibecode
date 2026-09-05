@@ -61,8 +61,8 @@ function vbc_print_accumulated_styles() {
  * Trình biên dịch CSS Responsive & Input ngắn gọn cho mọi phần tử VBC
  *
  * Chiến lược CSS hai tầng để đảm bảo đồng nhất frontend / UX Builder:
- *  - Desktop styles  → style="" attribute trực tiếp trên element (luôn hoạt động)
- *  - Responsive CSS  → accumulated <style> block, flush tại wp_footer
+ *  - Desktop styles  → style="" attribute trực tiếp trên element (không !important để responsive ghi đè được)
+ *  - Responsive CSS  → accumulated <style> block với !important, flush tại wp_footer để ghi đè inline style trên mobile/tablet
  */
 function vbc_compile_element_css(&$atts, $base_class = 'vbc-css') {
     $random_id = wp_generate_password(8, false);
@@ -151,23 +151,38 @@ function vbc_compile_element_css(&$atts, $base_class = 'vbc-css') {
         return $val;
     };
 
+    $desktop_props_set = array();
+    $tablet_props_set  = array();
+    $mobile_props_set  = array();
+
     foreach ($property_map as $attr_key => $css_prop) {
-        // Desktop
-        if (isset($atts[$attr_key]) && $atts[$attr_key] !== '') {
+        // Desktop (áp dụng inline style="" - không !important để cho phép responsive ghi đè)
+        if (isset($atts[$attr_key]) && $atts[$attr_key] !== '' && !isset($desktop_props_set[$css_prop])) {
             $val = $format_val($css_prop, $atts[$attr_key]);
             $styles_desktop[] = $css_prop . ': ' . $val . ';';
+            $desktop_props_set[$css_prop] = true;
         }
-        // Tablet (__md) - Max Width 849px
+        // Tablet (__md) - Max Width 849px (tự động thêm !important để ghi đè inline style của Desktop)
         $md_key = $attr_key . '__md';
-        if (isset($atts[$md_key]) && $atts[$md_key] !== '') {
+        if (isset($atts[$md_key]) && $atts[$md_key] !== '' && !isset($tablet_props_set[$css_prop])) {
             $val = $format_val($css_prop, $atts[$md_key]);
+            $val = rtrim($val, '; ');
+            if (!preg_match('/!important$/i', $val)) {
+                $val .= ' !important';
+            }
             $styles_tablet[] = $css_prop . ': ' . $val . ';';
+            $tablet_props_set[$css_prop] = true;
         }
-        // Mobile (__sm) - Max Width 549px
+        // Mobile (__sm) - Max Width 549px (tự động thêm !important để ghi đè inline style của Desktop & Tablet)
         $sm_key = $attr_key . '__sm';
-        if (isset($atts[$sm_key]) && $atts[$sm_key] !== '') {
+        if (isset($atts[$sm_key]) && $atts[$sm_key] !== '' && !isset($mobile_props_set[$css_prop])) {
             $val = $format_val($css_prop, $atts[$sm_key]);
+            $val = rtrim($val, '; ');
+            if (!preg_match('/!important$/i', $val)) {
+                $val .= ' !important';
+            }
             $styles_mobile[] = $css_prop . ': ' . $val . ';';
+            $mobile_props_set[$css_prop] = true;
         }
     }
 

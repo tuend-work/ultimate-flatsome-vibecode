@@ -433,7 +433,7 @@ function vbc_get_element_ux_builder_template($tag, $tag_type = 'container') {
     }
 
     if ($tag === 'a') {
-        return '<a id="{{ shortcode.options.id || shortcode.$id }}" href="javascript:void(0);" class="{{ shortcode.options.class }} {{ shortcode.options.custom_class }}" ng-style="{\'color\': shortcode.options.color}"><span ng-if="shortcode.options.text" ng-bind-html="shortcode.options.text | html"></span><span ng-if="!shortcode.options.text && shortcode.content" ng-bind-html="shortcode.content | html"></span><content></content></a>';
+        return '<a id="{{ shortcode.options.id || shortcode.$id }}" href="javascript:void(0);" class="{{ shortcode.options.class }} {{ shortcode.options.custom_class }}" ng-style="{\'color\': shortcode.options.color}"><span ng-if="shortcode.options.text" ng-bind-html="shortcode.options.text | html"></span><span ng-if="!shortcode.options.text && shortcode.content" ng-bind-html="shortcode.content | html"></span></a>';
     }
 
     if ($tag === 'button') {
@@ -445,7 +445,7 @@ function vbc_get_element_ux_builder_template($tag, $tag_type = 'container') {
     }
 
     if (in_array($tag, array('h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span', 'i', 'b', 'strong', 'em', 'u'))) {
-        return '<' . $tag . ' id="{{ shortcode.options.id || shortcode.$id }}" class="{{ shortcode.options.class }} {{ shortcode.options.custom_class }}" ng-style="{\'color\': shortcode.options.color, \'font-size\': shortcode.options.fontSize}"><span ng-if="shortcode.options.text" ng-bind-html="shortcode.options.text | html"></span><span ng-if="!shortcode.options.text && shortcode.content" ng-bind-html="shortcode.content | html"></span><content></content></' . $tag . '>';
+        return '<' . $tag . ' id="{{ shortcode.options.id || shortcode.$id }}" class="{{ shortcode.options.class }} {{ shortcode.options.custom_class }}" ng-style="{\'color\': shortcode.options.color, \'font-size\': shortcode.options.fontSize}"><span ng-if="shortcode.options.text" ng-bind-html="shortcode.options.text | html"></span><span ng-if="!shortcode.options.text && shortcode.content" ng-bind-html="shortcode.content | html"></span></' . $tag . '>';
     }
 
     if (in_array($tag, array('li', 'td', 'th'))) {
@@ -454,6 +454,10 @@ function vbc_get_element_ux_builder_template($tag, $tag_type = 'container') {
 
     if (in_array($tag, array('ul', 'ol', 'table', 'tr'))) {
         return '<' . $tag . ' id="{{ shortcode.options.id || shortcode.$id }}" class="{{ shortcode.options.class }} {{ shortcode.options.custom_class }}"><content></content></' . $tag . '>';
+    }
+
+    if ($tag_type !== 'container') {
+        return '<' . $tag . ' id="{{ shortcode.options.id || shortcode.$id }}" class="{{ shortcode.options.class }} {{ shortcode.options.custom_class }}"><span ng-if="shortcode.options.text" ng-bind-html="shortcode.options.text | html"></span><span ng-if="!shortcode.options.text && shortcode.content" ng-bind-html="shortcode.content | html"></span></' . $tag . '>';
     }
 
     // Default container (div, box, block, container, etc.)
@@ -465,7 +469,7 @@ function vbc_add_ux_builder_shortcode_with_inners($tag_name, $args, $max_depth =
         $args['wrap'] = false;
     }
     if (!isset($args['nested'])) {
-        $args['nested'] = true;
+        $args['nested'] = (isset($args['type']) && $args['type'] === 'container');
     }
     if (!isset($args['template'])) {
         $clean = preg_replace('/^vbc_/', '', $tag_name);
@@ -657,17 +661,18 @@ function vbc_register_ux_builder_elements() {
             );
         }
 
+        $is_container = ($config['type'] === 'container');
         $template = vbc_get_element_ux_builder_template($tag, $config['type']);
         $args = array(
             'name'     => $config['name'],
             'category' => 'VibeCode HTML',
             'options'  => $options,
             'wrap'     => false,
-            'nested'   => true,
+            'nested'   => $is_container,
             'template' => $template,
         );
 
-        if ($config['type'] === 'container') {
+        if ($is_container) {
             $args['type'] = 'container';
         }
 
@@ -1973,11 +1978,12 @@ function vbc_ensure_ux_builder_shortcodes_data($data) {
     foreach ($data['shortcodes'] as $tag => &$sc) {
         if (strpos($tag, 'vbc_') === 0) {
             $sc['wrap'] = false;
-            $sc['nested'] = true;
+            $is_container = (isset($sc['type']) && $sc['type'] === 'container');
+            $sc['nested'] = $is_container;
             if (empty($sc['template'])) {
                 $clean = preg_replace('/^vbc_/', '', $tag);
                 $clean = preg_replace('/_inner(_\d+)?$/', '', $clean);
-                $type = !empty($sc['type']) ? $sc['type'] : 'container';
+                $type = !empty($sc['type']) ? $sc['type'] : ($is_container ? 'container' : 'normal');
                 $sc['template'] = vbc_get_element_ux_builder_template($clean, $type);
             }
         }

@@ -67,7 +67,7 @@ function vbc_register_shortcodes() {
     foreach ($tags as $tag) {
         add_shortcode('vbc_' . $tag, 'vbc_shortcode_renderer');
         add_shortcode('vbc_' . $tag . '_inner', 'vbc_shortcode_renderer');
-        for ($i = 1; $i <= 10; $i++) {
+        for ($i = 1; $i <= 3; $i++) {
             add_shortcode('vbc_' . $tag . '_inner_' . $i, 'vbc_shortcode_renderer');
         }
     }
@@ -87,7 +87,7 @@ function vbc_no_texturize_shortcodes($shortcodes) {
     foreach ($tags as $tag) {
         $shortcodes[] = 'vbc_' . $tag;
         $shortcodes[] = 'vbc_' . $tag . '_inner';
-        for ($i = 1; $i <= 10; $i++) {
+        for ($i = 1; $i <= 3; $i++) {
             $shortcodes[] = 'vbc_' . $tag . '_inner_' . $i;
         }
     }

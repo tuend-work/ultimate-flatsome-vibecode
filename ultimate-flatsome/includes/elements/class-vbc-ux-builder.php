@@ -415,13 +415,70 @@ function vbc_get_common_options($tag_type) {
     return $options;
 }
 
-function vbc_add_ux_builder_shortcode_with_inners($tag_name, $args, $max_depth = 10) {
-    add_ux_builder_shortcode($tag_name, $args);
-    add_ux_builder_shortcode($tag_name . '_inner', $args);
-    for ($i = 1; $i <= $max_depth; $i++) {
-        add_ux_builder_shortcode($tag_name . '_inner_' . $i, $args);
+function vbc_get_element_ux_builder_template($tag, $tag_type = 'container') {
+    if ($tag === 'section') {
+        return '<section id="{{ shortcode.options.id || shortcode.$id }}" class="section vbc-section mask-{{ shortcode.options.mask }} {{ shortcode.options.visibility }} {{ shortcode.options.class }}" ng-class="{dark: shortcode.options.dark == \'true\', \'has-mask\': shortcode.options.mask, \'has-parallax\': shortcode.options.parallax, \'uxb-sticky-section\': shortcode.options.sticky == \'true\'}"><div class="section-bg fill"><img ng-if="shortcode.options.bg" class="bg" ng-style="{ \'objectPosition\': shortcode.options.bgPos }" wp-attachment="shortcode.options.bg" wp-attachment-size="shortcode.options.bgSize" alt="" /><div ng-if="shortcode.options.bgOverlay" class="section-bg-overlay fill"></div></div><div class="section-content relative"><content></content></div><style>#{{ shortcode.options.id || shortcode.$id }} { min-height: {{ shortcode.options.height }}; } #{{ shortcode.options.id || shortcode.$id }} { background-color: {{ shortcode.options.bgColor || shortcode.options.backgroundColor }}; } #{{ shortcode.options.id || shortcode.$id }} { padding-top: {{ shortcode.options.padding }}; padding-bottom: {{ shortcode.options.padding }}; } #{{ shortcode.options.id || shortcode.$id }} { margin-bottom: {{ shortcode.options.margin }}; } #{{ shortcode.options.id || shortcode.$id }} .section-bg-overlay { background-color: {{ shortcode.options.bgOverlay }}; }</style></section>';
     }
+
+    if ($tag === 'img') {
+        return '<img id="{{ shortcode.options.id || shortcode.$id }}" class="{{ shortcode.options.class }} {{ shortcode.options.custom_class }}" ng-src="{{ shortcode.options.src || shortcode.options.img_url || shortcode.options.url }}" alt="{{ shortcode.options.alt || \'\' }}" />';
+    }
+
+    if ($tag === 'hr') {
+        return '<hr id="{{ shortcode.options.id || shortcode.$id }}" class="{{ shortcode.options.class }} {{ shortcode.options.custom_class }}" />';
+    }
+
+    if ($tag === 'br') {
+        return '<br />';
+    }
+
+    if ($tag === 'a') {
+        return '<a id="{{ shortcode.options.id || shortcode.$id }}" href="javascript:void(0);" class="{{ shortcode.options.class }} {{ shortcode.options.custom_class }}" ng-style="{\'color\': shortcode.options.color}"><span ng-if="shortcode.options.text" ng-bind-html="shortcode.options.text | html"></span><span ng-if="!shortcode.options.text && shortcode.content" ng-bind-html="shortcode.content | html"></span><content></content></a>';
+    }
+
+    if ($tag === 'button') {
+        return '<a id="{{ shortcode.options.id || shortcode.$id }}" href="javascript:void(0);" class="button vbc-btn {{ shortcode.options.class }} {{ shortcode.options.custom_class }}" ng-style="{\'color\': shortcode.options.color, \'background-color\': shortcode.options.bg_color, \'border-radius\': shortcode.options.radius}"><i ng-if="shortcode.options.icon && shortcode.options.icon_pos == \'left\'" class="{{ shortcode.options.icon }}"></i><span>{{ shortcode.options.text }}</span><i ng-if="shortcode.options.icon && shortcode.options.icon_pos !== \'left\'" class="{{ shortcode.options.icon }}"></i></a>';
+    }
+
+    if ($tag === 'card') {
+        return '<div id="{{ shortcode.options.id || shortcode.$id }}" class="vbc-card {{ shortcode.options.class }} {{ shortcode.options.custom_class }}" ng-style="{\'background-color\': shortcode.options.card_bg, \'padding\': shortcode.options.card_padding, \'border-radius\': shortcode.options.card_radius}"><span ng-if="shortcode.options.content && (!shortcode.children || !shortcode.children.length)" ng-bind-html="shortcode.options.content | html"></span><content></content></div>';
+    }
+
+    if (in_array($tag, array('h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span', 'i', 'b', 'strong', 'em', 'u'))) {
+        return '<' . $tag . ' id="{{ shortcode.options.id || shortcode.$id }}" class="{{ shortcode.options.class }} {{ shortcode.options.custom_class }}" ng-style="{\'color\': shortcode.options.color, \'font-size\': shortcode.options.fontSize}"><span ng-if="shortcode.options.text" ng-bind-html="shortcode.options.text | html"></span><span ng-if="!shortcode.options.text && shortcode.content" ng-bind-html="shortcode.content | html"></span><content></content></' . $tag . '>';
+    }
+
+    if (in_array($tag, array('li', 'td', 'th'))) {
+        return '<' . $tag . ' id="{{ shortcode.options.id || shortcode.$id }}" class="{{ shortcode.options.class }} {{ shortcode.options.custom_class }}"><span ng-if="shortcode.options.text" ng-bind-html="shortcode.options.text | html"></span><span ng-if="!shortcode.options.text && shortcode.content" ng-bind-html="shortcode.content | html"></span><content></content></' . $tag . '>';
+    }
+
+    if (in_array($tag, array('ul', 'ol', 'table', 'tr'))) {
+        return '<' . $tag . ' id="{{ shortcode.options.id || shortcode.$id }}" class="{{ shortcode.options.class }} {{ shortcode.options.custom_class }}"><content></content></' . $tag . '>';
+    }
+
+    // Default container (div, box, block, container, etc.)
+    return '<div id="{{ shortcode.options.id || shortcode.$id }}" class="{{ shortcode.options.class }} {{ shortcode.options.custom_class }}" ng-style="{\'width\': shortcode.options.width, \'min-height\': shortcode.options.minHeight, \'max-width\': shortcode.options.maxWidth, \'background-color\': (shortcode.options.backgroundColor || shortcode.options.bgColor), \'padding\': shortcode.options.padding, \'margin\': shortcode.options.margin}"><span ng-if="shortcode.options.content && (!shortcode.children || !shortcode.children.length)" ng-bind-html="shortcode.options.content | html"></span><content></content></div>';
 }
+
+function vbc_add_ux_builder_shortcode_with_inners($tag_name, $args, $max_depth = 3) {
+    if (!isset($args['wrap'])) {
+        $args['wrap'] = false;
+    }
+    if (!isset($args['nested'])) {
+        $args['nested'] = true;
+    }
+    if (!isset($args['template'])) {
+        $clean = preg_replace('/^vbc_/', '', $tag_name);
+        $clean = preg_replace('/_inner(_\d+)?$/', '', $clean);
+        $type = isset($args['type']) ? $args['type'] : 'container';
+        $args['template'] = vbc_get_element_ux_builder_template($clean, $type);
+    }
+
+    // Flatsome tự động đăng ký {$tag_name}_inner và {$tag_name}_inner_1..8 qua add_nested_tag_names()
+    // Không đăng ký thủ công inner ở đây để tránh nhân thừa số lượng shortcodes gây tràn PCRE regex buffer.
+    add_ux_builder_shortcode($tag_name, $args);
+}
+
 
 function vbc_register_ux_builder_elements() {
     if (!function_exists('add_ux_builder_shortcode')) {
@@ -600,30 +657,33 @@ function vbc_register_ux_builder_elements() {
             );
         }
 
+        $template = vbc_get_element_ux_builder_template($tag, $config['type']);
         $args = array(
-            'name' => $config['name'],
+            'name'     => $config['name'],
             'category' => 'VibeCode HTML',
-            'options' => $options,
+            'options'  => $options,
+            'wrap'     => false,
+            'nested'   => true,
+            'template' => $template,
         );
 
         if ($config['type'] === 'container') {
             $args['type'] = 'container';
         }
 
-        add_ux_builder_shortcode('vbc_' . $tag, $args);
-        add_ux_builder_shortcode('vbc_' . $tag . '_inner', $args);
-        for ($i = 1; $i <= 10; $i++) {
-            add_ux_builder_shortcode('vbc_' . $tag . '_inner_' . $i, $args);
-        }
+        vbc_add_ux_builder_shortcode_with_inners('vbc_' . $tag, $args);
     }
 
     // Đăng ký vbc_section kế thừa đầy đủ tính năng Flatsome Section + VBC Custom CSS
     add_ux_builder_shortcode('vbc_section', array(
-        'name' => 'VBC Section',
+        'name'     => 'VBC Section',
         'category' => 'VibeCode Layout',
-        'type' => 'container',
+        'type'     => 'container',
         'priority' => 1,
-        'options' => array(
+        'wrap'     => false,
+        'nested'   => true,
+        'template' => vbc_get_element_ux_builder_template('section', 'container'),
+        'options'  => array(
             'id' => array(
                 'type' => 'textfield',
                 'heading' => 'Section ID',
@@ -1900,3 +1960,40 @@ function vbc_register_ux_builder_elements() {
         ),
     ));
 }
+
+/**
+ * Đảm bảo 100% tất cả shortcodes vbc_* khi serialize ra uxBuilderData
+ * đều có wrap: false, nested: true và template AngularJS hợp lệ.
+ */
+add_filter('ux_builder_data', 'vbc_ensure_ux_builder_shortcodes_data', 99);
+function vbc_ensure_ux_builder_shortcodes_data($data) {
+    if (empty($data['shortcodes']) || !is_array($data['shortcodes'])) {
+        return $data;
+    }
+    foreach ($data['shortcodes'] as $tag => &$sc) {
+        if (strpos($tag, 'vbc_') === 0) {
+            $sc['wrap'] = false;
+            $sc['nested'] = true;
+            if (empty($sc['template'])) {
+                $clean = preg_replace('/^vbc_/', '', $tag);
+                $clean = preg_replace('/_inner(_\d+)?$/', '', $clean);
+                $type = !empty($sc['type']) ? $sc['type'] : 'container';
+                $sc['template'] = vbc_get_element_ux_builder_template($clean, $type);
+            }
+        }
+    }
+    return $data;
+}
+
+/**
+ * Bảo vệ canvas iframe trong UX Builder editor:
+ * Đảm bảo <post-wrapper></post-wrapper> không bị wpautop, shortcode_unautop hoặc plugin khác xóa mất.
+ */
+add_filter('the_content', function($content) {
+    if (isset($_GET['uxb_iframe'])) {
+        if (empty($content) || strpos($content, 'post-wrapper') === false) {
+            return '<post-wrapper></post-wrapper>';
+        }
+    }
+    return $content;
+}, 9999);

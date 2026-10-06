@@ -28,7 +28,7 @@ function vbc_register_component_shortcodes() {
     foreach ($component_tags as $comp => $handler) {
         add_shortcode('vbc_' . $comp, $handler);
         add_shortcode('vbc_' . $comp . '_inner', $handler);
-        for ($i = 1; $i <= 10; $i++) {
+        for ($i = 1; $i <= 3; $i++) {
             add_shortcode('vbc_' . $comp . '_inner_' . $i, $handler);
         }
     }

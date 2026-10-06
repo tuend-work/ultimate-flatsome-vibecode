@@ -149,6 +149,9 @@ function vbc_register_icon_ux_builder() {
     add_ux_builder_shortcode('vbc_icon', array(
         'name'     => 'VBC Icon & Media Pack',
         'category' => 'VibeCode HTML',
+        'wrap'     => false,
+        'inline'   => true,
+        'template' => '<span id="{{ shortcode.options.id || shortcode.$id }}" class="vbc-icon-wrap {{ shortcode.options.custom_class }}" ng-style="{\'display\': shortcode.options.display || \'inline-flex\', \'color\': shortcode.options.color, \'background-color\': shortcode.options.background_color, \'padding\': shortcode.options.padding, \'border-radius\': shortcode.options.border_radius, \'font-size\': shortcode.options.size}"><i ng-if="shortcode.options.name || shortcode.options.icon" data-lucide="{{ shortcode.options.name || shortcode.options.icon }}" class="{{ shortcode.options.name || shortcode.options.icon }}"></i></span>',
         'options'  => array(
             'media_group' => array(
                 'type' => 'group',

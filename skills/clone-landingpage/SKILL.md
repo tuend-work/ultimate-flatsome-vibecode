@@ -1,44 +1,48 @@
 ---
 name: clone-landingpage
 description: >-
-  Tự động sao chép (clone) toàn bộ giao diện và nội dung từ một trang web bất kỳ sang WordPress Flatsome bằng 100% phần tử Ultimate Flatsome VibeCode Elements do AI trực tiếp sinh ra. Sử dụng khi người dùng yêu cầu clone/sao chép landing page, bóc tách layout từ URL gốc, hoặc chuyển đổi giao diện sang VBC.
+  Tự động sao chép (clone) toàn bộ giao diện và nội dung từ một trang web bất kỳ sang WordPress Flatsome bằng 100% phần tử Ultimate Flatsome VibeCode Elements do AI trực tiếp sinh ra dựa trên ảnh chụp màn hình toàn trang qua trình duyệt thật Antigravity. Không dùng code web gốc, đảm bảo code sạch tuyệt đối.
 ---
 
-# Clone Landing Page (AI-First LLM Architecture)
+# Clone Landing Page (Antigravity Real Browser & AI Visual Generative Architecture)
 
 ## Mục tiêu (Goal)
-Sử dụng **Trí tuệ Nhân tạo (LLM)** để phân tích ngữ cảnh, bố cục thị giác và cấu trúc nội dung từ trang web nguồn, sau đó AI trực tiếp thiết kế và sinh 100% mã nguồn **Native VBC Elements** (`[vbc_div]`, `[vbc_box]`, `[vbc_block]`, `[vbc_container]`, `[vbc_h1]-[vbc_h6]`, `[vbc_p]`, `[vbc_a]`, `[vbc_img]`, `[vbc_icon]`, `[vbc_card]`, `[vbc_tabs]`, `[vbc_accordion]`, `[contact-form-7]`, `[vbc_post]`) với tất cả thuộc tính giao diện đưa trực tiếp vào thuộc tính của shortcode, đạt độ tương đồng thị giác (VSI) $\ge 90\%$ và **0 unparsed tags**.
+Sử dụng **Trình duyệt thật của Antigravity (`browser_subagent`)** để truy cập, cuộn trang kích hoạt hiệu ứng/lazy-load và chụp ảnh màn hình toàn trang (**Full-Page Screenshot**). 
+Sau đó, **AI đóng vai trò Senior UI/UX & Frontend Engineer trực tiếp quan sát ảnh chụp màn hình toàn trang để TẠO SINH 100% MÃ NGUỒN MỚI TINH (Generative AI from Visual)** bằng hệ thống **Native VBC Elements** (`[vbc_section]`, `[row]`, `[col]`, `[vbc_div]`, `[vbc_box]`, `[vbc_block]`, `[vbc_container]`, `[vbc_h1]-[vbc_h6]`, `[vbc_p]`, `[vbc_a]`, `[vbc_img]`, `[vbc_icon]`, `[vbc_post]`, `[contact-form-7]`).
+
+> [!CRITICAL]
+> **QUY TẮC CỐT LÕI — CODE SẠCH TUYỆT ĐỐI, KHÔNG DÙNG LẠI CODE CỦA WEB GỐC**:
+> - **KHÔNG bóc tách hay copy-paste mã HTML/CSS rối rắm, rác của trang nguồn**. Việc bóc tách HTML thô từ web gốc luôn để lại class rác, mã CSS inline thừa, cấu trúc thẻ div lồng nhau quá sâu làm hỏng Flatsome UX Builder.
+> - **AI quan sát trực tiếp ảnh chụp màn hình toàn trang (Full-Page Screenshot)** như một bản vẽ thiết kế (Figma/UI Design), hiểu bố cục, màu sắc, khoảng cách, font chữ, sau đó **tự tay viết lại 100% mã nguồn VBC Elements sạch, tối ưu, chuẩn semantic và tương thích hoàn hảo với UX Builder**.
 
 ---
 
 ## Quy trình Thực hiện (Workflow)
 
-### Bước 1: Thu thập HTML Rendered Thực tế từ Trình duyệt & Đồng bộ Media
-Chạy script đồng bộ ảnh:
-```bash
-python .agents/skills/clone-landingpage/scripts/sync_media.py --url "<URL_NGUON>"
-```
-- **QUY TẮC BẮT BUỘC — 100% LẤY HTML DOM TỪ TRÌNH DUYỆT (BROWSER RENDERED DOM)**:
-  - Script tự động khởi chạy **Trình duyệt thực tế (Playwright Headless Chromium)**, chờ trang render JavaScript (React/Vue/Next.js/Hydration), tự động cuộn trang để kích hoạt toàn bộ cơ chế Lazy Load và Dynamic Animation.
-  - Script trích xuất trực tiếp mã HTML DOM đã render hoàn chỉnh vào `tmp/<slug>/source.html` và chụp ảnh toàn trang `tmp/<slug>/source_screenshot.png`.
-  - **TUYỆT ĐỐI KHÔNG DÙNG** raw HTTP/code fetch (`urllib`, `file_get_contents`, `curl`, `requests.get`) vì sẽ bị mất trắng các thành phần render động, SVG icons, và ảnh lazy load.
-  - Phát hiện toàn bộ ảnh trong JavaScript runtime và upload lên WordPress Media Library qua REST API `/vbc/v1/upload`.
-  - Kết quả ánh xạ ảnh gốc $\to$ WordPress URL được lưu trong `tmp/<slug>/media_map.json`.
-- **BẮT BUỘC — Kiểm Tra Trùng Lặp Trước Khi Upload**:
-  - Trước khi upload, script **PHẢI kiểm tra** xem ảnh cùng tên (`filename`) đã tồn tại trên WordPress Media Library hay chưa qua endpoint `/vbc/v1/check-media` hoặc `GET /wp-json/wp/v2/media?search=<filename>`.
-  - Nếu đã tồn tại → **tái sử dụng ngay URL đó**, không tạo bản sao trùng lặp.
-  - Mọi kết quả cuối cùng (dù upload mới hay lấy từ WP) đều được ghi vào `media_map.json`.
+### Bước 1: Điều khiển Trình Duyệt Thật Antigravity (`browser_subagent`) & Đồng Bộ Media
+1. **Khởi chạy Trình duyệt thật qua Antigravity `browser_subagent`**:
+   - Sử dụng tool `browser_subagent` để mở trình duyệt thật (Real Browser) điều hướng đến `<URL_NGUON>`.
+   - Mô phỏng hành vi người dùng thật: cuộn trang từ từ từ trên xuống dưới để kích hoạt toàn bộ cơ chế **Lazy Load ảnh**, **Web Fonts**, **CSS Animations** và các thành phần JavaScript động.
+   - Chụp ảnh màn hình toàn trang (**Full-Page Screenshot**) lưu vào `tmp/<slug>/source_screenshot.png` hoặc thư mục artifacts.
+   - Trình duyệt Antigravity tự động ghi hình phiên duyệt web dưới dạng video WebP phục vụ kiểm chứng trực quan.
 
-### Bước 2: AI Đọc Hiểu & Bóc Tách Ngữ Cảnh Bố Cục (Rendered DOM & Visual Context)
-AI đọc `tmp/<slug>/source.html` (đã được trình duyệt render 100%) kết hợp quan sát `tmp/<slug>/source_screenshot.png` và phân tích các Section chính:
+2. **Đồng bộ Media lên WordPress Media Library**:
+   - Chạy script đồng bộ ảnh:
+     ```bash
+     python .agents/skills/clone-landingpage/scripts/sync_media.py --url "<URL_NGUON>"
+     ```
+   - **Quy tắc Kiểm tra Trùng lặp trước khi upload**: Script tự động kiểm tra ảnh đã tồn tại trên WordPress Media Library hay chưa (`/vbc/v1/check-media`). Nếu đã có $\to$ tái sử dụng URL WordPress, không tạo bản sao thừa. Kết quả ánh xạ lưu tại `tmp/<slug>/media_map.json`.
+
+### Bước 2: AI Quan Sát Ảnh Chụp Toàn Trang & Kiến Tạo Bố Cục Thị Giác (AI Visual Perception)
+AI Agent quan sát trực tiếp ảnh chụp toàn trang `source_screenshot.png` (Visual-Driven) để phân tích layout và phân chia các Section chức năng:
 1. **Header / Topbar**: Logo, hotline, navigation links, CTA button.
-2. **Hero Section**: Tiêu đề chính H1, slogan, badge ưu đãi, bullet points lợi ích, form đăng ký, hình ảnh đại diện.
+2. **Hero Section**: Tiêu đề chính H1, slogan, badge ưu đãi, bullet points lợi ích, form đăng ký hoặc nút hành động, ảnh đại diện nổi bật.
 3. **Highlights / Features Grid**: Lưới 3–4 cột với các điểm mạnh dịch vụ, icon vector trực quan.
 4. **Programs / Services / Courses**: Thẻ khóa học, bảng giá, chương trình chi tiết theo đối tượng.
-5. **Tabs & Accordions**: Lộ trình đào tạo (`[vbc_tabs]`), câu hỏi thường gặp / lợi thế đánh số (`[vbc_accordion]` & `[vbc_accordion_item]`).
-6. **Blog / Tin Tức & Sản Phẩm (Dynamic Query)**: Danh sách bài viết blog, tin tức hoặc sản phẩm WooCommerce $\to$ Sử dụng `[vbc_post]` (`post_type="post"` hoặc `post_type="product"`) để truy vấn động từ WordPress Database.
-7. **Social Proof & Testimonials**: Cảm nhận khách hàng/học viên, rating, feedback thực tế.
-8. **Lead Form & CTA Form (Contact Form 7)**: Biểu mẫu form đăng ký nhận tư vấn, tải tài liệu hoặc đăng ký học.
+5. **Tabs & Accordions**: Lộ trình đào tạo (`[vbc_tabs]`), câu hỏi thường gặp FAQ (`[vbc_accordion]` & `[vbc_accordion_item]`).
+6. **Blog / Tin Tức & Sản Phẩm (Dynamic Query)**: Danh sách bài viết blog, tin tức hoặc sản phẩm WooCommerce $\to$ Sử dụng `[vbc_post]` (`post_type="post"` hoặc `post_type="product"`).
+7. **Social Proof & Testimonials**: Đánh giá khách hàng/học viên, rating, feedback thực tế.
+8. **Lead Form & CTA Form (Contact Form 7)**: Biểu mẫu form đăng ký nhận tư vấn, tải tài liệu.
 9. **Footer**: Thông tin liên hệ, bản quyền, liên kết điều khoản.
 
 ### Bước 3: Tự động Tạo Biểu Mẫu Contact Form 7 (BẮT BUỘC)
@@ -65,18 +69,23 @@ Khi phát hiện khu vực danh sách Tin tức, Bài viết Blog, Kiến thức
      [vbc_post post_type="product" posts_per_page="4" columns="4" columns__sm="1" layout="grid" fields="thumbnail:100%, categories:100%, title:100%, price:50%, button:50%" button_text="Mua Ngay"]
      ```
 3. **Ưu điểm**: Tự động lấy ảnh đại diện, tiêu đề, tóm tắt, giá bán, ngày đăng, liên kết permalink tự động và tương thích 100% với Flatsome UX Builder.
-5. **BẮT BUỘC — CSS Đồng Bộ Form CF7 Khớp Với Web Gốc**:
-   - Sau khi tạo form CF7, **phân tích màu sắc, font chữ, border-radius, padding và màu nền của form gốc** từ `source.html`.
-   - Viết một khối CSS tùy chỉnh (sử dụng tính năng Page Custom CSS hoặc `vbc_page_custom_css`) để style các thành phần:
-     - `input[type="text"], input[type="tel"], input[type="email"], select, textarea` → border, padding, border-radius, background, font-size.
-     - `input[type="submit"], button[type="submit"]` → background-color, color, font-weight, padding, border-radius, hover state.
-   - Ví dụ CSS chuẩn tham khảo:
+5. **BẮT BUỘC — Quản Lý Custom CSS Chuẩn Hóa (Chỉ Dùng Field Công Khai `vbc_page_css`)**:
+   - Sau khi tạo form CF7, **phân tích màu sắc, font chữ, border-radius, padding và màu nền của form** từ ảnh chụp màn hình toàn trang.
+   - Khuyến khích đưa CSS tùy chỉnh trực tiếp vào thuộc tính `custom_css="..."` của `[vbc_section]` chứa form/phần tử để style các thành phần khớp với thiết kế.
+   - Nếu có CSS dùng chung cấp độ trang (Page Custom CSS): **BẮT BUỘC lưu vào Custom Field công khai `vbc_page_css`**.
+   - **TUYỆT ĐỐI KHÔNG dùng field ẩn `_custom_css`**.
+   - **KHÔNG TỰ TIỆN chèn CSS ẩn header/footer** (`#header, #footer { display: none !important; }`) trừ khi người dùng có yêu cầu rõ ràng.
+   - **BẮT BUỘC ĐƯA TRỰC TIẾP VÀO `custom_css="..."` CỦA `[vbc_section]` CHỨA FORM ĐÓ**, sử dụng cú pháp `selector`:
+     - Định kiểu container section: `selector { ... }`
+     - Định kiểu các input con: `selector .wpcf7-form input.wpcf7-text`, `selector .wpcf7-form input.wpcf7-tel`, `selector .wpcf7-form select`, `selector .wpcf7-form textarea` $\to$ border, padding, border-radius, background, font-size.
+     - Định kiểu submit: `selector .wpcf7-form input.wpcf7-submit` $\to$ background-color, color, font-weight, padding, border-radius, hover state.
+   - Ví dụ CSS chuẩn được đóng gói ngay trong `[vbc_section]`:
      ```css
-     .wpcf7-form input[type="text"],
-     .wpcf7-form input[type="tel"],
-     .wpcf7-form input[type="email"],
-     .wpcf7-form select,
-     .wpcf7-form textarea {
+     selector .wpcf7-form input.wpcf7-text,
+     selector .wpcf7-form input.wpcf7-tel,
+     selector .wpcf7-form input.wpcf7-email,
+     selector .wpcf7-form select,
+     selector .wpcf7-form textarea {
        width: 100%;
        padding: 12px 16px;
        border: 1.5px solid #e2e8f0;
@@ -84,15 +93,14 @@ Khi phát hiện khu vực danh sách Tin tức, Bài viết Blog, Kiến thức
        font-size: 15px;
        background: #f8fafc;
        margin-bottom: 12px;
+       box-sizing: border-box;
        transition: border-color 0.2s;
      }
-     .wpcf7-form input[type="text"]:focus,
-     .wpcf7-form input[type="tel"]:focus,
-     .wpcf7-form input[type="email"]:focus {
+     selector .wpcf7-form input:focus {
        border-color: #F5568F;
        outline: none;
      }
-     .wpcf7-form input[type="submit"] {
+     selector .wpcf7-form input.wpcf7-submit {
        width: 100%;
        padding: 14px;
        background: #F5568F;
@@ -104,14 +112,20 @@ Khi phát hiện khu vực danh sách Tin tức, Bài viết Blog, Kiến thức
        cursor: pointer;
        transition: background 0.2s;
      }
-     .wpcf7-form input[type="submit"]:hover {
+     selector .wpcf7-form input.wpcf7-submit:hover {
        background: #e0447c;
      }
      ```
-   - **Màu sắc, border-radius và font-size PHẢI được tùy chỉnh khớp với thiết kế gốc** — không dùng màu mặc định nếu web gốc có màu riêng.
+   - **Màu sắc, border-radius và font-size PHẢI được tùy chỉnh khớp với thiết kế** — không dùng màu mặc định nếu bản vẽ có màu riêng.
 
-### Bước 4: AI Sinh Mã Nguồn Kết Hợp VBC Section Kế Thừa Chuẩn Flatsome & VBC Elements
+### Bước 4: AI Trực Tiếp Tạo Sinh 100% Mã Nguồn Chuẩn VBC Elements từ Ảnh Chụp Màn Hình (Visual-Driven AI Code Synthesis)
 AI viết trực tiếp file mã nguồn lưu tại `tmp/<slug>/compiled_vbc.txt`.
+
+> [!IMPORTANT]
+> **TIÊU CHUẨN CODE SẠCH — NGUYÊN BẢN VBC ELEMENTS (100% CLEAN GENERATIVE CODE)**:
+> 1. **Tuyệt đối KHÔNG copy cấu trúc HTML gốc**: Không giữ lại các thẻ `div` lồng nhau vô nghĩa, không dùng lại class CSS của web gốc (ví dụ: `elementor-...`, `wp-block-...`, `tailwind-classes`).
+> 2. **AI tái thiết kế bằng Visual Mindset**: Nhìn ảnh chụp $\to$ ánh xạ thẳng sang **VBC Layout sạch nhất có thể**: `[vbc_section]` bọc ngoài $\to$ `[row]` căn giữa $\to$ `[col]` chia cột $\to$ các leaf tags tự đóng (`[vbc_h2]`, `[vbc_p]`, `[vbc_img]`, `[vbc_a]`, `[vbc_icon]`).
+> 3. **Toàn bộ styling đưa vào thuộc tính shortcode hoặc `custom_css="selector { ... }"` của `[vbc_section]`**.
 
 #### 🏛️ Kiến Trúc Bố Cục Ưu Tiên (Layout Backbone):
 1. **Khung xương Bố cục (Structure)**: **100% sử dụng `[vbc_section]` (kế thừa Section Flatsome) + `[row]` + `[col]`**:
@@ -153,8 +167,8 @@ AI viết trực tiếp file mã nguồn lưu tại `tmp/<slug>/compiled_vbc.txt
    - **Zero same-type nesting**: Tuyệt đối không lồng cùng loại thẻ vào nhau (ví dụ: không lồng `[row]` trong `[row]` hoặc `[col]` trong `[col]`, dùng `[row_inner]` / `[vbc_box]` nếu cần sub-grid).
    - **Tuyệt đối không dùng dấu ngoặc vuông `[` hoặc `]` trong các giá trị thuộc tính**: Kể cả trong `custom_css` (dùng class selector như `.wpcf7-tel`, `.wpcf7-submit`, không dùng `[type='tel']`).
 
-4. **BẮT BUỘC — Đưa CSS của Các Phần Tử Con Vào Custom CSS (Selector) Của VBC Section**:
-   - **KHÔNG đưa CSS vào Custom Field** mà đưa trực tiếp vào thuộc tính `custom_css="..."` của `[vbc_section]`.
+4. **BẮT BUỘC — Đưa CSS của Các Phần Tử Con Vào Custom CSS Của VBC Section Hoặc Public Meta `vbc_page_css`**:
+   - Khuyến khích đưa trực tiếp vào thuộc tính `custom_css="..."` của `[vbc_section]`, hoặc nếu cần CSS toàn trang thì lưu vào **Custom Field công khai `vbc_page_css`** (Tuyệt đối không dùng field ẩn `_custom_css`).
    - **Cú pháp sử dụng từ khóa `selector`**: Từ khóa `selector` tự động đại diện cho chính Section cha (`#section-id`), từ đó dễ dàng target và style cho mọi phần tử con bên trong (KHÔNG DÙNG DẤU `[` HOẶC `]` TRONG SELECTOR):
      ```
      [vbc_section id="section-register" bg_color="#F5568F" padding="80px" padding__sm="50px" dark="true" custom_css="

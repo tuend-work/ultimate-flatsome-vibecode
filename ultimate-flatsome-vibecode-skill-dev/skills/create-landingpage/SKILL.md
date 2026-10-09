@@ -38,32 +38,38 @@ Khi thiết kế landing page có khu vực thu thập thông tin khách hàng (
    ```
 3. **Lấy mã Shortcode trả về** dạng `[contact-form-7 id="<ID>" title="..."]` để nhúng vào layout VBC.
 4. **Quy tắc**: 100% biểu mẫu thu thập thông tin khách hàng **BẮT BUỘC** phải được tạo thành form Contact Form 7 thực tế qua API, **TUYỆT ĐỐI KHÔNG** dùng văn bản giả lập tĩnh (`[vbc_p]`) thay cho form.
-5. **BẮT BUỘC — CSS Đồng Bộ Khớp Với Bảng Màu Thiết Kế**:
-   - Sau khi tạo form CF7, **viết khối CSS tùy chỉnh** để style các thành phần form khớp với bảng màu và thiết kế của landing page:
-     - `input[type="text"], input[type="tel"], input[type="email"], select, textarea` → border, padding, border-radius, background, font-size.
-     - `input[type="submit"]` → background-color (= màu CTA chính), color, font-weight, padding, border-radius, hover state.
-   - CSS này được nhúng qua `vbc_page_custom_css` hoặc trường **Page Custom CSS** trong UX Builder.
+5. **BẮT BUỘC — Quản Lý Custom CSS Chuẩn Hóa (Chỉ Dùng Field Công Khai `vbc_page_css`)**:
+   - Khuyến khích đưa CSS tùy chỉnh trực tiếp vào thuộc tính `custom_css="..."` của `[vbc_section]` chứa form/phần tử để style các thành phần khớp với thiết kế.
+   - Nếu có CSS dùng chung cấp độ trang (Page Custom CSS): **BẮT BUỘC lưu vào Custom Field công khai `vbc_page_css`**.
+   - **TUYỆT ĐỐI KHÔNG dùng field ẩn `_custom_css`**.
+   - **KHÔNG TỰ TIỆN chèn CSS ẩn header/footer** (`#header, #footer { display: none !important; }`) trừ khi người dùng có yêu cầu rõ ràng.
+   - Cú pháp bắt buộc sử dụng `selector`:
+     - Input/Select/Textarea: `selector .wpcf7-form input.wpcf7-text`, `selector .wpcf7-form input.wpcf7-tel`, `selector .wpcf7-form select`, `selector .wpcf7-form textarea` $\to$ border, padding, border-radius, background, font-size.
+     - Nút Submit: `selector .wpcf7-form input.wpcf7-submit` $\to$ background-color (= màu CTA chính), color, font-weight, padding, border-radius, hover state.
    - **Màu sắc button PHẢI khớp với CTA Color của thiết kế** — không dùng màu xám mặc định WordPress.
-   - Ví dụ CSS template tham khảo:
+   - Ví dụ CSS chuẩn được đóng gói ngay trong `[vbc_section]`:
      ```css
-     .wpcf7-form input[type="text"],
-     .wpcf7-form input[type="tel"],
-     .wpcf7-form input[type="email"],
-     .wpcf7-form select,
-     .wpcf7-form textarea {
+     selector .wpcf7-form input.wpcf7-text,
+     selector .wpcf7-form input.wpcf7-tel,
+     selector .wpcf7-form input.wpcf7-email,
+     selector .wpcf7-form select,
+     selector .wpcf7-form textarea {
        width: 100%; padding: 12px 16px;
        border: 1.5px solid #e2e8f0; border-radius: 8px;
        font-size: 15px; background: #f8fafc;
-       margin-bottom: 12px; transition: border-color 0.2s;
+       margin-bottom: 12px; box-sizing: border-box; transition: border-color 0.2s;
      }
-     .wpcf7-form input[type="submit"] {
+     selector .wpcf7-form input:focus {
+       border-color: <CTA_COLOR>; outline: none;
+     }
+     selector .wpcf7-form input.wpcf7-submit {
        width: 100%; padding: 14px;
        background: <CTA_COLOR>; color: #fff;
        font-weight: 700; font-size: 16px;
        border: none; border-radius: 50px;
        cursor: pointer; transition: background 0.2s;
      }
-     .wpcf7-form input[type="submit"]:hover { background: <CTA_HOVER_COLOR>; }
+     selector .wpcf7-form input.wpcf7-submit:hover { background: <CTA_HOVER_COLOR>; }
      ```
 
 ### Bước 2.1: Nhận Diện & Thiết Kế Row Blog (Tin tức) & Row Product (Sản phẩm) -> BẮT BUỘC Dùng Element `[vbc_post]`
@@ -122,8 +128,8 @@ AI trực tiếp viết mã nguồn lưu tại `tmp/<slug>/created_vbc.txt`.
    - **Zero same-type nesting**: Không lồng cùng loại thẻ vào nhau (không lồng `[row]` trong `[row]`, dùng `[row_inner]` nếu cần sub-grid).
    - **Tuyệt đối không dùng dấu ngoặc vuông `[` hoặc `]` trong các giá trị thuộc tính**: Kể cả trong `custom_css` (dùng class selector như `.wpcf7-tel`, `.wpcf7-submit`, không dùng `[type='tel']`).
 
-4. **BẮT BUỘC — Đưa CSS của Các Phần Tử Con Vào Custom CSS (Selector) Của VBC Section**:
-   - **KHÔNG đưa CSS vào Custom Field** mà đưa trực tiếp vào thuộc tính `custom_css="..."` của `[vbc_section]`.
+4. **BẮT BUỘC — Đưa CSS của Các Phần Tử Con Vào Custom CSS Của VBC Section Hoặc Public Meta `vbc_page_css`**:
+   - Khuyến khích đưa trực tiếp vào thuộc tính `custom_css="..."` của `[vbc_section]`, hoặc nếu cần CSS toàn trang thì lưu vào **Custom Field công khai `vbc_page_css`** (Tuyệt đối không dùng field ẩn `_custom_css`).
    - **Cú pháp sử dụng từ khóa `selector`**: Từ khóa `selector` tự động đại diện cho chính Section cha (`#section-id`), từ đó dễ dàng target và style cho mọi phần tử con bên trong (KHÔNG DÙNG DẤU `[` HOẶC `]` TRONG SELECTOR):
      ```
      [vbc_section id="section-register" bg_color="#F5568F" padding="80px" padding__sm="50px" dark="true" custom_css="
@@ -163,12 +169,13 @@ Chạy script xuất bản trang:
 python .agents/skills/create-landingpage/scripts/publisher.py --title "<TIEU_DE>" --slug "<SLUG>" --content "tmp/<slug>/created_vbc.txt" [--post_id <POST_ID>]
 ```
 
-### Bước 5: AI Agent Đối Soát Từng Section & Tự Động Hoàn Thiện Code (AI Section-by-Section Audit & Polish)
-1. **AI Agent Phân Tích & Đối Soát Trực Quan Từng Section**:
-   - Sử dụng AI Agent duyệt qua từng section đã tạo để đối soát tính thẩm mỹ, độ tương phản, khoảng cách, font chữ và tỷ lệ bố cục.
-   - Phát hiện các điểm cần tối ưu: padding quá lớn/quá nhỏ, màu chữ bị chìm, thiếu bóng đổ, form chưa đẹp.
+### Bước 5: AI Agent Nghiệm Thu Trực Quan Với Trình Duyệt Thật Antigravity & Tự Động Hoàn Thiện Code
+1. **Kiểm Tra Trực Quan Trên Trình Duyệt Thật (`browser_subagent`)**:
+   - Sử dụng công cụ `browser_subagent` mở trực tiếp trang live vừa tạo trên trình duyệt thật.
+   - Mô phỏng cuộn trang để kích hoạt hiệu ứng, kiểm tra typography, độ tương phản màu, khoảng cách (spacing) và hiển thị Contact Form 7.
+   - Chụp ảnh màn hình toàn trang (**Full-Page Screenshot**) làm artifact đối soát chất lượng.
 
-2. **Chạy Script Rechecker**:
+2. **Chạy Script Rechecker 3 Trụ Cột**:
    ```bash
    python .agents/skills/recheck-url/scripts/rechecker.py --url "<TARGET_URL>"
    ```
@@ -180,4 +187,4 @@ python .agents/skills/create-landingpage/scripts/publisher.py --title "<TIEU_DE>
      - **Tất cả hình ảnh hiển thị sắc nét**.
      - **Contact Form 7 hoạt động trơn tru**.
      - **Giao diện hiện đại, chuyên nghiệp, responsive 100%**.
-4. Cung cấp link live và link chỉnh sửa trực tiếp trên Flatsome UX Builder cho người dùng.
+4. Cung cấp link live và link chỉnh sửa trực tiếp trên Flatsome UX Builder (`...&app=uxbuilder&type=editor`) cho người dùng.

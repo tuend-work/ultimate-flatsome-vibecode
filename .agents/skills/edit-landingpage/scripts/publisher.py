@@ -30,7 +30,7 @@ def load_config(root_dir):
                 return json.load(f)
     raise FileNotFoundError("Không tìm thấy tệp vbc-config.json chứa thông tin cấu hình WordPress.")
 
-def publish_page(title, slug, content_file_or_text, post_id=None, template="page-blank.php", status="publish"):
+def publish_page(title, slug, content_file_or_text, post_id=None, template="page-blank.php", status="publish", custom_css=None):
     root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
     config = load_config(root_dir)
     api_url = config.get('api-url', '').rstrip('/')
@@ -42,10 +42,6 @@ def publish_page(title, slug, content_file_or_text, post_id=None, template="page
     else:
         content = content_file_or_text
 
-    # Clean header reset CSS if not present
-    if '#header' not in content:
-        reset_prefix = "<style>#header, #footer, .header-wrapper, #wrapper > footer { display: none !important; } body { padding-top: 0 !important; margin: 0 !important; background: #ffffff !important; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; } #main { padding-top: 0 !important; padding-bottom: 0 !important; }</style>"
-        content = reset_prefix + content
 
     payload = {
         'title': title,
@@ -56,6 +52,12 @@ def publish_page(title, slug, content_file_or_text, post_id=None, template="page
     }
     if post_id:
         payload['post_id'] = int(post_id)
+    if custom_css:
+        if os.path.exists(custom_css):
+            with open(custom_css, 'r', encoding='utf-8') as f:
+                payload['custom_css'] = f.read()
+        else:
+            payload['custom_css'] = custom_css
 
     print(f"\n🚀 Đang xuất bản Landing Page '{title}' lên WordPress ({api_url}/vbc/v1/page)...")
     req = urllib.request.Request(
@@ -85,9 +87,10 @@ def main():
     parser.add_argument("--post_id", type=int, help="ID bài viết cập nhật (nếu có)")
     parser.add_argument("--template", default="page-blank.php", help="Page template")
     parser.add_argument("--status", default="publish", help="Trạng thái bài viết")
+    parser.add_argument("--custom_css", default=None, help="Custom CSS cho trang (lưu vào custom field public vbc_page_css)")
 
     args = parser.parse_args()
-    publish_page(args.title, args.slug, args.content, args.post_id, args.template, args.status)
+    publish_page(args.title, args.slug, args.content, args.post_id, args.template, args.status, args.custom_css)
 
 if __name__ == "__main__":
     main()

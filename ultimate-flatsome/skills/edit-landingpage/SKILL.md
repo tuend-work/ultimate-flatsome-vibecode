@@ -81,8 +81,11 @@ Tạo script generator hoặc sửa trực tiếp vào file `tmp/<slug>/edited_v
      ```html
      [vbc_post post_type="race_event" posts_per_page="8" columns="4" columns__md="2" columns__sm="1" layout="grid" image_height="190px" title_tag="h3" fields="thumbnail:100%, title:100%, acf:field_race_date:100%, acf:field_race_location:100%, excerpt:100%, button:100%" button_text="Săn BIB Ngay" card_radius="16px"]
      ```
-3. **Quy tắc Minify CSS trong `custom_css`**:
-   - Toàn bộ CSS trong thuộc tính `custom_css="..."` phải được nén thu gọn (không chứa dòng trống) để ngăn ngừa WordPress `wpautop` chèn thẻ `<br>` làm hỏng giao diện.
+3. **Quy tắc Custom CSS (Chỉ Dùng Field Công Khai `vbc_page_css`)**:
+   - Nếu chỉnh sửa CSS toàn trang, lưu vào file `tmp/<slug>/edited_css.css` hoặc truyền qua `--custom_css`. Dữ liệu sẽ được lưu trực tiếp vào **Custom Field công khai `vbc_page_css`**.
+   - **TUYỆT ĐỐI KHÔNG dùng field ẩn `_custom_css`**.
+   - Toàn bộ CSS trong thuộc tính `custom_css="..."` của `[vbc_section]` phải được nén thu gọn (không chứa dòng trống) để ngăn ngừa WordPress `wpautop` chèn thẻ `<br>` làm hỏng giao diện.
+   - **KHÔNG TỰ TIỆN chèn CSS ẩn header/footer** (`#header, #footer { display: none !important; }`).
 
 ---
 
@@ -100,25 +103,29 @@ Chạy kiểm tra cú pháp trước khi xuất bản:
 Đẩy nội dung đã chỉnh sửa lên WordPress, giữ nguyên `post_id` để cập nhật đè lên trang hiện tại:
 
 ```bash
-python .agents/skills/edit-landingpage/scripts/publisher.py --title "<TITLE>" --slug "<SLUG>" --content "tmp/<slug>/edited_vbc.txt" --post_id <POST_ID>
+python .agents/skills/edit-landingpage/scripts/publisher.py --title "<TITLE>" --slug "<SLUG>" --content "tmp/<slug>/edited_vbc.txt" --post_id <POST_ID> [--custom_css "tmp/<slug>/edited_css.css"]
 ```
 
 ---
 
-### Bước 7: Kiểm Định 3 Trụ Cột QA (3-Pillar Deep Audit)
+### Bước 7: Kiểm Định 3 Trụ Cột QA Với Trình Duyệt Thật Antigravity (3-Pillar Deep Audit)
 
-1. Chạy script `rechecker.py` để kiểm tra toàn diện chất lượng trang web sau chỉnh sửa:
+1. Dùng trình duyệt thật Antigravity (`browser_subagent`) mở trực tiếp trang live và trang Flatsome UX Builder editor để kiểm tra tính toàn vẹn:
+   - Cuộn trang kiểm tra hiển thị thực tế trên trình duyệt.
+   - Chụp ảnh màn hình toàn trang (**Full-Page Screenshot**) làm artifact đối soát.
+2. Chạy script `rechecker.py` để kiểm tra toàn diện chất lượng trang web sau chỉnh sửa:
    ```bash
    python .agents/skills/recheck-url/scripts/rechecker.py --url "<LIVE_PAGE_URL>" --post_id <POST_ID>
    ```
 
-2. **Tiêu chuẩn nghiệm thu**:
+3. **Tiêu chuẩn nghiệm thu**:
    - ✅ **VSI Score**: $\ge 90.0\%$.
    - ✅ **Shortcodes chưa parse ngoài DOM**: `0 tags`.
    - ✅ **Lỗi cấu trúc Shortcode DB/API**: `0 lỗi`.
    - ✅ **Hình ảnh rendered đầy đủ**: 100% (không có ảnh rỗng/lỗi).
    - ✅ **Form & Tương tác**: Hoạt động mượt mà, responsive hoàn hảo trên Mobile và Desktop.
+   - ✅ **Flatsome UX Builder**: Mở mượt mà, 0 lỗi JavaScript làm sập trình soạn thảo.
 
-3. Cung cấp Live Link và Link chỉnh sửa trực tiếp trên Flatsome UX Builder cho người dùng:
+4. Cung cấp Live Link và Link chỉnh sửa trực tiếp trên Flatsome UX Builder cho người dùng:
    - `https://<domain>/<slug>/`
-   - `https://<domain>/wp-admin/post.php?post=<POST_ID>&action=edit&app=uxbuilder`
+   - `https://<domain>/wp-admin/post.php?post=<POST_ID>&action=edit&app=uxbuilder&type=editor`

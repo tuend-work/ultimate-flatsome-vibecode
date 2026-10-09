@@ -579,7 +579,7 @@ class LandingPageRechecker:
                 f.write(f"| **Tổng số khối [vbc_section]** | {self.api_data.get('stats', {}).get('sections_count', 0)} sections | ✓ Chuẩn hóa |\n")
                 f.write(f"| **Tổng số thẻ VBC Elements** | {self.api_data.get('stats', {}).get('vbc_tags_count', 0)} tags | ✓ Sạch |\n")
                 f.write(f"| **Cân bằng thẻ & Quy tắc Nesting** | 0 lỗi lồng thẻ | {'✓ Đạt chuẩn 100%' if has_no_api_err else '✗ Lỗi Nesting/Mất cân bằng'} |\n")
-                f.write(f"| **Custom CSS Engine (_custom_css)** | {len(self.api_data.get('custom_css', ''))} ký tự | ✓ Đã trích xuất sạch |\n")
+                f.write(f"| **Custom CSS Engine (vbc_page_css)** | {len(self.api_data.get('custom_css', ''))} ký tự | ✓ Đã trích xuất sạch |\n")
             else:
                 f.write(f"| **Kết nối REST API** | Không gọi được API (Kiểm tra token) | ⚠️ Bỏ qua kiểm tra DB |\n")
             f.write("\n")

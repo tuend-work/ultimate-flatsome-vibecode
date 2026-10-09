@@ -415,9 +415,11 @@ function vbc_api_page_handler($request) {
         update_post_meta($updated_id, '_wp_page_template', $target_template);
         if (!empty($extracted_css)) {
             $extracted_css = trim($extracted_css);
-            update_post_meta($updated_id, '_custom_css', $extracted_css);
             update_post_meta($updated_id, 'vbc_page_css', $extracted_css);
+        } else {
+            delete_post_meta($updated_id, 'vbc_page_css');
         }
+        delete_post_meta($updated_id, '_custom_css');
 
         if (!empty($params['thumbnail_id'])) {
             set_post_thumbnail($updated_id, intval($params['thumbnail_id']));
@@ -476,9 +478,11 @@ function vbc_api_page_handler($request) {
         update_post_meta($new_id, '_wp_page_template', $target_template);
         if (!empty($extracted_css)) {
             $extracted_css = trim($extracted_css);
-            update_post_meta($new_id, '_custom_css', $extracted_css);
             update_post_meta($new_id, 'vbc_page_css', $extracted_css);
+        } else {
+            delete_post_meta($new_id, 'vbc_page_css');
         }
+        delete_post_meta($new_id, '_custom_css');
 
         if (!empty($params['thumbnail_id'])) {
             set_post_thumbnail($new_id, intval($params['thumbnail_id']));
@@ -541,10 +545,7 @@ function vbc_api_get_post_handler($request) {
         return new WP_Error('vbc_not_found', 'Không tìm thấy wp_post với ID: ' . $id, array('status' => 404));
     }
 
-    $custom_css = get_post_meta($post->ID, '_custom_css', true);
-    if (empty($custom_css)) {
-        $custom_css = get_post_meta($post->ID, 'vbc_page_css', true);
-    }
+    $custom_css = get_post_meta($post->ID, 'vbc_page_css', true);
 
     $template = get_post_meta($post->ID, '_wp_page_template', true);
 
@@ -582,7 +583,47 @@ function vbc_api_get_post_handler($request) {
 }
 
 /**
- * Tự động nạp Custom CSS vào thẻ <head> của trang
+ * Đăng ký meta field public vbc_page_css
+ */
+add_action('init', 'vbc_register_public_page_css_meta');
+function vbc_register_public_page_css_meta() {
+    register_post_meta('', 'vbc_page_css', array(
+        'show_in_rest'  => true,
+        'single'        => true,
+        'type'          => 'string',
+        'auth_callback' => function() {
+            return current_user_can('edit_posts');
+        }
+    ));
+}
+
+/**
+ * Tự động chuyển đổi và dọn dẹp toàn bộ post_meta '_custom_css' (field ẩn) sang 'vbc_page_css' (field public)
+ */
+add_action('init', 'vbc_migrate_hidden_custom_css_to_public');
+function vbc_migrate_hidden_custom_css_to_public() {
+    global $wpdb;
+    if (!isset($wpdb->postmeta)) {
+        return;
+    }
+    // Lấy các bài viết còn chứa meta_key = '_custom_css' có dữ liệu
+    $metas = $wpdb->get_results("SELECT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key = '_custom_css' AND meta_value != '' LIMIT 200");
+    if (!empty($metas)) {
+        foreach ($metas as $m) {
+            $existing_public = get_post_meta($m->post_id, 'vbc_page_css', true);
+            // Nếu field public chưa có mà field ẩn có giá trị, chuyển sang field public
+            if (empty($existing_public) && !metadata_exists('post', $m->post_id, 'vbc_page_css')) {
+                update_post_meta($m->post_id, 'vbc_page_css', $m->meta_value);
+            }
+            delete_post_meta($m->post_id, '_custom_css');
+        }
+    }
+    // Xóa triệt để mọi record _custom_css còn lại trong hệ thống
+    $wpdb->query("DELETE FROM {$wpdb->postmeta} WHERE meta_key = '_custom_css'");
+}
+
+/**
+ * Tự động nạp Custom CSS vào thẻ <head> của trang (chỉ dùng field public vbc_page_css)
  */
 add_action('wp_head', 'vbc_render_page_custom_css', 99);
 function vbc_render_page_custom_css() {
@@ -594,12 +635,14 @@ function vbc_render_page_custom_css() {
     }
     if (!$post_id) return;
     
-    $css = get_post_meta($post_id, '_custom_css', true);
-    if (empty($css)) {
-        $css = get_post_meta($post_id, 'vbc_page_css', true);
+    // Tự động dọn dẹp field ẩn _custom_css cũ nếu còn sót lại
+    if (metadata_exists('post', $post_id, '_custom_css')) {
+        delete_post_meta($post_id, '_custom_css');
     }
+    
+    $css = get_post_meta($post_id, 'vbc_page_css', true);
     if (!empty($css)) {
-        echo "\n<!-- VibeCode / Flatsome Page Custom CSS -->\n";
+        echo "\n<!-- VibeCode Page Custom CSS -->\n";
         echo '<style id="vbc-page-custom-css">' . trim($css) . '</style>' . "\n";
     }
 }

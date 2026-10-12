@@ -417,7 +417,7 @@ function vbc_get_common_options($tag_type) {
 
 function vbc_get_element_ux_builder_template($tag, $tag_type = 'container') {
     if ($tag === 'section') {
-        return '<section id="{{ shortcode.options.id || shortcode.$id }}" class="section vbc-section mask-{{ shortcode.options.mask }} {{ shortcode.options.visibility }} {{ shortcode.options.class }}" ng-class="{dark: shortcode.options.dark == \'true\', \'has-mask\': shortcode.options.mask, \'has-parallax\': shortcode.options.parallax, \'uxb-sticky-section\': shortcode.options.sticky == \'true\'}"><div class="section-bg fill"><img ng-if="shortcode.options.bg" class="bg" ng-style="{ \'objectPosition\': shortcode.options.bgPos }" wp-attachment="shortcode.options.bg" wp-attachment-size="shortcode.options.bgSize" alt="" /><div ng-if="shortcode.options.bgOverlay" class="section-bg-overlay fill"></div></div><div class="section-content relative"><content></content></div><style>#{{ shortcode.options.id || shortcode.$id }} { min-height: {{ shortcode.options.height }}; } #{{ shortcode.options.id || shortcode.$id }} { background-color: {{ shortcode.options.bgColor || shortcode.options.backgroundColor }}; } #{{ shortcode.options.id || shortcode.$id }} { padding-top: {{ shortcode.options.padding }}; padding-bottom: {{ shortcode.options.padding }}; } #{{ shortcode.options.id || shortcode.$id }} { margin-bottom: {{ shortcode.options.margin }}; } #{{ shortcode.options.id || shortcode.$id }} .section-bg-overlay { background-color: {{ shortcode.options.bgOverlay }}; }</style></section>';
+        return '<style id="vbc-style-{{ shortcode.options.id || shortcode.$id }}" ng-if="shortcode.options.custom_css">{{ (shortcode.options.custom_css || "").split("selector").join("#" + (shortcode.options.id || shortcode.$id)) }}</style><section id="{{ shortcode.options.id || shortcode.$id }}" class="section vbc-section mask-{{ shortcode.options.mask }} {{ shortcode.options.visibility }} {{ shortcode.options.class }}" ng-class="{dark: shortcode.options.dark == \'true\', \'has-mask\': shortcode.options.mask, \'has-parallax\': shortcode.options.parallax, \'uxb-sticky-section\': shortcode.options.sticky == \'true\'}"><div class="section-bg fill"><img ng-if="shortcode.options.bg" class="bg" ng-style="{ \'objectPosition\': shortcode.options.bgPos }" wp-attachment="shortcode.options.bg" wp-attachment-size="shortcode.options.bgSize" alt="" /><div ng-if="shortcode.options.bgOverlay" class="section-bg-overlay fill"></div></div><div class="section-content relative"><content></content></div><style>#{{ shortcode.options.id || shortcode.$id }} { min-height: {{ shortcode.options.height }}; } #{{ shortcode.options.id || shortcode.$id }} { background-color: {{ shortcode.options.bgColor || shortcode.options.backgroundColor }}; } #{{ shortcode.options.id || shortcode.$id }} { padding-top: {{ shortcode.options.padding }}; padding-bottom: {{ shortcode.options.padding }}; } #{{ shortcode.options.id || shortcode.$id }} { margin-bottom: {{ shortcode.options.margin }}; } #{{ shortcode.options.id || shortcode.$id }} .section-bg-overlay { background-color: {{ shortcode.options.bgOverlay }}; }</style></section>';
     }
 
     if ($tag === 'img') {
@@ -438,6 +438,33 @@ function vbc_get_element_ux_builder_template($tag, $tag_type = 'container') {
 
     if ($tag === 'button') {
         return '<a id="{{ shortcode.options.id || shortcode.$id }}" href="javascript:void(0);" class="button vbc-btn {{ shortcode.options.class }} {{ shortcode.options.custom_class }}" ng-style="{\'color\': shortcode.options.color, \'background-color\': shortcode.options.bg_color, \'border-radius\': shortcode.options.radius}"><i ng-if="shortcode.options.icon && shortcode.options.icon_pos == \'left\'" class="{{ shortcode.options.icon }}"></i><span>{{ shortcode.options.text }}</span><i ng-if="shortcode.options.icon && shortcode.options.icon_pos !== \'left\'" class="{{ shortcode.options.icon }}"></i></a>';
+    }
+
+    if ($tag === 'post') {
+        return '<div id="{{ shortcode.options.id || shortcode.$id }}" class="vbc-posts-wrapper {{ shortcode.options.class }} {{ shortcode.options.custom_class }}">' .
+            '<div class="vbc-post-grid vbc-grid-cols-{{ shortcode.options.columns || 3 }}" ng-style="{\'display\': \'grid\', \'grid-template-columns\': \'repeat(\' + (shortcode.options.columns || 3) + \', minmax(0, 1fr))\', \'gap\': shortcode.options.gap || \'24px\'}">' .
+                '<div class="vbc-post-card" ng-repeat="i in [1,2,3]" ng-style="{\'background\': shortcode.options.card_bg || \'#ffffff\', \'border-radius\': shortcode.options.card_radius || \'20px\', \'border\': shortcode.options.card_border || \'1px solid #e2e8f0\', \'overflow\': \'hidden\', \'box-shadow\': shortcode.options.card_shadow || \'0 4px 15px rgba(0,0,0,0.03)\'}">' .
+                    '<div class="vbc-post-thumb-wrap" ng-style="{\'height\': shortcode.options.image_height || \'220px\', \'background\': \'#f1f5f9\', \'display\': \'flex\', \'align-items\': \'center\', \'justify-content\': \'center\'}">' .
+                        '<i data-lucide="image" style="width: 36px; height: 36px; color: #94a3b8;"></i>' .
+                    '</div>' .
+                    '<div style="padding: 20px;">' .
+                        '<div style="font-size: 13px; color: #94a3b8; margin-bottom: 8px;">' .
+                            '<i data-lucide="calendar" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle;"></i> ' .
+                            '<span>10/10/2026</span>' .
+                        '</div>' .
+                        '<h4 style="margin: 0 0 10px 0; font-size: 18px; font-weight: 700; color: #0f172a; line-height: 1.4;">' .
+                            '{{ shortcode.options.post_type === \'dich-vu\' ? \'Dịch vụ \' + i : (shortcode.options.post_type === \'du-an\' ? \'Dự án tiêu biểu \' + i : \'Bài viết mẫu \' + i) }}' .
+                        '</h4>' .
+                        '<p style="font-size: 14px; color: #64748b; margin-bottom: 16px; line-height: 1.5;">' .
+                            'Nội dung xem trước của bài viết động trong UX Builder...' .
+                        '</p>' .
+                        '<div style="color: #166434; font-weight: 700; font-size: 14px;">' .
+                            '{{ shortcode.options.button_text || \'Chi tiết\' }} ↗' .
+                        '</div>' .
+                    '</div>' .
+                '</div>' .
+            '</div>' .
+        '</div>';
     }
 
     if ($tag === 'card') {
@@ -2003,3 +2030,71 @@ add_filter('the_content', function($content) {
     }
     return $content;
 }, 9999);
+
+
+/**
+ * Tự động đồng bộ toàn bộ VBC Custom CSS vào UX Builder Canvas (Iframe preview)
+ * 1. wp_head (priority 999): In trực tiếp thẻ <style id="vbc-uxb-all-sections-css"> trong <head> của iframe UX Builder
+ * 2. ux_builder_enqueue_scripts: Fallback qua wp_add_inline_style
+ */
+function vbc_compile_page_sections_css($post_id) {
+    if (!$post_id) return '';
+    $post_obj = get_post($post_id);
+    if (!$post_obj || empty($post_obj->post_content)) return '';
+
+    preg_match_all('/\[vbc_section\b([^\]]*)\]/i', $post_obj->post_content, $matches);
+    $accumulated_css = '';
+    if (!empty($matches[1])) {
+        foreach ($matches[1] as $attr_str) {
+            $id_match = array();
+            $css_match = array();
+            preg_match('/\bid=(["\'])(.*?)\1/', $attr_str, $id_match);
+            preg_match('/\bcustom_css=(["\'])(.*?)\1/', $attr_str, $css_match);
+            if (!empty($id_match[2]) && !empty($css_match[2])) {
+                $sec_id = '#' . sanitize_html_class($id_match[2]);
+                $raw_css = html_entity_decode($css_match[2], ENT_QUOTES, 'UTF-8');
+                $compiled = preg_replace('/\bselector\b/', $sec_id, $raw_css);
+                $accumulated_css .= ' ' . $compiled;
+            }
+        }
+    }
+    return trim(preg_replace('/\s+/', ' ', $accumulated_css));
+}
+
+add_action('wp_head', function() {
+    if (isset($_GET['uxb_iframe'])) {
+        $post_id = 0;
+        if (isset($_GET['post_id'])) {
+            $post_id = intval($_GET['post_id']);
+        } elseif (isset($_GET['post'])) {
+            $post_id = intval($_GET['post']);
+        }
+        if ($post_id > 0) {
+            $clean_css = vbc_compile_page_sections_css($post_id);
+            if (!empty($clean_css)) {
+                echo '<style id="vbc-uxb-all-sections-css">' . $clean_css . '</style>' . "\n";
+            }
+        }
+    }
+}, 999);
+
+add_action('ux_builder_enqueue_scripts', function($context) {
+    global $post;
+    $post_id = 0;
+    if (isset($_GET['post_id'])) {
+        $post_id = intval($_GET['post_id']);
+    } elseif (isset($_GET['post'])) {
+        $post_id = intval($_GET['post']);
+    } elseif ($post) {
+        $post_id = $post->ID;
+    }
+    
+    if ($post_id > 0) {
+        $clean_css = vbc_compile_page_sections_css($post_id);
+        if (!empty($clean_css)) {
+            wp_add_inline_style('ux-builder-core', $clean_css);
+            wp_add_inline_style('flatsome-main', $clean_css);
+        }
+    }
+}, 99);
+

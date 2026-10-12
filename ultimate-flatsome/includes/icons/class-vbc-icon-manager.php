@@ -31,7 +31,7 @@ function vbc_register_icon_libraries() {
     if (function_exists('ux_builder_is_active') && ux_builder_is_active()) {
         $is_ux_builder = true;
     }
-    if (isset($_GET['uxb_iframe']) || isset($_GET['ux-builder']) || (is_admin() && isset($_GET['page']) && $_GET['page'] === 'uxbuilder')) {
+    if (isset($_GET['uxb_iframe']) || isset($_GET['ux-builder']) || isset($_GET['app']) || (is_admin() && isset($_GET['page']) && $_GET['page'] === 'uxbuilder')) {
         $is_ux_builder = true;
     }
 
@@ -151,7 +151,7 @@ function vbc_register_icon_ux_builder() {
         'category' => 'VibeCode HTML',
         'wrap'     => false,
         'inline'   => true,
-        'template' => '<span id="{{ shortcode.options.id || shortcode.$id }}" class="vbc-icon-wrap {{ shortcode.options.custom_class }}" ng-style="{\'display\': shortcode.options.display || \'inline-flex\', \'color\': shortcode.options.color, \'background-color\': shortcode.options.background_color, \'padding\': shortcode.options.padding, \'border-radius\': shortcode.options.border_radius, \'font-size\': shortcode.options.size}"><i ng-if="shortcode.options.name || shortcode.options.icon" data-lucide="{{ shortcode.options.name || shortcode.options.icon }}" class="{{ shortcode.options.name || shortcode.options.icon }}"></i></span>',
+        'template' => '<span id="{{ shortcode.options.id || shortcode.$id }}" class="vbc-icon-wrap {{ shortcode.options.custom_class }}" ng-style="{\'display\': shortcode.options.display || \'inline-flex\', \'color\': shortcode.options.color, \'background-color\': shortcode.options.background_color, \'padding\': shortcode.options.padding, \'border-radius\': shortcode.options.border_radius, \'font-size\': shortcode.options.size}"><i data-lucide="{{ shortcode.options.name || shortcode.options.icon || \'shield-check\' }}" class="{{ shortcode.options.name || shortcode.options.icon || \'shield-check\' }}"></i></span>',
         'options'  => array(
             'media_group' => array(
                 'type' => 'group',

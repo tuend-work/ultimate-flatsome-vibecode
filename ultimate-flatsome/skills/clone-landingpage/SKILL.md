@@ -1,14 +1,16 @@
 ---
 name: clone-landingpage
 description: >-
-  Tự động sao chép (clone) toàn bộ giao diện và nội dung từ một trang web bất kỳ sang WordPress Flatsome bằng 100% phần tử Ultimate Flatsome VibeCode Elements do AI trực tiếp sinh ra dựa trên ảnh chụp màn hình toàn trang qua trình duyệt thật Antigravity. Không dùng code web gốc, đảm bảo code sạch tuyệt đối.
+  Tự động sao chép (clone) toàn bộ giao diện và nội dung từ một trang web bất kỳ sang WordPress Flatsome bằng 100% phần tử Ultimate Flatsome VibeCode Elements do AI trực tiếp sinh ra dựa trên ảnh chụp màn hình toàn trang qua trình duyệt thật Antigravity. Hỗ trợ 2 chế độ kiến trúc: Landing Page độc lập (Page) và Hệ thống CPT động kèm Custom Fields & Admin Meta Box (Tours, Hotels, Products, Courses, Services).
 ---
 
-# Clone Landing Page (Antigravity Real Browser & AI Visual Generative Architecture)
+# Clone Landing Page & CPT System (Antigravity Real Browser & AI Visual Generative Architecture)
 
 ## Mục tiêu (Goal)
 Sử dụng **Trình duyệt thật của Antigravity (`browser_subagent`)** để truy cập, cuộn trang kích hoạt hiệu ứng/lazy-load và chụp ảnh màn hình toàn trang (**Full-Page Screenshot**). 
-Sau đó, **AI đóng vai trò Senior UI/UX & Frontend Engineer trực tiếp quan sát ảnh chụp màn hình toàn trang để TẠO SINH 100% MÃ NGUỒN MỚI TINH (Generative AI from Visual)** bằng hệ thống **Native VBC Elements** (`[vbc_section]`, `[row]`, `[col]`, `[vbc_div]`, `[vbc_box]`, `[vbc_block]`, `[vbc_container]`, `[vbc_h1]-[vbc_h6]`, `[vbc_p]`, `[vbc_a]`, `[vbc_img]`, `[vbc_icon]`, `[vbc_post]`, `[contact-form-7]`).
+Sau đó, **AI đóng vai trò Senior UI/UX & Fullstack WordPress Engineer** phân tích loại trang, trực tiếp quan sát ảnh chụp màn hình toàn trang để **TẠO SINH 100% MÃ NGUỒN MỚI TINH (Generative AI from Visual)**:
+- Đối với **Trang đích độc lập (Landing Page)**: Tạo sinh hệ thống **Native VBC Elements** (`[vbc_section]`, `[row]`, `[col]`, `[vbc_div]`, `[vbc_box]`, `[vbc_block]`, `[vbc_container]`, `[vbc_h1]-[vbc_h6]`, `[vbc_p]`, `[vbc_a]`, `[vbc_img]`, `[vbc_icon]`, `[vbc_post]`, `[contact-form-7]`).
+- Đối với **Hệ thống CPT & Trang Chi Tiết (Custom Post Type System)**: Thiết kế toàn diện kiến trúc **Backend (Custom Fields Schema, Admin Meta Box, REST API)** kết hợp **Frontend (Dynamic PHP Template `single-[cpt].php`, 5-Photo Mosaic Gallery, Sticky Booking Card, Timeline)**, tuyệt đối không dùng nội dung tĩnh.
 
 > [!CRITICAL]
 > **QUY TẮC CỐT LÕI — CODE SẠCH TUYỆT ĐỐI, KHÔNG DÙNG LẠI CODE CỦA WEB GỐC**:
@@ -17,7 +19,44 @@ Sau đó, **AI đóng vai trò Senior UI/UX & Frontend Engineer trực tiếp qu
 
 ---
 
-## Quy trình Thực hiện (Workflow)
+## 🏛️ Hai Chế Độ Kiến Trúc (Dual Architecture Strategy)
+
+Trước khi thực hiện, AI Agent **BẮT BUỘC** phân loại trang nguồn thuộc một trong hai chế độ kiến trúc sau:
+
+```mermaid
+graph TD
+    A[URL Trang Nguồn] --> B{Phân Loại Loại Trang}
+    B -->|Trang Đích Độc Lập / Home / About / Promo| C[CHẾ ĐỘ A: Standalone Landing Page]
+    B -->|Chi Tiết CPT / Tour / Khách Sạn / Khóa Học / Dịch Vụ| D[CHẾ ĐỘ B: CPT Dynamic System]
+    
+    C --> C1[Tạo sinh VBC Shortcodes vào post_content]
+    C --> C2[Nhúng Form CF7 & Custom CSS scoped]
+    C --> C3[Xuất bản lên Page WordPress]
+
+    D --> D1[Thiết kế Schema Custom Fields Post Meta]
+    D --> D2[Đăng ký Admin Meta Box & Save Hooks trong functions.php]
+    D --> D3[Tạo Dynamic Single Template single-cpt.php]
+    D --> D4[Seed dữ liệu vào Post Meta & post_content chỉ chứa text giới thiệu]
+```
+
+### Chế độ A: Standalone Landing Page (Trang Đích Độc Lập)
+- **Áp dụng cho**: Trang chủ (Homepage), Trang giới thiệu công ty, Trang bảng giá tổng hợp, Trang sự kiện khuyến mãi đơn lẻ.
+- **Đặc điểm**: Bố cục trang là duy nhất, toàn bộ cấu trúc được sinh trực tiếp dưới dạng VBC Elements lưu trong `post_content` của một WordPress Page.
+
+### Chế độ B: CPT Dynamic System (Hệ Thống CPT & Trang Chi Tiết)
+- **Áp dụng cho**: Chi tiết Tour du lịch, Phòng khách sạn, Bất động sản, Khóa học, Gói dịch vụ y tế/spa, Sản phẩm đặc thù.
+- **QUY TẮC SỐNG CÒN — TUYỆT ĐỐI CẤM**:
+  - ❌ **CẤM nhồi nhét toàn bộ giao diện chi tiết (bộ ảnh, bảng giá, lịch trình, sidebar, nút đặt, đánh giá) thành một chuỗi HTML/shortcode tĩnh cứng ngắc vào `post_content` của một bài viết đơn lẻ!**
+  - Làm như vậy sẽ khiến các bài viết còn lại trong CPT bị trống trơn, hỏng giao diện, và người quản trị trong WP Admin không thể chỉnh sửa giá hay thuộc tính.
+- **QUY TRÌNH CHUẨN 4 BƯỚC CHO CHẾ ĐỘ B**:
+  1. **Backend Schema**: Tự động thiết kế bộ Custom Fields (`_tour_*`, `_item_*`) đáp ứng đầy đủ thuộc tính của đối tượng.
+  2. **Admin Meta Box**: Tự động tạo giao diện nhập liệu trực quan trong WP Admin (`add_meta_box`) và hook lưu dữ liệu (`save_post_[cpt]`) an toàn.
+  3. **Frontend Dynamic Template**: Viết file template PHP động cho child theme (`single-[cpt].php`) đọc toàn bộ Custom Fields qua `get_post_meta()` với fallback thông minh.
+  4. **Clean Editorial Content**: `post_content` chỉ chứa văn bản giới thiệu/editorial thuần túy từ trình soạn thảo WordPress. Mọi bài viết thuộc CPT đều tự động thừa hưởng giao diện chuẩn đẹp 100%.
+
+---
+
+## Quy trình Thực hiện Chi tiết (Workflow)
 
 ### Bước 1: Điều khiển Trình Duyệt Thật Antigravity (`browser_subagent`) & Đồng Bộ Media
 1. **Khởi chạy Trình duyệt thật qua Antigravity `browser_subagent`**:
@@ -33,202 +72,196 @@ Sau đó, **AI đóng vai trò Senior UI/UX & Frontend Engineer trực tiếp qu
      ```
    - **Quy tắc Kiểm tra Trùng lặp trước khi upload**: Script tự động kiểm tra ảnh đã tồn tại trên WordPress Media Library hay chưa (`/vbc/v1/check-media`). Nếu đã có $\to$ tái sử dụng URL WordPress, không tạo bản sao thừa. Kết quả ánh xạ lưu tại `tmp/<slug>/media_map.json`.
 
-### Bước 2: AI Quan Sát Ảnh Chụp Toàn Trang & Kiến Tạo Bố Cục Thị Giác (AI Visual Perception)
-AI Agent quan sát trực tiếp ảnh chụp toàn trang `source_screenshot.png` (Visual-Driven) để phân tích layout và phân chia các Section chức năng:
-1. **Header / Topbar**: Logo, hotline, navigation links, CTA button.
-2. **Hero Section**: Tiêu đề chính H1, slogan, badge ưu đãi, bullet points lợi ích, form đăng ký hoặc nút hành động, ảnh đại diện nổi bật.
-3. **Highlights / Features Grid**: Lưới 3–4 cột với các điểm mạnh dịch vụ, icon vector trực quan.
-4. **Programs / Services / Courses**: Thẻ khóa học, bảng giá, chương trình chi tiết theo đối tượng.
-5. **Tabs & Accordions**: Lộ trình đào tạo (`[vbc_tabs]`), câu hỏi thường gặp FAQ (`[vbc_accordion]` & `[vbc_accordion_item]`).
-6. **Blog / Tin Tức & Sản Phẩm (Dynamic Query)**: Danh sách bài viết blog, tin tức hoặc sản phẩm WooCommerce $\to$ Sử dụng `[vbc_post]` (`post_type="post"` hoặc `post_type="product"`).
-7. **Social Proof & Testimonials**: Đánh giá khách hàng/học viên, rating, feedback thực tế.
-8. **Lead Form & CTA Form (Contact Form 7)**: Biểu mẫu form đăng ký nhận tư vấn, tải tài liệu.
-9. **Footer**: Thông tin liên hệ, bản quyền, liên kết điều khoản.
+---
 
-### Bước 3: Tự động Tạo Biểu Mẫu Contact Form 7 (BẮT BUỘC)
-Khi phát hiện form nhập liệu trên trang nguồn (hoặc khu vực CTA đăng ký nhận ưu đãi/tư vấn):
-1. **Phân tích các trường dữ liệu**: Bóc tách tên trường, placeholder, kiểu input (Họ tên, SĐT, Email, Khóa học, Nội dung...).
+### Bước 2 (Chế độ B): Thiết Kế Schema Custom Fields & Admin Meta Box (Backend)
+
+Khi xác định trang nguồn thuộc **Chế độ B (CPT Dynamic System)**:
+
+#### 1. Bóc tách Schema Custom Fields chuẩn Klook/Travel/Service (`_tour_*` hoặc `_[cpt]_*`):
+- **Giá & Khuyến mãi**: `_tour_price` (giá bán), `_tour_original_price` (giá gốc niêm yết gạch ngang), `_tour_discount_percent` (tiết kiệm %), `_tour_price_note` (ghi chú giá trọn gói).
+- **Social Proof & Huy hiệu**: `_tour_badge` (Huy hiệu Klook), `_tour_rating` (sao đánh giá), `_tour_reviews_count` (số lượt đánh giá), `_tour_booked_count` (số lượt đặt).
+- **Thông số dịch vụ**: `_tour_duration` (thời lượng), `_tour_location` (địa điểm), `_tour_languages` (ngôn ngữ HDV), `_tour_confirmation` (thời gian xác nhận vé), `_tour_cancellation` (chính sách hủy).
+- **Thư viện ảnh Klook**: `_tour_gallery` (lưu danh sách 4 URL ảnh phụ ghép cùng ảnh đại diện Featured Image tạo thành bộ 5 ảnh mosaic).
+- **Khối nội dung có cấu trúc**:
+  - `_tour_highlights`: Điểm nổi bật (danh sách bullet points, mỗi dòng 1 gạch đầu dòng).
+  - `_tour_packages`: Các gói dịch vụ sẵn có (định dạng `Tên gói | Giá | Mô tả`, mỗi dòng 1 gói).
+  - `_tour_itinerary`: Trục thời gian lịch trình (định dạng `Thời gian | Hoạt động | Mô tả chi tiết`).
+  - `_tour_included` & `_tour_excluded`: Dịch vụ bao gồm & không bao gồm.
+  - `_tour_reviews_list`: Nhận xét khách hàng thực tế (`Họ tên (Nơi ở) | Số sao | Nội dung`).
+
+#### 2. Đăng ký Admin Meta Box trong `functions.php`:
+Tích hợp giao diện quản trị trực quan trong trang chỉnh sửa bài viết của WP Admin:
+```php
+add_action('add_meta_boxes', function() {
+    add_meta_box('klook_tour_meta_box', '⚡ Thuộc tính Tour & Hoạt động (Custom Fields)', 'klook_render_tour_meta_box', 'tour', 'normal', 'high');
+});
+
+function klook_render_tour_meta_box($post) {
+    wp_nonce_field('klook_save_tour_meta_action', 'klook_tour_meta_nonce');
+    // Hiển thị các trường input/textarea chia theo từng section trực quan:
+    // 1. Giá & Khuyến mãi | 2. Đánh giá & Huy hiệu | 3. Thông số | 4. Gallery | 5. Highlights | 6. Packages | 7. Itinerary | 8. Inclusions | 9. Reviews
+}
+
+add_action('save_post_tour', function($post_id) {
+    if (!isset($_POST['klook_tour_meta_nonce']) || !wp_verify_nonce($_POST['klook_tour_meta_nonce'], 'klook_save_tour_meta_action')) return;
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
+    if (!current_user_can('edit_post', $post_id)) return;
+    // Sanitize và update_post_meta toàn bộ các trường
+});
+```
+
+---
+
+### Bước 3 (Chế độ B): Xây Dựng Template Động `single-[cpt].php` (Frontend)
+
+Tạo file `single-[cpt].php` (ví dụ `single-tour.php`) trong child theme với cấu trúc chuẩn Klook:
+1. **Breadcrumbs**: Điều hướng thông minh theo Điểm đến & Danh mục.
+2. **5-Photo Mosaic Gallery**: Khung 432px height (1 ảnh lớn 60% bên trái + lưới 2x2 ảnh phụ 40% bên phải + floating button đếm ảnh).
+3. **Thanh Fast Facts**: Icon & thông tin nhanh (Xác nhận tức thời, Hủy miễn phí, Ngôn ngữ, Xe riêng).
+4. **Điểm Nổi Bật (Highlights)**: Danh sách tích cam Klook nổi bật.
+5. **Giới Thiệu Hoạt Động**: Render `the_content()` lấy trực tiếp từ trình soạn thảo WordPress.
+6. **Các Gói Dịch Vụ Sẵn Có (Packages)**: Khung lựa chọn gói với giá riêng và nút chọn.
+7. **Lịch Trình Chi Tiết (Itinerary Timeline)**: Trục thời gian dọc với vạch nối và chấm tròn cam Klook.
+8. **Điều Khoản Dịch Vụ**: 2 bảng so sánh trực quan Bao gồm (tick xanh) vs Không bao gồm (chữ thập đỏ).
+9. **Đánh Giá Khách Hàng**: Các thẻ nhận xét thật kèm sao vàng 5.0.
+10. **Sticky Booking Sidebar**: Khung giá cố định bên phải khi cuộn trang, hiển thị giá ưu đãi, % tiết kiệm, nút cam *"Đặt Ngay • Giữ Chỗ Tức Thì"*, form giữ chỗ CF7 và các huy hiệu bảo đảm.
+11. **Gợi Ý Tương Tự (Related Items)**: Tự động truy vấn 3 item liên quan ngẫu nhiên từ cơ sở dữ liệu ở chân trang.
+
+---
+
+### Bước 4: Tự động Tạo Biểu Mẫu Contact Form 7 (BẮT BUỘC)
+Khi phát hiện form nhập liệu trên trang nguồn (hoặc khu vực CTA đăng ký nhận ưu đãi/tư vấn/đặt chỗ):
+1. **Phân tích các trường dữ liệu**: Bóc tách tên trường, placeholder, kiểu input (Họ tên, SĐT, Email, Khóa học/Tour, Ngày khởi hành, Số lượng khách, Ghi chú...).
 2. **Chạy script sinh Form CF7 qua REST API**:
    ```bash
-   python .agents/skills/clone-landingpage/scripts/create_cf7.py --title "Form Đăng Ký - <Tên Landing Page>" --fields "name,phone,email,course,message" --button "Đăng ký tư vấn miễn phí"
+   python .agents/skills/clone-landingpage/scripts/create_cf7.py --title "Form Đặt Dịch Vụ - <Tên Landing Page>" --fields "name,phone,email,tour_date,guests,note" --button "Đặt Ngay • Giữ Chỗ Tức Thì"
    ```
-3. **Lấy mã Shortcode trả về** dạng `[contact-form-7 id="<ID>" title="..."]` để nhúng trực tiếp vào container VBC ở Bước 4.
+3. **Lấy mã Shortcode trả về** dạng `[contact-form-7 id="<ID>" title="..."]` để nhúng trực tiếp vào container VBC hoặc Sidebar.
 4. **Quy tắc**: 100% biểu mẫu thu thập thông tin (Lead Form) **BẮT BUỘC** phải được tạo thành form Contact Form 7 thực tế qua API, **TUYỆT ĐỐI KHÔNG** dùng văn bản giả lập tĩnh (`[vbc_p]`) thay cho form.
 
-### Bước 3.1: Nhận Diện Danh Sách Bài Viết (Blog) & Sản Phẩm (Product) -> BẮT BUỘC Dùng VBC Post Element `[vbc_post]`
-Khi phát hiện khu vực danh sách Tin tức, Bài viết Blog, Kiến thức, hoặc Danh sách Sản phẩm/Khóa học:
+---
+
+### Bước 4.1: Nhận Diện Danh Sách Bài Viết (Blog) & Sản Phẩm/Tour -> Dùng `[vbc_post]`
+Khi phát hiện khu vực danh sách Tin tức, Bài viết Blog, Kiến thức, hoặc Danh sách Tour/Sản phẩm:
 1. **Nhận diện dạng Row / Grid Blog (Tin tức / Kiến thức)**:
-   - Thay vì dựng thủ công các `[col]` tĩnh lặp lại, **BẮT BUỘC sử dụng element `[vbc_post]`** với `post_type="post"` để hiển thị danh sách bài viết chuẩn WordPress động.
+   - **BẮT BUỘC sử dụng element `[vbc_post]`** với `post_type="post"` để hiển thị danh sách bài viết chuẩn WordPress động.
    - Cú pháp chuẩn:
      ```
      [vbc_post post_type="post" posts_per_page="3" columns="3" columns__sm="1" layout="grid" image_height="220px" title_tag="h3" button_text="Xem chi tiết" card_radius="18px"]
      ```
-2. **Nhận diện dạng Row / Grid Sản Phẩm (WooCommerce / Khóa học / Dịch vụ)**:
-   - **BẮT BUỘC sử dụng `[vbc_post]`** với `post_type="product"` (hoặc Custom Post Type tương ứng):
+2. **Nhận diện dạng Row / Grid Tour / Hoạt Động / Sản Phẩm**:
+   - Sử dụng `[vbc_post]` với `post_type="tour"` (hoặc `post_type="product"`):
      ```
-     [vbc_post post_type="product" posts_per_page="4" columns="4" columns__sm="1" layout="grid" fields="thumbnail:100%, categories:100%, title:100%, price:50%, button:50%" button_text="Mua Ngay"]
+     [vbc_post post_type="tour" posts_per_page="4" columns="4" columns__sm="1" layout="grid" card_radius="16px"]
      ```
 3. **Ưu điểm**: Tự động lấy ảnh đại diện, tiêu đề, tóm tắt, giá bán, ngày đăng, liên kết permalink tự động và tương thích 100% với Flatsome UX Builder.
-5. **BẮT BUỘC — Quản Lý Custom CSS Chuẩn Hóa (Chỉ Dùng Field Công Khai `vbc_page_css`)**:
-   - Sau khi tạo form CF7, **phân tích màu sắc, font chữ, border-radius, padding và màu nền của form** từ ảnh chụp màn hình toàn trang.
-   - Khuyến khích đưa CSS tùy chỉnh trực tiếp vào thuộc tính `custom_css="..."` của `[vbc_section]` chứa form/phần tử để style các thành phần khớp với thiết kế.
-   - Nếu có CSS dùng chung cấp độ trang (Page Custom CSS): **BẮT BUỘC lưu vào Custom Field công khai `vbc_page_css`**.
-   - **TUYỆT ĐỐI KHÔNG dùng field ẩn `_custom_css`**.
-   - **KHÔNG TỰ TIỆN chèn CSS ẩn header/footer** (`#header, #footer { display: none !important; }`) trừ khi người dùng có yêu cầu rõ ràng.
-   - **BẮT BUỘC ĐƯA TRỰC TIẾP VÀO `custom_css="..."` CỦA `[vbc_section]` CHỨA FORM ĐÓ**, sử dụng cú pháp `selector`:
-     - Định kiểu container section: `selector { ... }`
-     - Định kiểu các input con: `selector .wpcf7-form input.wpcf7-text`, `selector .wpcf7-form input.wpcf7-tel`, `selector .wpcf7-form select`, `selector .wpcf7-form textarea` $\to$ border, padding, border-radius, background, font-size.
-     - Định kiểu submit: `selector .wpcf7-form input.wpcf7-submit` $\to$ background-color, color, font-weight, padding, border-radius, hover state.
-   - Ví dụ CSS chuẩn được đóng gói ngay trong `[vbc_section]`:
-     ```css
-     selector .wpcf7-form input.wpcf7-text,
-     selector .wpcf7-form input.wpcf7-tel,
-     selector .wpcf7-form input.wpcf7-email,
-     selector .wpcf7-form select,
-     selector .wpcf7-form textarea {
-       width: 100%;
-       padding: 12px 16px;
-       border: 1.5px solid #e2e8f0;
-       border-radius: 8px;
-       font-size: 15px;
-       background: #f8fafc;
-       margin-bottom: 12px;
-       box-sizing: border-box;
-       transition: border-color 0.2s;
-     }
-     selector .wpcf7-form input:focus {
-       border-color: #F5568F;
-       outline: none;
-     }
-     selector .wpcf7-form input.wpcf7-submit {
-       width: 100%;
-       padding: 14px;
-       background: #F5568F;
-       color: #fff;
-       font-weight: 700;
-       font-size: 16px;
-       border: none;
-       border-radius: 50px;
-       cursor: pointer;
-       transition: background 0.2s;
-     }
-     selector .wpcf7-form input.wpcf7-submit:hover {
-       background: #e0447c;
-     }
-     ```
-   - **Màu sắc, border-radius và font-size PHẢI được tùy chỉnh khớp với thiết kế** — không dùng màu mặc định nếu bản vẽ có màu riêng.
 
-### Bước 4: AI Trực Tiếp Tạo Sinh 100% Mã Nguồn Chuẩn VBC Elements từ Ảnh Chụp Màn Hình (Visual-Driven AI Code Synthesis)
-AI viết trực tiếp file mã nguồn lưu tại `tmp/<slug>/compiled_vbc.txt`.
+---
 
-> [!IMPORTANT]
-> **TIÊU CHUẨN CODE SẠCH — NGUYÊN BẢN VBC ELEMENTS (100% CLEAN GENERATIVE CODE)**:
-> 1. **Tuyệt đối KHÔNG copy cấu trúc HTML gốc**: Không giữ lại các thẻ `div` lồng nhau vô nghĩa, không dùng lại class CSS của web gốc (ví dụ: `elementor-...`, `wp-block-...`, `tailwind-classes`).
-> 2. **AI tái thiết kế bằng Visual Mindset**: Nhìn ảnh chụp $\to$ ánh xạ thẳng sang **VBC Layout sạch nhất có thể**: `[vbc_section]` bọc ngoài $\to$ `[row]` căn giữa $\to$ `[col]` chia cột $\to$ các leaf tags tự đóng (`[vbc_h2]`, `[vbc_p]`, `[vbc_img]`, `[vbc_a]`, `[vbc_icon]`).
-> 3. **Toàn bộ styling đưa vào thuộc tính shortcode hoặc `custom_css="selector { ... }"` của `[vbc_section]`**.
+### Bước 5: Thư Viện Micro-Components & Design Patterns Cao Cấp (Aesthetic Tokens)
 
-#### 🏛️ Kiến Trúc Bố Cục Ưu Tiên (Layout Backbone):
-1. **Khung xương Bố cục (Structure)**: **100% sử dụng `[vbc_section]` (kế thừa Section Flatsome) + `[row]` + `[col]`**:
-   - `[vbc_section id="section-xxx" bg_color="#..." padding="60px" dark="true|false" custom_css="..."]`:
-     - **Kế thừa toàn bộ thuộc tính của Section Flatsome**: `bg`, `bg_color`, `bg_overlay`, `padding`, `padding__sm`, `padding__md`, `margin`, `height`, `dark`, `divider`, `divider_top`, `border`, `effect`, `parallax`...
-     - **BẮT BUỘC gán `id="section-<tên>"`** cho mỗi `[vbc_section]` để làm CSS scope identifier.
-     - **Toàn bộ CSS của section và các phần tử con bên trong ĐƯA TRỰC TIẾP vào `custom_css="..."`** sử dụng từ khóa `selector`.
-   - `[row width="custom" custom_width="1140px" v_align="middle|top"]`: **Toàn bộ `[row]` PHẢI nằm bên trong `[vbc_section]`** — tuyệt đối không đặt `[row]` độc lập ngoài section.
-   - `[col span="4" span__md="6" span__sm="12" align="center|left" bg_color="#..." bg_radius="16" padding="24px"]`: Quản lý hệ thống 12 cột responsive chuẩn Flatsome UX Builder.
-   *(Lưu ý: Đối với các layout flex/grid phức tạp đặc thù, có thể sử dụng `[vbc_div]` $\to$ `[vbc_container]` $\to$ `[vbc_box]` $\to$ `[vbc_block]` — không dùng `[col]` bên trong `[col]`)*.
+> [!TIP]
+> Để website clone đạt được sự choáng ngợp (WOW effect) và giống web gốc 100%, áp dụng các component pattern đã được chuẩn hóa:
 
-2. **Phần tử Con Nguyên Tử (Atomic Elements)**: Đặt trực tiếp bên trong `[col]` hoặc `[vbc_block]`:
-   - `[vbc_h1]-[vbc_h6]`: Tiêu đề kèm thuộc tính `text="..."`, `color`, `font_size`, `font_weight`, `text_align`.
-   - `[vbc_p]`: Đoạn văn bản kèm `text="..."`, `color`, `font_size`, `line_height`.
-   - `[vbc_img]`: Hình ảnh tự đóng `[vbc_img src="..." alt="..." width="..." border_radius="..."]`.
-   - `[vbc_a]`: Nút bấm hoặc liên kết `[vbc_a href="..." text="..." bg_color="..." color="..." padding="..."]`.
-   - `[vbc_icon]`: Icon vector từ 5 thư viện `[vbc_icon icon_type="lucide|fontawesome" name="..." size="..." color="..."]`.
-   - `[vbc_accordion]` & `[vbc_accordion_item]`: Khối câu hỏi thường gặp FAQ.
-   - `[vbc_tabs]` & `[vbc_tab]`: Khối chuyển tab lộ trình học / bảng giá.
-   - `[contact-form-7 id="..." title="..."]`: Form thu thập khách hàng thực tế sinh từ Bước 3.
-   - `[vbc_post post_type="post|product"]`: Danh sách bài viết / sản phẩm truy vấn động từ WordPress Database.
-
-3. **Ràng buộc quan trọng (CẤM VI PHẠM)**:
-   - Thay thế 100% link ảnh bằng URL WordPress từ `media_map.json`.
-   - **100% DÙNG THUỘC TÍNH `text="..."` (SELF-CLOSING SHORTCODES)**:
-     > [!CRITICAL]
-     > - **ĐÚNG:** `[vbc_p text="Khắc phục điểm yếu, nâng band điểm <b>Listening</b>." class="target-text"]`
-     > - **SAI:** `[vbc_p class="target-text"]Khắc phục điểm yếu, nâng band điểm <b>Listening</b>.[/vbc_p]`
-   - **QUOTE NESTING RULE (CẤM NHÁY KÉP TRONG THUỘC TÍNH)**:
-     > [!WARNING]
-     > Khi giá trị thuộc tính nằm trong dấu nháy kép `text="..."`, **100% THUỘC TÍNH HTML BÊN TRONG BẮT BUỘC DÙNG NHÁY ĐƠN `'`**.
-     > - ❌ **SAI:** `[vbc_p text="<span class="adv-num">01</span><span class="adv-title">Cam kết</span>"]`
-     > - ✅ **ĐÚNG:** `[vbc_p text="<span class='adv-num'>01</span> <span class='adv-title'>Cam kết</span>"]`
-   - **CẤM THẺ KHỐI & DANH SÁCH TRONG `[vbc_p]`**:
-     > Thẻ `<p>` KHÔNG ĐƯỢC CHỨA `<ul>`, `<ol>`, `<li>`, `<div>`, `<h3>`. Danh sách phải đặt trong `[vbc_div]<ul>...</ul>[/vbc_div]` hoặc tách thành các flex items.
-     > - ❌ **SAI:** `[vbc_p text="<ul class="check-list"><li>Item 1</li></ul>"]`
-   - **BÓC TÁCH PHẦN TỬ PHỨC HỢP**:
-     > Khi gặp khối gồm nhiều thành phần (ví dụ: Số thứ tự `01` + Tiêu đề), bóc tách riêng thành `[vbc_span]` + `[vbc_h4]` bên trong `[vbc_div]`.
-   - **Zero same-type nesting**: Tuyệt đối không lồng cùng loại thẻ vào nhau (ví dụ: không lồng `[row]` trong `[row]` hoặc `[col]` trong `[col]`, dùng `[row_inner]` / `[vbc_box]` nếu cần sub-grid).
-   - **Tuyệt đối không dùng dấu ngoặc vuông `[` hoặc `]` trong các giá trị thuộc tính**: Kể cả trong `custom_css` (dùng class selector như `.wpcf7-tel`, `.wpcf7-submit`, không dùng `[type='tel']`).
-
-4. **BẮT BUỘC — Đưa CSS của Các Phần Tử Con Vào Custom CSS Của VBC Section Hoặc Public Meta `vbc_page_css`**:
-   - Khuyến khích đưa trực tiếp vào thuộc tính `custom_css="..."` của `[vbc_section]`, hoặc nếu cần CSS toàn trang thì lưu vào **Custom Field công khai `vbc_page_css`** (Tuyệt đối không dùng field ẩn `_custom_css`).
-   - **Cú pháp sử dụng từ khóa `selector`**: Từ khóa `selector` tự động đại diện cho chính Section cha (`#section-id`), từ đó dễ dàng target và style cho mọi phần tử con bên trong (KHÔNG DÙNG DẤU `[` HOẶC `]` TRONG SELECTOR):
-     ```
-     [vbc_section id="section-register" bg_color="#F5568F" padding="80px" padding__sm="50px" dark="true" custom_css="
-       selector { background: linear-gradient(135deg, #F5568F 0%, #e0447c 100%); }
-       selector .wpcf7-form input.wpcf7-text,
-       selector .wpcf7-form input.wpcf7-tel,
-       selector .wpcf7-form input.wpcf7-email,
-       selector .wpcf7-form textarea {
-         width: 100%; padding: 13px 16px;
-         border: 1.5px solid #e2e8f0; border-radius: 10px;
-         font-size: 15px; background: #f8fafc; color: #1e293b; box-sizing: border-box;
-       }
-       selector .wpcf7-form input:focus {
-         border-color: #F5568F; box-shadow: 0 0 0 3px rgba(245,86,143,0.12); outline: none; background: #ffffff;
-       }
-       selector .wpcf7-form input.wpcf7-submit {
-         width: 100%; padding: 15px 24px;
-         background: #F5568F; color: #ffffff;
-         font-weight: 700; font-size: 16px;
-         border: none; border-radius: 50px; cursor: pointer;
-       }
-       selector .wpcf7-form input.wpcf7-submit:hover { background: #e0447c; }
-     "]
-       [row width="custom" custom_width="840px"]
-         [col span="12" bg_color="#ffffff" bg_radius="24" padding="48px"]
-           [vbc_h2 text="Đăng ký tư vấn ngay" color="#1e293b" font_size="26px" font_weight="800" text_align="center" margin="0 0 28px 0"]
-           [contact-form-7 id="..." title="..."]
-         [/col]
-       [/row]
-     [/vbc_section]
-     ```
-   - **Ưu điểm**: CSS được đóng gói trọn vẹn trong từng section, tương thích 100% trong UX Builder, độc lập và không phụ thuộc vào file/field bên ngoài.
-
-### Bước 5: Xuất bản Lên WordPress Qua REST API
-Chạy script xuất bản trang:
-```bash
-python .agents/skills/clone-landingpage/scripts/publisher.py --title "<TIEU_DE>" --slug "<SLUG>" --content "tmp/<slug>/compiled_vbc.txt" [--post_id <POST_ID>]
+#### 1. Bố cục 5-Photo Mosaic Gallery (Klook/Airbnb chuẩn 432px height)
+```html
+<div class="klook-mosaic-gallery" style="margin-bottom: 30px; border-radius: 16px; overflow: hidden; height: 432px; max-height: 432px; display: flex; gap: 8px; position: relative;">
+  <!-- Ảnh lớn bên trái (60%) -->
+  <div style="flex: 0 0 calc(60% - 4px); height: 100%; position: relative; overflow: hidden; cursor: pointer;">
+    <img src="..." style="width: 100%; height: 100%; object-fit: cover; display: block;" />
+  </div>
+  <!-- Lưới 2x2 ảnh nhỏ bên phải (40%) -->
+  <div style="flex: 0 0 calc(40% - 4px); height: 100%; display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 212px); gap: 8px;">
+    <div style="overflow: hidden;"><img src="..." style="width:100%; height:100%; object-fit:cover;" /></div>
+    <div style="overflow: hidden;"><img src="..." style="width:100%; height:100%; object-fit:cover;" /></div>
+    <div style="overflow: hidden;"><img src="..." style="width:100%; height:100%; object-fit:cover;" /></div>
+    <div style="overflow: hidden;"><img src="..." style="width:100%; height:100%; object-fit:cover;" /></div>
+  </div>
+  <!-- Floating Button -->
+  <button style="position: absolute; bottom: 16px; right: 16px; background: rgba(255,255,255,0.95); backdrop-filter: blur(8px); border: none; padding: 9px 18px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.18);">
+    Thư viện ảnh (5)
+  </button>
+</div>
 ```
 
-### Bước 6: AI Agent Đối Soát Từng Section & Tự Động Sinh Lại Code (AI Section-by-Section Recheck & Auto-Fix)
+#### 2. Thẻ Voucher Coupon Cutouts (Vết khuyết bán nguyệt & Cuống vé)
+```css
+.klook-voucher-card {
+  position: relative;
+  background: #ffffff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+}
+/* Vết khuyết xé vé bán nguyệt 2 bên */
+.klook-voucher-divider {
+  position: relative;
+  border-top: 2px dashed #e2e8f0;
+  margin: 16px 0;
+}
+.klook-voucher-divider::before,
+.klook-voucher-divider::after {
+  content: '';
+  position: absolute;
+  top: -10px;
+  width: 20px;
+  height: 20px;
+  background: #f5f6f8; /* Khớp với màu nền trang */
+  border-radius: 50%;
+}
+.klook-voucher-divider::before { left: -26px; }
+.klook-voucher-divider::after { right: -26px; }
+```
 
-1. **AI Agent Phân Tích & Đối Soát Trực Quan Từng Section (Section Gap Analysis)**:
-   - Sử dụng AI Agent kết hợp `browser_subagent` và script `rechecker.py` để duyệt qua từng section của trang nguồn và trang clone:
-     - So sánh bố cục lưới (số cột, tỷ lệ khoảng cách, padding).
-     - So sánh typography (màu chữ, font-size, độ tương phản không bị chìm nền).
-     - So sánh hình ảnh & icons (tỷ lệ ảnh, bo góc `border_radius`, bóng đổ `box_shadow`, icon checklist).
-     - So sánh các tương tác (Accordion FAQ, nút CTA, form fields).
+#### 3. Sticky Booking Sidebar
+```html
+<div style="position: sticky; top: 90px; background: #ffffff; border-radius: 20px; padding: 28px; border: 1px solid #ebebeb; box-shadow: 0 12px 35px rgba(0,0,0,0.08);">
+  <div style="background:#fff4eb; color:#ff5b00; font-size:12px; font-weight:800; padding:4px 12px; border-radius:20px; display:inline-block; margin-bottom:12px;">ƯU ĐÃI ĐẶC BIỆT HÔM NAY</div>
+  <div style="display:flex; align-items:baseline; gap:10px; margin-bottom:6px;">
+    <span style="font-size:32px; font-weight:900; color:#ff5b00;">₫ 780.000</span>
+    <span style="font-size:15px; color:#94a3b8; text-decoration:line-through;">₫ 950.000</span>
+    <span style="background:#fff0eb; color:#ff5b00; font-size:11px; font-weight:700; padding:2px 8px; border-radius:4px;">Tiết kiệm 18%</span>
+  </div>
+  <a href="#book-form" style="display:block; width:100%; background:#ff5b00; color:#ffffff; text-align:center; padding:15px; border-radius:12px; font-weight:800; font-size:16px; text-decoration:none; box-shadow:0 4px 15px rgba(255,91,0,0.3);">Đặt Ngay &bull; Giữ Chỗ Tức Thì</a>
+  [contact-form-7 id="..." title="..."]
+</div>
+```
 
-2. **Chạy Script Rechecker**:
-   ```bash
-   python .agents/skills/recheck-url/scripts/rechecker.py --url "<TARGET_URL>" --source_url "<SOURCE_URL>"
-   ```
+---
 
-3. **Yêu Cầu AI Agent Tự Động Sinh Lại Code Mới (Auto-Remediation)**:
-   - **BẮT BUỘC**: Nếu phát hiện bất kỳ Section nào có sai khác (vỡ layout, chữ bị chìm màu, hình ảnh bị méo mó, hoặc VSI $< 90\%$):
-     - AI Agent **phải chỉ rõ từng điểm sai khác theo từng section**.
-     - AI Agent **phải tự động cập nhật lại script generator và sinh lại code VBC mới** cho section đó.
-     - Tái xuất bản và kiểm định lại cho đến khi đạt chuẩn hoàn hảo:
-       - **Độ tương đồng thị giác (VSI) $\ge 90.0\%$**.
-       - **0 Shortcodes chưa parse**.
-       - **Hình ảnh hiển thị đầy đủ, không broken link**.
-       - **Biểu mẫu Contact Form 7 hiển thị đẹp mắt và hoạt động chuẩn**.
-       - **Tương thích 100% với trình kéo thả Flatsome UX Builder**.
+### Bước 6: Cơ Chế Vượt Cache Nginx Tuyệt Đối (Zero-Cache Strategy)
+
+> [!WARNING]
+> Trên các hệ thống máy chủ WordPress Nginx/Cloudflare, các tài nguyên tĩnh (`style.css`) thường bị cache cứng tới 1 năm (`max-age=31536000`). Trình duyệt người dùng sẽ từ chối tải lại file tĩnh dẫn đến layout vỡ hoặc giao diện cũ rích dù code đã sửa!
+
+**Quy tắc bắt buộc thực hiện trong `flatsome-child/functions.php`**:
+```php
+/**
+ * Print child style.css inline into <head> to completely bypass any Nginx/browser static asset cache
+ */
+add_action('wp_head', function() {
+    $css_file = get_stylesheet_directory() . '/style.css';
+    if (file_exists($css_file)) {
+        echo "\n<!-- VBC Brand Core UI CSS (Zero Cache) -->\n<style id=\"vbc-brand-styles\">\n" . file_get_contents($css_file) . "\n</style>\n";
+    }
+}, 9999);
+```
+Nhờ cơ chế này, mọi thay đổi về CSS lõi, Voucher Ticket, Gallery Mosaic đều có hiệu lực ngay lập tức 100% khi người dùng F5.
+
+---
+
+### Bước 7: Xuất bản & Đối Soát Đa Điểm (Multi-Item Visual Verification)
+
+1. **Xuất bản qua REST API**:
+   - Đối với Landing Page: Sử dụng `publisher.py`.
+   - Đối với CPT System: Sử dụng endpoint `/klook/v1/create-item` hoặc script nạp Post Meta tự động cho toàn bộ các item.
+
+2. **Quy Trình Kiểm Tra & Đối Soát Trực Quan Đa Điểm (BẮT BUỘC)**:
+   - **Với Standalone Page**: Sử dụng `browser_subagent` và `rechecker.py` kiểm định VSI $\ge 90\%$.
+   - **Với CPT System**: **BẮT BUỘC mở ít nhất 2–3 bài viết/tour khác nhau** trên trình duyệt thật `browser_subagent` để chụp ảnh màn hình xác nhận:
+     - Item 1 hiển thị đúng ảnh và giá của Item 1.
+     - Item 2 hiển thị đúng ảnh và giá của Item 2.
+     - Template động hoạt động trơn tru, không có hiện tượng dữ liệu tĩnh bị ghi đè.
+     - 0 Shortcodes chưa parse.
+     - Tương thích 100% với trình kéo thả Flatsome UX Builder.

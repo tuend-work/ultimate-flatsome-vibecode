@@ -13,9 +13,21 @@ Sau đó, **AI đóng vai trò Senior UI/UX & Fullstack WordPress Engineer** ph�
 - Đối với **Hệ thống CPT & Trang Chi Tiết (Custom Post Type System)**: Thiết kế toàn diện kiến trúc **Backend (Custom Fields Schema, Admin Meta Box, REST API)** kết hợp **Frontend (Dynamic PHP Template `single-[cpt].php`, 5-Photo Mosaic Gallery, Sticky Booking Card, Timeline)**, tuyệt đối không dùng nội dung tĩnh.
 
 > [!CRITICAL]
-> **QUY TẮC CỐT LÕI — CODE SẠCH TUYỆT ĐỐI, KHÔNG DÙNG LẠI CODE CỦA WEB GỐC**:
-> - **KHÔNG bóc tách hay copy-paste mã HTML/CSS rối rắm, rác của trang nguồn**. Việc bóc tách HTML thô từ web gốc luôn để lại class rác, mã CSS inline thừa, cấu trúc thẻ div lồng nhau quá sâu làm hỏng Flatsome UX Builder.
-> - **AI quan sát trực tiếp ảnh chụp màn hình toàn trang (Full-Page Screenshot)** như một bản vẽ thiết kế (Figma/UI Design), hiểu bố cục, màu sắc, khoảng cách, font chữ, sau đó **tự tay viết lại 100% mã nguồn VBC Elements sạch, tối ưu, chuẩn semantic và tương thích hoàn hảo với UX Builder**.
+> **QUY TẮC CỐT LÕI — 100% SỬ DỤNG UX ELEMENTS & VBC ELEMENTS, TUYỆT ĐỐI CẤM DỒN CODE VÀO UX TEXT**:
+> - ❌ **TUYỆT ĐỐI CẤM (HARD BAN) dồn toàn bộ nội dung HTML thô (`<div>...</div>`) vào `post_content` của Page hoặc UX Block!**
+>   - Khi bạn dồn raw HTML vào `post_content`, trình dựng Flatsome UX Builder **KHÔNG THỂ** phân tích cấu trúc cây phần tử, và sẽ tự động gói toàn bộ cục HTML đó thành **MỘT PHẦN TỬ TEXT DUY NHẤT** trên thanh điều hướng bên trái!
+>   - Người dùng mở UX Builder ra chỉ thấy đúng 1 nút Text màu xanh lè, không có Section, không có Row, không có Column, không thể kéo thả sắp xếp, không thể co giãn độ rộng cột hay click trực quan vào từng tiêu đề/nút bấm để chỉnh sửa!
+> - ✅ **LUÔN LUÔN PHÂN RÃ TOÀN BỘ BỐ CỤC THÀNH CÂY PHẦN TỬ UX BUILDER & VBC ELEMENTS**:
+>   - Mọi phân khu (Hero, Features, Content, Footer...) **BẮT BUỘC** dùng `[section]` hoặc `[vbc_section]`.
+>   - Mọi cấu trúc chia cột **BẮT BUỘC** dùng `[row]` và `[col span="..."]`.
+>   - Mọi khối bao, icon, container con **BẮT BUỘC** dùng `[vbc_div]`, `[vbc_box]`, `[vbc_block]`.
+>   - Mọi tiêu đề dùng `[vbc_h1]` đến `[vbc_h6]` (hoặc `[title]`).
+>   - Mọi đoạn văn bản dùng `[vbc_p]`.
+>   - Mọi nút bấm, link điều hướng dùng `[vbc_a]` hoặc `[button]`.
+>   - Mọi danh sách bài viết / CPT dùng `[vbc_post]`.
+>   - Mọi form thu thập thông tin dùng `[contact-form-7]`.
+>   - **Tiêu chuẩn nghiệm thu**: Khi mở trang hoặc UX Block trong UX Builder, thanh cây thư mục bên trái **BẮT BUỘC PHẢI THẤY ĐẦY ĐỦ CÂY PHÂN CẤP** (Section > Row > Column > Elements con). Nếu chỉ thấy 1 node `Text`, task bị tính là **THẤT BẠI HOÀN TOÀN**!
+
 
 ---
 
@@ -184,7 +196,10 @@ Footer cao cấp cần được phân tách thành 3 phân khu rõ ràng:
    - Dòng bản quyền: `© 2014-2026 Klook Travel Technology Limited. All Rights Reserved. • Clone by Antigravity VibeCode`.
    - Cụm nút mạng xã hội hình tròn: Facebook, Instagram, TikTok, Threads, YouTube có hiệu ứng scale khi hover.
 
-#### 2. Khởi Tạo UX Block trong WordPress Database:
+#### 2. Khởi Tạo UX Block Bằng 100% UX & VBC Elements:
+> [!IMPORTANT]
+> **TUYỆT ĐỐI KHÔNG LƯU RAW HTML**: Nội dung `$footer_content` bắt buộc phải là chuỗi shortcode phân cấp `[section]`, `[row]`, `[col]`, `[vbc_div]`, `[vbc_box]`, `[vbc_h4]`, `[vbc_p]`, `[vbc_a]`. Nếu lưu chuỗi thẻ `<div>`, UX Builder sẽ gom toàn bộ thành 1 thẻ Text duy nhất làm tê liệt khả năng kéo thả!
+
 Tạo bản ghi trong bảng `wp_posts`:
 ```php
 $block_id = wp_insert_post(array(
@@ -192,7 +207,7 @@ $block_id = wp_insert_post(array(
     'post_name'    => 'footer',
     'post_type'    => 'blocks',
     'post_status'  => 'publish',
-    'post_content' => $footer_html,
+    'post_content' => $footer_shortcodes, // 100% [section], [row], [col], [vbc_...]
 ));
 ```
 

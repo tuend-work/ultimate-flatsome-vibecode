@@ -159,6 +159,71 @@ Khi phát hiện khu vực danh sách Tin tức, Bài viết Blog, Kiến thức
 
 ---
 
+### Bước 4.2: Tách & Clone Footer Về Flatsome UX Block Footer (Global UX Block Footer)
+
+> [!CRITICAL]
+> **QUY TẮC BẮT BUỘC VỀ FOOTER**:
+> - ❌ **TUYỆT ĐỐI CẤM dán trực tiếp footer vào `post_content` của từng trang Landing Page hay CPT.** Nếu làm vậy, mỗi khi khách hàng sửa thông tin công ty hay hotline, họ phải vào sửa từng trang một.
+> - ❌ **KHÔNG hardcode footer tĩnh trong file `footer.php`** vì sẽ làm mất khả năng kéo thả, chỉnh sửa trực quan của Flatsome UX Builder.
+> - ✅ **LUÔN LUÔN tạo một Flatsome UX Block (`post_type: 'blocks'`) với slug là `footer` (hoặc `klook-footer`)**. Flatsome hỗ trợ sẵn cơ chế gán UX Block làm Footer toàn trang (`theme_mod: 'footer_block'`), giúp toàn bộ website (Trang chủ, Điểm đến, Chi tiết Tour, Danh sách Blog, Chi tiết bài viết) đều tự động dùng chung một chân trang chuẩn đẹp và có thể mở UX Builder chỉnh sửa trực quan 100%!
+
+#### 1. Bóc Tách & Thiết Kế Cấu Trúc Footer Chuẩn Klook / Modern E-commerce:
+Footer cao cấp cần được phân tách thành 3 phân khu rõ ràng:
+1. **Thanh Cam Kết Giá Trị (Value Propositions / Brand Pillars)**:
+   - 4 khối lợi ích nổi bật: *Vô vàn lựa chọn*, *Chơi vui giá tốt*, *Dễ dàng và tiện lợi*, *Đáng tin cậy*.
+   - Icon sinh động (background bo tròn pastel: `#fff5eb`, `#e6f7ff`, `#f6ffed`), tiêu đề đậm (16px, `#1e293b`), nội dung cam kết (13px, `#64748b`).
+2. **Khối Liên Kết Đa Cột & Tiện Ích Chân Trang (4 Columns Grid)**:
+   - **Cột 1 (Về thương hiệu)**: Về chúng tôi, Klook Blog, Điểm đến nổi bật, Mã giảm giá, Thẻ quà tặng, Du lịch bền vững.
+   - **Cột 2 (Đối tác)**: Đăng ký nhà cung cấp, Đối tác đăng nhập, Tiếp thị liên kết (Affiliate), Creator, Đại lý.
+   - **Cột 3 (Điều khoản)**: Điều khoản sử dụng, Chính sách bảo mật, Chính sách Cookie, Hoàn hủy vé, Phúc lợi động vật.
+   - **Cột 4 (Kênh thanh toán & App)**:
+     - Lưới badge thẻ thanh toán: MoMo, VISA, MasterCard, JCB, AMEX, UnionPay, ATM, Apple Pay, Google Pay (badge trắng viền xám mềm mại).
+     - Cụm Tải Ứng Dụng: Nút đen bo góc App Store và Google Play, QR Code tải nhanh, ưu đãi 5% cho đơn đầu trên App.
+   - *Lưu ý kỹ thuật*: Sử dụng `display: flex; flex-direction: column; gap: 10px;` cho danh sách link thay vì thẻ `<ul>/<li>` để triệt tiêu hoàn toàn nguy cơ dính bullet dot hoặc gạch đầu dòng do CSS theme Flatsome áp đặt.
+3. **Thanh Bản Quyền & Mạng Xã Hội (Copyright & Social Bar)**:
+   - Dòng bản quyền: `© 2014-2026 Klook Travel Technology Limited. All Rights Reserved. • Clone by Antigravity VibeCode`.
+   - Cụm nút mạng xã hội hình tròn: Facebook, Instagram, TikTok, Threads, YouTube có hiệu ứng scale khi hover.
+
+#### 2. Khởi Tạo UX Block trong WordPress Database:
+Tạo bản ghi trong bảng `wp_posts`:
+```php
+$block_id = wp_insert_post(array(
+    'post_title'   => 'Footer',
+    'post_name'    => 'footer',
+    'post_type'    => 'blocks',
+    'post_status'  => 'publish',
+    'post_content' => $footer_html,
+));
+```
+
+#### 3. Kích Hoạt Footer Toàn Trang & Ẩn Footer Mặc Định Trong `functions.php`:
+Trong `flatsome-child/functions.php`, thêm các filter để Flatsome tự động gọi UX Block `footer` cho mọi trang và loại bỏ thanh bản quyền mặc định của Flatsome:
+```php
+/**
+ * Global Footer UX Block Integration
+ */
+add_filter('theme_mod_footer_block', function($block) {
+    return 'footer'; // Khớp với slug của UX Block
+});
+
+// Vô hiệu hóa widget chân trang mặc định của Flatsome
+add_filter('theme_mod_footer_1', '__return_false');
+add_filter('theme_mod_footer_2', '__return_false');
+
+// Ẩn thanh absolute-footer mặc định của Flatsome (vì đã có trong UX Block)
+add_action('wp_head', function() {
+    echo "<style id=\"vbc-footer-styles\">
+        #footer { background: #ffffff !important; padding: 0 !important; }
+        #footer .footer-wrapper { background: #ffffff !important; padding: 0 !important; }
+        #footer .absolute-footer { display: none !important; }
+        .klook-footer-wrapper a { color: #64748b !important; text-decoration: none !important; transition: color 0.15s ease !important; }
+        .klook-footer-wrapper a:hover { color: #ff5b00 !important; text-decoration: underline !important; }
+    </style>\n";
+}, 9999);
+```
+
+---
+
 ### Bước 5: Thư Viện Micro-Components & Design Patterns Cao Cấp (Aesthetic Tokens)
 
 > [!TIP]

@@ -90,6 +90,7 @@ function vbc_compile_element_css(&$atts, $base_class = 'vbc-css') {
         'color'                  => 'color',
         'background_color'       => 'background-color',
         'bg_color'               => 'background-color',
+        'bg'                     => 'background-color',
         'background'             => 'background',
         'bg_gradient'            => 'background',
         'bg_image'               => 'background-image',

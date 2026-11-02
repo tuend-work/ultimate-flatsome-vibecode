@@ -246,6 +246,7 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
         'color' => '', 'color__md' => '', 'color__sm' => '',
         'background_color' => '', 'background_color__md' => '', 'background_color__sm' => '',
         'bg_color' => '', 'bg_color__md' => '', 'bg_color__sm' => '',
+        'bg' => '', 'bg__md' => '', 'bg__sm' => '',
         'background' => '', 'background__md' => '', 'background__sm' => '',
         'bg_gradient' => '', 'bg_gradient__md' => '', 'bg_gradient__sm' => '',
         'bg_image' => '', 'bg_image__md' => '', 'bg_image__sm' => '',
@@ -298,6 +299,8 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
         // a-specific
         'link_source' => 'manual',
         'link_url' => '',
+        'link' => '',
+        'href' => '',
         'link_meta_key' => '',
         'link_acf_key' => '',
         'link_target' => '_self',
@@ -349,11 +352,21 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
     if (!empty($atts['grid_columns__sm']) && empty($atts['grid_template_columns__sm'])) {
         $atts['grid_template_columns__sm'] = $atts['grid_columns__sm'];
     }
+    if (!empty($atts['bg']) && empty($atts['bg_color'])) {
+        $atts['bg_color'] = $atts['bg'];
+        $atts['background_color'] = $atts['bg'];
+    }
     if (!empty($atts['bg_color']) && empty($atts['background_color'])) {
         $atts['background_color'] = $atts['bg_color'];
     }
     if (!empty($atts['background_color']) && empty($atts['bg_color'])) {
         $atts['bg_color'] = $atts['background_color'];
+    }
+    if (!empty($atts['link']) && empty($atts['link_url'])) {
+        $atts['link_url'] = $atts['link'];
+    }
+    if (!empty($atts['href']) && empty($atts['link_url'])) {
+        $atts['link_url'] = $atts['href'];
     }
     if (!empty($atts['grid_gap']) && empty($atts['gap'])) {
         $atts['gap'] = $atts['grid_gap'];

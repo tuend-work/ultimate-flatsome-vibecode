@@ -46,6 +46,28 @@ Sau đó, **AI đóng vai trò Senior UI/UX & Fullstack WordPress Engineer** ph�
 
 ---
 
+> [!CRITICAL]
+> ### 🚫 QUY TẮC THÉP 3: 100% DÙNG VECTOR SVG CHO ICON — TUYỆT ĐỐI CẤM DÙNG EMOJI (ZERO-EMOJI POLICY)
+> - ❌ **TUYỆT ĐỐI CẤM (HARD BAN) sử dụng ký tự Emoji Unicode (`🎈`, `💰`, `📱`, `🛡️`, `🍏`, `▶`, `⭐`, `🔥`, ...)** để làm icon trong giao diện!
+>   - *Lý do*: Emoji hiển thị lệch lạc, méo mó và khác nhau hoàn toàn trên từng hệ điều hành (Windows hiển thị nét phẳng, iOS hiển thị 3D bóng bẩy, Android hiển thị Noto), không thể đổi màu theo nhận diện thương hiệu (`color`, `fill`, `stroke`), không thể điều chỉnh độ dày nét vẽ, khiến giao diện trở nên nghiệp dư và thiếu thẩm mỹ.
+> - ✅ **100% ICON PHẢI ĐƯỢC XÂY DỰNG BẰNG VECTOR SVG CHUYÊN NGHIỆP**:
+>   - **Cách 1 (Tiêu chuẩn tối ưu)**: Sử dụng Shortcode `[vbc_icon]` với kho vector Lucide / FontAwesome / RemixIcon:
+>     ```html
+>     [vbc_icon name="globe" size="24px" color="#ff5b00" background_color="#fff7ed" width="48px" height="48px" min_width="48px" border_radius="12px" box_shadow="0 4px 12px rgba(255,91,0,0.08)"]
+>     ```
+>     - `name`: Tên icon chuẩn trong kho Lucide (như `globe`, `sparkles`, `ticket-percent`, `smartphone`, `shield-check`, `heart`, `award`, `phone`, `map-pin`, `check-circle`, `calendar`...)
+>     - `color`: Mã màu nhận diện thương hiệu (Primary, Accent, Success...)
+>     - `background_color`: Màu nền huy hiệu bo tròn (Badge BG)
+>     - `width` & `height`: Kích thước khối badge cố định (ví dụ `48px`, `56px`)
+>     - `border_radius`: Bo góc tròn mềm mại (`12px`, `16px` hoặc `50%`)
+>   - **Cách 2 (Inline SVG Tùy Biến)**: Khi trang nguồn có logo / icon vector đặc thù riêng biệt, nhúng trực tiếp qua `raw_svg`:
+>     ```html
+>     [vbc_icon raw_svg="<svg viewBox='0 0 24 24' width='24' height='24' fill='none' stroke='currentColor' stroke-width='2'>...</svg>" width="48px" height="48px" background_color="#fff7ed" border_radius="12px"]
+>     ```
+>   - **Cách 3 (File SVG từ WordPress Media)**: Tải file `.svg` lên Media Library và gọi qua `[vbc_icon icon="{ATTACHMENT_ID}"]` hoặc `[vbc_img src="{SVG_URL}" width="48px" height="48px"]`.
+
+---
+
 ## 🏛️ Hai Chế Độ Kiến Trúc (Dual Architecture Strategy)
 
 Trước khi thực hiện, AI Agent **BẮT BUỘC** phân loại trang nguồn thuộc một trong hai chế độ kiến trúc sau:
@@ -221,7 +243,7 @@ Khi phát hiện khu vực danh sách Tin tức, Bài viết Blog, hoặc Danh s
 Footer chuẩn hiện đại gồm 3 phân khu:
 1. **Thanh Cam Kết Giá Trị (Brand Pillars / Key Guarantees)**:
    - 3–4 khối lợi ích nổi bật với icon, tiêu đề đậm và đoạn mô tả ngắn gọn.
-   - Dựng bằng `[section]` > `[row]` > các `[col]` > `[vbc_div]` chứa `[vbc_box]` (icon) và `[vbc_h4]`, `[vbc_p]`.
+   - Dựng bằng `[section]` > `[row]` > các `[col]` > `[vbc_div]` chứa `[vbc_icon]` (Vector SVG như `globe`, `sparkles`, `smartphone`, `shield-check`) và `[vbc_div_inner]` chứa `[vbc_h4]`, `[vbc_p]`. Tuyệt đối không dùng emoji!
 2. **Khối Liên Kết Đa Cột & Tiện Ích Chân Trang (Multi-Column Navigation)**:
    - Các cột liên kết: Giới thiệu thương hiệu, Dịch vụ/Sản phẩm, Hỗ trợ/Điều khoản, Kênh thanh toán / Chứng nhận uy tín / Tải ứng dụng.
    - Dựng bằng `[section]` > `[row]` > các `[col]` > `[vbc_h4]` (tiêu đề cột) và `[vbc_div display="flex" flex_direction="column" gap="10px"]` chứa các `[vbc_a]` riêng biệt.

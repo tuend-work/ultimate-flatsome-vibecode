@@ -147,21 +147,45 @@ function vbc_register_icon_ux_builder() {
     }
 
     add_ux_builder_shortcode('vbc_icon', array(
-        'name'     => 'VBC Icon & Media Pack',
+        'name'     => 'VBC Icon (Vector SVG)',
         'category' => 'VibeCode HTML',
         'wrap'     => false,
         'inline'   => true,
-        'template' => '<span id="{{ shortcode.options.id || shortcode.$id }}" class="vbc-icon-wrap {{ shortcode.options.custom_class }}" ng-style="{\'display\': shortcode.options.display || \'inline-flex\', \'color\': shortcode.options.color, \'background-color\': shortcode.options.background_color, \'padding\': shortcode.options.padding, \'border-radius\': shortcode.options.border_radius, \'font-size\': shortcode.options.size}"><i data-lucide="{{ shortcode.options.name || shortcode.options.icon || \'shield-check\' }}" class="{{ shortcode.options.name || shortcode.options.icon || \'shield-check\' }}"></i></span>',
+        'template' => '<span id="{{ shortcode.options.id || shortcode.$id }}" class="vbc-icon-wrap {{ shortcode.options.custom_class }}" ng-style="{\'display\': shortcode.options.display || \'inline-flex\', \'align-items\': \'center\', \'justify-content\': \'center\', \'color\': shortcode.options.color, \'background-color\': (shortcode.options.background_color || shortcode.options.bg_color || shortcode.options.bg), \'width\': shortcode.options.width, \'height\': shortcode.options.height, \'min-width\': (shortcode.options.min_width || shortcode.options.minWidth), \'padding\': shortcode.options.padding, \'margin\': shortcode.options.margin, \'border\': shortcode.options.border, \'border-radius\': (shortcode.options.border_radius || shortcode.options.borderRadius), \'box-shadow\': (shortcode.options.box_shadow || shortcode.options.boxShadow), \'font-size\': (shortcode.options.size || \'24px\')}"><span ng-if="shortcode.options.raw_svg || shortcode.options.svg" ng-bind-html="(shortcode.options.raw_svg || shortcode.options.svg) | html"></span><i ng-if="!shortcode.options.raw_svg && !shortcode.options.svg" data-lucide="{{ shortcode.options.name || shortcode.options.icon || \'shield-check\' }}" class="{{ shortcode.options.name || shortcode.options.icon || \'shield-check\' }}"></i></span>',
         'options'  => array(
             'media_group' => array(
                 'type' => 'group',
-                'heading' => 'Chọn Icon / Hình Ảnh',
+                'heading' => 'Chọn Icon Vector & SVG',
                 'options' => array(
+                    'name' => array(
+                        'type' => 'textfield',
+                        'heading' => 'Tên Icon Vector (Lucide / FA)',
+                        'default' => 'shield-check',
+                        'description' => 'Lucide: globe, ticket-percent, sparkles, smartphone, shield-check, heart, star, phone, map-pin, credit-card... (Hoặc FontAwesome: fa-solid fa-star)',
+                    ),
+                    'icon_type' => array(
+                        'type' => 'select',
+                        'heading' => 'Bộ Icon (Pack)',
+                        'default' => 'lucide',
+                        'options' => array(
+                            'lucide' => 'Lucide Icons (Vector SVG sạch, hiện đại)',
+                            'fontawesome' => 'FontAwesome 6',
+                            'remix' => 'Remix Icon',
+                            'material' => 'Material Symbols',
+                            'phosphor' => 'Phosphor Icons',
+                        ),
+                    ),
                     'icon' => array(
                         'type' => 'image',
-                        'heading' => 'Chọn Icon / Ảnh (Media Library & SVG)',
+                        'heading' => 'Hoặc chọn Ảnh / SVG từ Media Library',
                         'default' => '',
                         'description' => 'Nhấp vào nút để mở Thư viện: Tải file từ máy, Thư viện có sẵn hoặc chọn từ kho SVG Icon trực quan.',
+                    ),
+                    'raw_svg' => array(
+                        'type' => 'textarea',
+                        'heading' => 'Mã Inline SVG Tùy Biến (Tùy chọn)',
+                        'default' => '',
+                        'description' => 'Dán mã <svg>...</svg> trực tiếp nếu có icon SVG thương hiệu riêng biệt.',
                     ),
                 ),
             ),
@@ -171,15 +195,15 @@ function vbc_register_icon_ux_builder() {
                 'options' => array(
                     'size' => array(
                         'type' => 'textfield',
-                        'heading' => 'Kích thước Icon / Ảnh (Size)',
+                        'heading' => 'Kích thước Icon (Size)',
                         'responsive' => true,
-                        'default' => '32px',
-                        'description' => 'Ví dụ: 24px, 32px, 48px, 64px...',
+                        'default' => '24px',
+                        'description' => 'Ví dụ: 20px, 24px, 32px, 48px...',
                     ),
                     'color' => array(
                         'type' => 'colorpicker',
                         'heading' => 'Màu sắc Icon',
-                        'default' => '#2563eb',
+                        'default' => '#ff5b00',
                     ),
                     'hover_color' => array(
                         'type' => 'colorpicker',
@@ -189,6 +213,28 @@ function vbc_register_icon_ux_builder() {
                     'background_color' => array(
                         'type' => 'colorpicker',
                         'heading' => 'Màu nền huy hiệu (Badge BG)',
+                        'default' => '',
+                    ),
+                    'bg_color' => array(
+                        'type' => 'colorpicker',
+                        'heading' => 'Màu nền (bg_color)',
+                        'default' => '',
+                    ),
+                    'width' => array(
+                        'type' => 'textfield',
+                        'heading' => 'Độ rộng badge (Width)',
+                        'default' => '',
+                        'description' => 'Ví dụ: 48px, 56px, auto',
+                    ),
+                    'height' => array(
+                        'type' => 'textfield',
+                        'heading' => 'Chiều cao badge (Height)',
+                        'default' => '',
+                        'description' => 'Ví dụ: 48px, 56px, auto',
+                    ),
+                    'min_width' => array(
+                        'type' => 'textfield',
+                        'heading' => 'Độ rộng tối thiểu (Min Width)',
                         'default' => '',
                     ),
                     'padding' => array(
@@ -202,7 +248,13 @@ function vbc_register_icon_ux_builder() {
                         'type' => 'textfield',
                         'heading' => 'Bo góc huy hiệu (Border Radius)',
                         'default' => '',
-                        'description' => 'Ví dụ: 50% (tròn), 12px, 999px...',
+                        'description' => 'Ví dụ: 50% (tròn), 12px, 16px...',
+                    ),
+                    'border' => array(
+                        'type' => 'textfield',
+                        'heading' => 'Viền huy hiệu (Border)',
+                        'default' => '',
+                        'description' => 'Ví dụ: 1px solid #e2e8f0',
                     ),
                     'border_color' => array(
                         'type' => 'colorpicker',
@@ -268,22 +320,35 @@ function vbc_icon_shortcode_renderer($atts) {
         'mode'          => '',
 
         // Styling
-        'size'          => '32px',
+        'size'          => '24px',
         'size__md'      => '',
         'size__sm'      => '',
         'color'         => '',
         'hover_color'   => '',
         'background_color' => '',
+        'bg_color'      => '',
+        'bg'            => '',
+        'width'         => '',
+        'width__md'     => '',
+        'width__sm'     => '',
+        'height'        => '',
+        'height__md'    => '',
+        'height__sm'    => '',
+        'min_width'     => '',
+        'max_width'     => '',
         'padding'       => '',
         'padding__md'   => '',
         'padding__sm'   => '',
         'border_radius' => '',
+        'border'        => '',
         'border_color'  => '',
         'box_shadow'    => '',
         'display'       => 'inline-flex',
         'margin'        => '',
         'margin__md'    => '',
         'margin__sm'    => '',
+        'raw_svg'       => '',
+        'svg'           => '',
         'class'         => '',
         'custom_class'  => '',
         'custom_css'    => '',
@@ -362,12 +427,15 @@ function vbc_icon_shortcode_renderer($atts) {
     $display = !empty($atts['display']) ? $atts['display'] : 'inline-flex';
     $color = !empty($atts['color']) ? $atts['color'] : '';
     $hover_color = !empty($atts['hover_color']) ? $atts['hover_color'] : '';
-    $bg_color = !empty($atts['background_color']) ? $atts['background_color'] : '';
+    $bg_color = !empty($atts['background_color']) ? $atts['background_color'] : (!empty($atts['bg_color']) ? $atts['bg_color'] : (!empty($atts['bg']) ? $atts['bg'] : ''));
+    $width = !empty($atts['width']) ? $atts['width'] : '';
+    $height = !empty($atts['height']) ? $atts['height'] : '';
+    $min_width = !empty($atts['min_width']) ? $atts['min_width'] : '';
     $padding = !empty($atts['padding']) ? $atts['padding'] : '';
     $padding_md = !empty($atts['padding__md']) ? $atts['padding__md'] : '';
     $padding_sm = !empty($atts['padding__sm']) ? $atts['padding__sm'] : '';
     $radius = !empty($atts['border_radius']) ? $atts['border_radius'] : '';
-    $border = !empty($atts['border_color']) ? '1px solid ' . $atts['border_color'] : '';
+    $border = !empty($atts['border']) ? $atts['border'] : (!empty($atts['border_color']) ? '1px solid ' . $atts['border_color'] : '');
     $shadow = !empty($atts['box_shadow']) ? $atts['box_shadow'] : '';
     $margin = !empty($atts['margin']) ? $atts['margin'] : '';
     $margin_md = !empty($atts['margin__md']) ? $atts['margin__md'] : '';
@@ -386,6 +454,9 @@ function vbc_icon_shortcode_renderer($atts) {
 
     if ($color) $desktop_css[] = 'color: ' . esc_attr($color) . ';';
     if ($bg_color) $desktop_css[] = 'background-color: ' . esc_attr($bg_color) . ';';
+    if ($width) $desktop_css[] = 'width: ' . esc_attr($width) . ';';
+    if ($height) $desktop_css[] = 'height: ' . esc_attr($height) . ';';
+    if ($min_width) $desktop_css[] = 'min-width: ' . esc_attr($min_width) . ';';
     if ($padding) $desktop_css[] = 'padding: ' . esc_attr($padding) . ';';
     if ($radius) $desktop_css[] = 'border-radius: ' . esc_attr($radius) . ';';
     if ($border) $desktop_css[] = 'border: ' . esc_attr($border) . ';';
@@ -441,7 +512,9 @@ function vbc_icon_shortcode_renderer($atts) {
     $inner_html = '';
     $wrap_class = esc_attr(trim('vbc-icon-wrap ' . $unique_class . ' ' . $atts['custom_class']));
 
-    if ($is_image) {
+    if (!empty($atts['raw_svg']) || !empty($atts['svg'])) {
+        $inner_html = !empty($atts['raw_svg']) ? $atts['raw_svg'] : $atts['svg'];
+    } elseif ($is_image) {
         if (!empty($image_src)) {
             $img_style = 'width:' . esc_attr($sz) . ';height:' . esc_attr($sz) . ';object-fit:contain;display:block;border-radius:inherit;';
             $inner_html = '<img src="' . esc_url($image_src) . '" class="vbc-icon-img" style="' . $img_style . '" alt="icon" loading="lazy">';

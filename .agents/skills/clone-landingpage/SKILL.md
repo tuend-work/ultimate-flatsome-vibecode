@@ -66,6 +66,19 @@ graph TD
     D --> D4[Seed dữ liệu vào Post Meta & post_content chỉ chứa text giới thiệu]
 ```
 
+### 📋 Bảng Checklist Phân Loại Kiến Trúc Tiền Thực Thi (Pre-Flight Architectural Checklist)
+
+Trước khi viết bất kỳ dòng mã nào, AI Agent **BẮT BUỘC dành 30 giây rà soát bảng checklist này** để chọn đúng đích đến, loại trừ 100% rủi ro phải viết lại code:
+
+| Loại Trang Trong Dự Án | Chế Độ Áp Dụng | Phương Pháp Xây Dựng | Nơi Lưu Trữ Code | Tiêu Chuẩn UX Builder |
+|---|---|---|---|---|
+| **Trang chủ / About / Landing Page** | Chế độ A (Standalone) | 100% Cây shortcode `[section] > [row] > [col]` | `post_content` của WordPress Page | Hiện đủ Section > Row > Col, cấm dồn vào thẻ Text |
+| **Chân trang (Global Footer)** | UX Block Toàn Trang | 100% Cây shortcode `[section] > [row] > [col]` | `post_content` của UX Block `footer` + `theme_mod_footer_block` | Hiện đủ 3 Section (Pillars, Links, Copyright) |
+| **Danh sách (Blog List / Tour Grid / Archive)** | Dynamic Query Block | `[vbc_post post_type="..." layout="grid"]` | `post_content` của WordPress Page | Tự động truy vấn bài viết từ DB |
+| **Trang chi tiết CPT (Tour / BĐS / Khóa học...)** | Chế độ B (Dynamic CPT) | PHP Template `single-[cpt].php` đọc Post Meta | File template child theme + Post Meta DB | `post_content` chỉ chứa văn bản editorial sạch |
+| **Trang chi tiết Tin tức / Blog mặc định** | Child Single Template | PHP Template `single.php` đọc `the_content()` + Author/Sidebar | File template `single.php` trong child theme | Có Breadcrumbs, Author bar, 2 cột (Content + Sticky Sidebar) |
+
+
 ### Chế độ A: Standalone Landing Page (Trang Đích Độc Lập)
 - **Áp dụng cho**: Trang chủ (Homepage), Trang giới thiệu công ty, Trang bảng giá tổng hợp, Trang sự kiện khuyến mãi đơn lẻ, Landing Page quảng cáo Google/Facebook Ads.
 - **Đặc điểm**: Bố cục trang là duy nhất, toàn bộ cấu trúc được sinh trực tiếp dưới dạng cây shortcode UX Elements & VBC Elements lưu trong `post_content` của một WordPress Page.
@@ -327,3 +340,28 @@ Nhờ cơ chế này, mọi thay đổi về CSS lõi, token giao diện đều 
      - Template động hoạt động trơn tru, không có hiện tượng dữ liệu tĩnh bị ghi đè.
      - 0 Shortcodes chưa parse.
      - Tương thích 100% với trình kéo thả Flatsome UX Builder.
+
+---
+
+### Bước 8: Quy Tắc Tối Ưu Tốc Độ & Tiết Kiệm Token (Fast & Lean Execution)
+
+> [!TIP]
+> Để một dự án clone toàn diện hoàn thành **nhanh gấp 3 lần, giao diện chuẩn đẹp ngay lượt đầu và giảm 60% lượng token tiêu thụ**:
+
+1. **Gom Tác Vụ Thành 1 Batch Xử Lý (Single Batch Bridge)**:
+   - ❌ **Tránh**: Viết 1 script tạo CPT, 1 script tạo meta box, 1 script nạp ảnh, 1 script tạo footer, 1 script kiểm tra link (tốn 10 lượt gọi tool và hàng chục ngàn token).
+   - ✅ **Nên**: Gom thành 1 file bridge PHP hoặc 1 script nạp JSON toàn diện (Payload chứa đủ CPT, Meta schema, Post content và UX Blocks). Nạp 1 lần là xong toàn bộ dữ liệu.
+
+2. **Chuẩn Hóa Cây Shortcode Ngay Lần Sinh Đầu Tiên (First-Time-Right Generation)**:
+   - Luôn dựng từ ngoài vào trong: `[section]` $\to$ `[row]` $\to$ `[col]` $\to$ `[vbc_div/box/h/p/a]`.
+   - Tuyệt đối không sinh HTML thô rồi sau đó mới đi sửa lại thành shortcode. Sinh đúng chuẩn ngay từ lượt đầu giúp loại bỏ 100% các vòng lặp sửa lỗi UX Builder.
+
+3. **Trích Xuất Design System 1 Lần Dùng Cho Mọi Trang (Single-Pass Token Extraction)**:
+   - Ngay từ ảnh chụp đầu tiên, ghi nhớ 4 thông số: `Brand Primary Color`, `Accent Color`, `Heading Font`, `Border Radius`.
+   - Dùng các thông số này áp dụng đồng bộ cho tất cả các trang, không cần đoán lại ở mỗi bước.
+
+4. **Kiểm Định Trực Quan Tối Giản Nhưng Hiệu Quả (Smart Targeted Visual Audit)**:
+   - Sử dụng `browser_subagent` đúng 2 thời điểm then chốt:
+     - **Lần 1**: Mở trang nguồn, cuộn lazy-load, chụp toàn trang.
+     - **Lần 2 (Đối soát)**: Mở đúng 2 trang kết quả (Trang chủ + 1 Trang chi tiết CPT) để chụp ảnh nghiệm thu. Không mở lặp đi lặp lại nhiều trang giống nhau.
+

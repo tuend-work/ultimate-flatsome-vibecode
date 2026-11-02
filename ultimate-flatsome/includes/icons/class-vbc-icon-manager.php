@@ -135,8 +135,9 @@ function vbc_editor_scripts() {
     wp_enqueue_script('vbc-phosphor');
 
     $assets_url = defined('VBC_PLUGIN_URL') ? VBC_PLUGIN_URL . 'assets/' : plugins_url('../../assets/', __FILE__);
-    wp_enqueue_script('vbc-icon-picker', $assets_url . 'vbc-icon-picker.js', array('jquery', 'media-views', 'media-models'), '2.3.0', true);
-    wp_enqueue_style('vbc-icon-picker', $assets_url . 'vbc-icon-picker.css', array(), '2.3.0');
+    $picker_ver = defined('VBC_VERSION') ? VBC_VERSION : time();
+    wp_enqueue_script('vbc-icon-picker', $assets_url . 'vbc-icon-picker.js', array('jquery', 'media-views', 'media-models'), $picker_ver, true);
+    wp_enqueue_style('vbc-icon-picker', $assets_url . 'vbc-icon-picker.css', array(), $picker_ver);
 }
 
 // Đăng ký UX Builder & Shortcode handler cho [vbc_icon]

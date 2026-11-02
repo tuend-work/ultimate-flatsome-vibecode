@@ -355,6 +355,8 @@ Nhờ cơ chế này, mọi thay đổi về CSS lõi, token giao diện đều 
 2. **Chuẩn Hóa Cây Shortcode Ngay Lần Sinh Đầu Tiên (First-Time-Right Generation)**:
    - Luôn dựng từ ngoài vào trong: `[section]` $\to$ `[row]` $\to$ `[col]` $\to$ `[vbc_div/box/h/p/a]`.
    - Tuyệt đối không sinh HTML thô rồi sau đó mới đi sửa lại thành shortcode. Sinh đúng chuẩn ngay từ lượt đầu giúp loại bỏ 100% các vòng lặp sửa lỗi UX Builder.
+   - ⚠️ **CẤM CHÈN HTML COMMENTS (`<!-- ... -->`) HAY KÝ TỰ RỜI RẠC GIỮA CÁC THẺ SHORTCODE**: Tuyệt đối không đặt chú thích HTML giữa `[row]` và `[col]` hoặc giữa các `[col]`. Flatsome UX Builder sẽ tự động parse các comment này thành phần tử `Text` (`<p><!-- comment --></p>`) chiếm 100% độ rộng và làm vỡ toàn bộ cấu trúc chia cột dàn ngang!
+   - ⚠️ **QUY TẮC LỒNG THẺ**: Không lồng trực tiếp 2 thẻ cùng tên (ví dụ `[vbc_div]...[vbc_div]...[/vbc_div]`). Phải dùng hậu tố `_inner` như `[vbc_div_inner]` hoặc đổi qua thẻ alias khác (`[vbc_box]`, `[vbc_block]`) để tránh lỗi đóng nhầm thẻ của bộ phân tích WordPress shortcode.
 
 3. **Trích Xuất Design System 1 Lần Dùng Cho Mọi Trang (Single-Pass Token Extraction)**:
    - Ngay từ ảnh chụp đầu tiên, ghi nhớ 4 thông số: `Brand Primary Color`, `Accent Color`, `Heading Font`, `Border Radius`.

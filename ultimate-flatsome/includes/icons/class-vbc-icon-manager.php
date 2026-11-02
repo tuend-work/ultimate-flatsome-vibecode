@@ -68,11 +68,34 @@ function vbc_lucide_trigger_script() {
     <script>
     (function() {
         function triggerLucide() {
-            if (typeof lucide !== 'undefined') {
-                var icons = document.querySelectorAll('i[data-lucide]');
-                if (icons.length > 0) {
-                    lucide.createIcons();
-                }
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                try {
+                    // 1. Kiểm tra các svg[data-lucide] có tên icon không khớp với class lucide-{name}
+                    var svgs = document.querySelectorAll('svg[data-lucide]');
+                    for (var i = 0; i < svgs.length; i++) {
+                        var svg = svgs[i];
+                        var iconName = svg.getAttribute('data-lucide');
+                        if (iconName) {
+                            iconName = iconName.replace(/^icon:/, '').replace(/^svg:/, '').trim();
+                            if (!svg.classList.contains('lucide-' + iconName)) {
+                                var newI = document.createElement('i');
+                                newI.setAttribute('data-lucide', iconName);
+                                if (svg.className) newI.className = svg.className;
+                                if (svg.parentNode) {
+                                    svg.parentNode.replaceChild(newI, svg);
+                                }
+                            }
+                        }
+                    }
+                } catch(e) {}
+
+                // 2. Render tất cả thẻ i[data-lucide]
+                try {
+                    var icons = document.querySelectorAll('i[data-lucide]');
+                    if (icons.length > 0) {
+                        lucide.createIcons();
+                    }
+                } catch(e) {}
             }
         }
         
@@ -85,17 +108,37 @@ function vbc_lucide_trigger_script() {
         if (typeof MutationObserver !== 'undefined') {
             var lucideTimeout;
             var observer = new MutationObserver(function(mutations) {
-                // Debounce Lucide trigger to prevent freezing the browser thread on rapid updates in UX Builder
                 clearTimeout(lucideTimeout);
-                lucideTimeout = setTimeout(triggerLucide, 100);
+                lucideTimeout = setTimeout(triggerLucide, 30);
             });
-            observer.observe(document.body, { 
-                childList: true, 
-                subtree: true,
-                attributes: true,
-                attributeFilter: ['data-lucide']
-            });
+            var targetNode = document.body || document.documentElement;
+            if (targetNode) {
+                observer.observe(targetNode, { 
+                    childList: true, 
+                    subtree: true,
+                    attributes: true,
+                    attributeFilter: ['data-lucide', 'class']
+                });
+            } else {
+                document.addEventListener('DOMContentLoaded', function() {
+                    if (document.body) {
+                        observer.observe(document.body, { 
+                            childList: true, 
+                            subtree: true,
+                            attributes: true,
+                            attributeFilter: ['data-lucide', 'class']
+                        });
+                    }
+                });
+            }
         }
+
+        // Lắng nghe postMessage từ builder top window để refresh ngay lập tức
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'vbc_refresh_icons') {
+                triggerLucide();
+            }
+        });
     })();
     </script>
     <?php
@@ -151,7 +194,7 @@ function vbc_register_icon_ux_builder() {
         'name'     => 'VBC Icon (Vector SVG)',
         'category' => 'VibeCode HTML',
         'wrap'     => false,
-        'template' => '<span id="{{ shortcode.options.id || shortcode.$id }}" class="vbc-icon-wrap {{ shortcode.options.custom_class }}" ng-style="{\'display\': shortcode.options.display || \'inline-flex\', \'align-items\': \'center\', \'justify-content\': \'center\', \'color\': shortcode.options.color, \'background-color\': (shortcode.options.background_color || shortcode.options.bg_color || shortcode.options.bg), \'width\': shortcode.options.width, \'height\': shortcode.options.height, \'min-width\': (shortcode.options.min_width || shortcode.options.minWidth), \'padding\': shortcode.options.padding, \'margin\': shortcode.options.margin, \'border\': shortcode.options.border, \'border-radius\': (shortcode.options.border_radius || shortcode.options.borderRadius), \'box-shadow\': (shortcode.options.box_shadow || shortcode.options.boxShadow), \'font-size\': (shortcode.options.size || \'24px\')}"><span ng-if="shortcode.options.raw_svg || shortcode.options.svg" ng-bind-html="(shortcode.options.raw_svg || shortcode.options.svg) | html"></span><img ng-if="!shortcode.options.raw_svg && !shortcode.options.svg && (shortcode.options.icon && (shortcode.options.icon.indexOf(\'http\') === 0 || shortcode.options.icon.indexOf(\'data:\') === 0 || shortcode.options.icon.indexOf(\'/\') === 0))" ng-src="{{ shortcode.options.icon }}" style="width:100%;height:100%;object-fit:contain;" /><span ng-if="!shortcode.options.raw_svg && !shortcode.options.svg && !(shortcode.options.icon && (shortcode.options.icon.indexOf(\'http\') === 0 || shortcode.options.icon.indexOf(\'data:\') === 0 || shortcode.options.icon.indexOf(\'/\') === 0)) && (shortcode.options.icon_type === \'material\' || (!shortcode.options.name.indexOf && shortcode.options.name.indexOf(\'_\') !== -1 && shortcode.options.name.indexOf(\'-\') === -1))" class="material-symbols-outlined" style="font-size:inherit;">{{ (shortcode.options.icon || shortcode.options.name || \'security\').replace(\'icon:\', \'\') }}</span><i ng-if="!shortcode.options.raw_svg && !shortcode.options.svg && !(shortcode.options.icon && (shortcode.options.icon.indexOf(\'http\') === 0 || shortcode.options.icon.indexOf(\'data:\') === 0 || shortcode.options.icon.indexOf(\'/\') === 0)) && shortcode.options.icon_type !== \'material\'" data-lucide="{{ (shortcode.options.icon || shortcode.options.name || \'shield-check\').replace(\'icon:\', \'\').replace(\'svg:\', \'\') }}" class="{{ (shortcode.options.icon || shortcode.options.name || \'shield-check\').replace(\'icon:\', \'\').replace(\'svg:\', \'\') }}"></i></span>',
+        'template' => '<span id="{{ shortcode.options.id || shortcode.$id }}" class="vbc-icon-wrap {{ shortcode.options.custom_class }}" ng-style="{\'display\': shortcode.options.display || \'inline-flex\', \'align-items\': \'center\', \'justify-content\': \'center\', \'color\': shortcode.options.color, \'background-color\': (shortcode.options.background_color || shortcode.options.bg_color || shortcode.options.bg), \'width\': shortcode.options.width, \'height\': shortcode.options.height, \'min-width\': (shortcode.options.min_width || shortcode.options.minWidth), \'padding\': shortcode.options.padding, \'margin\': shortcode.options.margin, \'border\': shortcode.options.border, \'border-radius\': (shortcode.options.border_radius || shortcode.options.borderRadius), \'box-shadow\': (shortcode.options.box_shadow || shortcode.options.boxShadow), \'font-size\': (shortcode.options.size || \'24px\')}"><span ng-if="shortcode.options.raw_svg || shortcode.options.svg" ng-bind-html="(shortcode.options.raw_svg || shortcode.options.svg) | html"></span><img ng-if="!shortcode.options.raw_svg && !shortcode.options.svg && (shortcode.options.icon && (shortcode.options.icon.indexOf(\'http\') === 0 || shortcode.options.icon.indexOf(\'data:\') === 0 || shortcode.options.icon.indexOf(\'/\') === 0))" ng-src="{{ shortcode.options.icon }}" style="width:100%;height:100%;object-fit:contain;" /><span ng-if="!shortcode.options.raw_svg && !shortcode.options.svg && !(shortcode.options.icon && (shortcode.options.icon.indexOf(\'http\') === 0 || shortcode.options.icon.indexOf(\'data:\') === 0 || shortcode.options.icon.indexOf(\'/\') === 0)) && (shortcode.options.icon_type === \'material\' || (shortcode.options.name && shortcode.options.name.indexOf(\'_\') !== -1 && shortcode.options.name.indexOf(\'-\') === -1))" class="material-symbols-outlined" style="font-size:inherit;line-height:1;">{{ shortcode.options.name || shortcode.options.icon || \'security\' }}</span><i ng-if="!shortcode.options.raw_svg && !shortcode.options.svg && !(shortcode.options.icon && (shortcode.options.icon.indexOf(\'http\') === 0 || shortcode.options.icon.indexOf(\'data:\') === 0 || shortcode.options.icon.indexOf(\'/\') === 0)) && (shortcode.options.icon_type === \'fontawesome\' || (shortcode.options.name && shortcode.options.name.indexOf(\'fa-\') !== -1))" class="{{ (shortcode.options.name && shortcode.options.name.indexOf(\'fa-\') !== -1) ? shortcode.options.name : (\'fa-solid fa-\' + (shortcode.options.name || shortcode.options.icon || \'shield-halved\')) }}" style="font-size:inherit;line-height:1;"></i><i ng-if="!shortcode.options.raw_svg && !shortcode.options.svg && !(shortcode.options.icon && (shortcode.options.icon.indexOf(\'http\') === 0 || shortcode.options.icon.indexOf(\'data:\') === 0 || shortcode.options.icon.indexOf(\'/\') === 0)) && (shortcode.options.icon_type === \'remix\' || (shortcode.options.name && shortcode.options.name.indexOf(\'ri-\') !== -1))" class="{{ (shortcode.options.name && shortcode.options.name.indexOf(\'ri-\') !== -1) ? shortcode.options.name : (\'ri-\' + (shortcode.options.name || shortcode.options.icon || \'shield-check-line\')) }}" style="font-size:inherit;line-height:1;"></i><i ng-if="!shortcode.options.raw_svg && !shortcode.options.svg && !(shortcode.options.icon && (shortcode.options.icon.indexOf(\'http\') === 0 || shortcode.options.icon.indexOf(\'data:\') === 0 || shortcode.options.icon.indexOf(\'/\') === 0)) && (shortcode.options.icon_type === \'phosphor\' || (shortcode.options.name && shortcode.options.name.indexOf(\'ph\') !== -1))" class="{{ (shortcode.options.name && shortcode.options.name.indexOf(\'ph\') !== -1) ? shortcode.options.name : (\'ph ph-\' + (shortcode.options.name || shortcode.options.icon || \'shield-check\')) }}" style="font-size:inherit;line-height:1;"></i><i ng-if="!shortcode.options.raw_svg && !shortcode.options.svg && !(shortcode.options.icon && (shortcode.options.icon.indexOf(\'http\') === 0 || shortcode.options.icon.indexOf(\'data:\') === 0 || shortcode.options.icon.indexOf(\'/\') === 0)) && (shortcode.options.icon_type === \'lucide\' || (!shortcode.options.icon_type && (!shortcode.options.name || (shortcode.options.name.indexOf(\'fa-\') === -1 && shortcode.options.name.indexOf(\'ri-\') === -1 && shortcode.options.name.indexOf(\'ph\') === -1))))" data-lucide="{{ shortcode.options.name || shortcode.options.icon || \'shield-check\' }}" style="width:1em;height:1em;display:inline-block;"></i></span>',
             'media_group' => array(
                 'type' => 'group',
                 'heading' => 'Chọn Icon Vector & SVG',
@@ -359,20 +402,38 @@ function vbc_icon_shortcode_renderer($atts) {
 
     // 1. Nhận diện nguồn icon/ảnh
     $raw_icon = '';
-    if (!empty($atts['icon'])) $raw_icon = trim($atts['icon']);
-    elseif (!empty($atts['image_id'])) $raw_icon = trim($atts['image_id']);
-    elseif (!empty($atts['img_attachment'])) $raw_icon = trim($atts['img_attachment']);
-    elseif (!empty($atts['image_url'])) $raw_icon = trim($atts['image_url']);
-    elseif (!empty($atts['img_url'])) $raw_icon = trim($atts['img_url']);
-    elseif (!empty($atts['svg_url'])) $raw_icon = trim($atts['svg_url']);
-    elseif (!empty($atts['icon_value'])) $raw_icon = trim($atts['icon_value']);
-    elseif (!empty($atts['name'])) $raw_icon = trim($atts['name']);
-    elseif (!empty($atts['name_lucide'])) $raw_icon = trim($atts['name_lucide']);
-    elseif (!empty($atts['name_fa'])) $raw_icon = trim($atts['name_fa']);
-    elseif (!empty($atts['name_ri'])) $raw_icon = trim($atts['name_ri']);
-    elseif (!empty($atts['name_material'])) $raw_icon = trim($atts['name_material']);
-    elseif (!empty($atts['name_phosphor'])) $raw_icon = trim($atts['name_phosphor']);
-    elseif (!empty($atts['name_custom'])) $raw_icon = trim($atts['name_custom']);
+    // Nếu truyền ảnh URL hoặc attachment ID từ WordPress Media
+    if (!empty($atts['icon']) && (is_numeric($atts['icon']) || strpos($atts['icon'], 'http') === 0 || strpos($atts['icon'], 'data:') === 0 || strpos($atts['icon'], '/') === 0)) {
+        $raw_icon = trim($atts['icon']);
+    } elseif (!empty($atts['image_id'])) {
+        $raw_icon = trim($atts['image_id']);
+    } elseif (!empty($atts['image_url'])) {
+        $raw_icon = trim($atts['image_url']);
+    } elseif (!empty($atts['img_attachment'])) {
+        $raw_icon = trim($atts['img_attachment']);
+    } elseif (!empty($atts['img_url'])) {
+        $raw_icon = trim($atts['img_url']);
+    } elseif (!empty($atts['name'])) {
+        $raw_icon = trim($atts['name']);
+    } elseif (!empty($atts['icon'])) {
+        $raw_icon = trim($atts['icon']);
+    } elseif (!empty($atts['svg_url'])) {
+        $raw_icon = trim($atts['svg_url']);
+    } elseif (!empty($atts['icon_value'])) {
+        $raw_icon = trim($atts['icon_value']);
+    } elseif (!empty($atts['name_lucide'])) {
+        $raw_icon = trim($atts['name_lucide']);
+    } elseif (!empty($atts['name_fa'])) {
+        $raw_icon = trim($atts['name_fa']);
+    } elseif (!empty($atts['name_ri'])) {
+        $raw_icon = trim($atts['name_ri']);
+    } elseif (!empty($atts['name_material'])) {
+        $raw_icon = trim($atts['name_material']);
+    } elseif (!empty($atts['name_phosphor'])) {
+        $raw_icon = trim($atts['name_phosphor']);
+    } elseif (!empty($atts['name_custom'])) {
+        $raw_icon = trim($atts['name_custom']);
+    }
 
     if (empty($raw_icon)) {
         $raw_icon = 'shield-check';
@@ -380,7 +441,7 @@ function vbc_icon_shortcode_renderer($atts) {
 
     $image_src = '';
     $icon_name = '';
-    $icon_pack = 'lucide';
+    $icon_pack = !empty($atts['icon_type']) ? strtolower(trim($atts['icon_type'])) : 'lucide';
     $is_image = false;
 
     if (is_numeric($raw_icon)) {
@@ -399,7 +460,9 @@ function vbc_icon_shortcode_renderer($atts) {
         $clean_str = preg_replace('/^(icon|svg):/', '', $raw_icon);
         $icon_name = trim($clean_str);
 
-        if (strpos($icon_name, 'fa-') !== false) {
+        if (!empty($atts['icon_type'])) {
+            $icon_pack = strtolower(trim($atts['icon_type']));
+        } elseif (strpos($icon_name, 'fa-') !== false) {
             $icon_pack = 'fontawesome';
         } elseif (strpos($icon_name, 'ri-') !== false) {
             $icon_pack = 'remix';

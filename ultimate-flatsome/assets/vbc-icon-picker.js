@@ -459,15 +459,65 @@
 
     // HÀM KÍCH HOẠT LUCIDE TRÊN CẢ TRANG CHÍNH VÀ IFRAME PREVIEW CỦA FLATSOME
     function triggerLucideEverywhere() {
-        if (typeof lucide !== 'undefined' && lucide.createIcons) {
-            try { lucide.createIcons(); } catch(e) {}
-        }
-        // Duyệt toàn bộ iframes (bao gồm iframe preview của UX Builder)
-        $('iframe').each(function() {
+        var winList = [window];
+        if (window.parent && window.parent !== window) winList.push(window.parent);
+        if (window.top && window.top !== window && winList.indexOf(window.top) === -1) winList.push(window.top);
+
+        winList.forEach(function(w) {
             try {
-                var iframeWin = this.contentWindow;
-                if (iframeWin && iframeWin.lucide && iframeWin.lucide.createIcons) {
-                    iframeWin.lucide.createIcons();
+                // 1. Quét trên chính window hiện tại
+                if (w.lucide && typeof w.lucide.createIcons === 'function') {
+                    if (w.document) {
+                        var svgs = w.document.querySelectorAll('svg[data-lucide]');
+                        for (var i = 0; i < svgs.length; i++) {
+                            var svg = svgs[i];
+                            var iconName = svg.getAttribute('data-lucide');
+                            if (iconName) {
+                                iconName = iconName.replace(/^icon:/, '').replace(/^svg:/, '').trim();
+                                if (!svg.classList.contains('lucide-' + iconName)) {
+                                    var newI = w.document.createElement('i');
+                                    newI.setAttribute('data-lucide', iconName);
+                                    if (svg.className) newI.className = svg.className;
+                                    if (svg.parentNode) {
+                                        svg.parentNode.replaceChild(newI, svg);
+                                    }
+                                }
+                            }
+                        }
+                        w.lucide.createIcons();
+                    }
+                }
+
+                // 2. Quét trong tất cả iframe của window (bao gồm iframe preview UX Builder)
+                if (w.document) {
+                    var iframes = w.document.querySelectorAll('iframe');
+                    for (var j = 0; j < iframes.length; j++) {
+                        try {
+                            var iframeWin = iframes[j].contentWindow;
+                            if (iframeWin) {
+                                if (iframeWin.lucide && typeof iframeWin.lucide.createIcons === 'function') {
+                                    var ifrSvgs = iframeWin.document.querySelectorAll('svg[data-lucide]');
+                                    for (var k = 0; k < ifrSvgs.length; k++) {
+                                        var isvg = ifrSvgs[k];
+                                        var iname = isvg.getAttribute('data-lucide');
+                                        if (iname) {
+                                            iname = iname.replace(/^icon:/, '').replace(/^svg:/, '').trim();
+                                            if (!isvg.classList.contains('lucide-' + iname)) {
+                                                var inewI = iframeWin.document.createElement('i');
+                                                inewI.setAttribute('data-lucide', iname);
+                                                if (isvg.className) inewI.className = isvg.className;
+                                                if (isvg.parentNode) {
+                                                    isvg.parentNode.replaceChild(inewI, isvg);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    iframeWin.lucide.createIcons();
+                                }
+                                iframeWin.postMessage({ type: 'vbc_refresh_icons' }, '*');
+                            }
+                        } catch(errIframe) {}
+                    }
                 }
             } catch(e) {}
         });
@@ -477,65 +527,127 @@
     function syncIconToUxBuilder(iconId, pack, name, svgDataUri) {
         if (!iconId) return;
         var cleanId = iconId.replace(/^icon:/, '').replace(/^svg:/, '').trim();
+        var iconPack = pack || 'lucide';
 
-        // 1. Cập nhật AngularJS Scope của element đang chọn trong UX Builder
-        try {
-            if (typeof angular !== 'undefined') {
-                var activeElem = document.querySelector('.uxb-options, [ng-controller], .sidebar-panel, #uxb-options');
-                if (activeElem) {
-                    var scope = angular.element(activeElem).scope();
-                    if (scope) {
-                        var targetOpts = null;
-                        if (scope.shortcode && scope.shortcode.options) {
-                            targetOpts = scope.shortcode.options;
-                        } else if (scope.options) {
-                            targetOpts = scope.options;
+        var winList = [window];
+        if (window.parent && window.parent !== window) winList.push(window.parent);
+        if (window.top && window.top !== window && winList.indexOf(window.top) === -1) winList.push(window.top);
+
+        winList.forEach(function(w) {
+            try {
+                if (!w.document) return;
+                var $doc = $(w.document);
+
+                // 1. CẬP NHẬT DOM INPUTS TRÊN SIDEBAR UX BUILDER
+                var $nameInput = $doc.find('.option-name-name input, [data-option="name"] input, input[name="name"], .option-textfield[data-name="name"] input');
+                if ($nameInput.length) {
+                    $nameInput.val(cleanId).trigger('input').trigger('change');
+                }
+
+                if (iconPack) {
+                    var $typeSelect = $doc.find('.option-name-icon_type select, [data-option="icon_type"] select, select[name="icon_type"], .option-select[data-name="icon_type"] select');
+                    if ($typeSelect.length) {
+                        $typeSelect.val(iconPack).trigger('change');
+                    }
+                }
+
+                var $iconInput = $doc.find('.option-name-icon input, [data-option="icon"] input');
+                if ($iconInput.length) {
+                    $iconInput.val(cleanId).trigger('input').trigger('change');
+                }
+
+                if (svgDataUri) {
+                    $doc.find('.option-name-icon .preview, .uxb-option-image .preview, [data-option="icon"] .preview, .media-preview')
+                        .css({
+                            'background-image': 'url("' + svgDataUri + '")',
+                            'background-size': 'contain',
+                            'background-repeat': 'no-repeat',
+                            'background-position': 'center'
+                        });
+                }
+
+                // 2. CẬP NHẬT ANGULARJS SCOPE & MODELS
+                if (w.angular) {
+                    var optionsEl = w.document.querySelector('ux-options, shortcode-view, .shortcode-view, app-sidebar-main, #ux-builder');
+                    if (optionsEl) {
+                        var $optEl = w.angular.element(optionsEl);
+                        var uxOptionsCtrl = $optEl.controller('uxOptions');
+                        var shortcodeViewCtrl = $optEl.controller('shortcodeView');
+                        var scope = $optEl.scope();
+
+                        var targetShortcode = null;
+                        var appService = null;
+
+                        if (uxOptionsCtrl && uxOptionsCtrl.shortcode) {
+                            targetShortcode = uxOptionsCtrl.shortcode;
+                        } else if (shortcodeViewCtrl && shortcodeViewCtrl.shortcode) {
+                            targetShortcode = shortcodeViewCtrl.shortcode;
                         }
 
-                        if (targetOpts) {
-                            targetOpts.name = cleanId;
-                            targetOpts.icon = cleanId;
-                            if (pack) targetOpts.icon_type = pack;
-                            try { scope.$apply(); } catch(err) {}
+                        if (shortcodeViewCtrl && shortcodeViewCtrl.app) {
+                            appService = shortcodeViewCtrl.app;
+                        }
+
+                        if (!appService) {
+                            try {
+                                var injector = w.angular.element(w.document.getElementById('ux-builder') || w.document.body).injector();
+                                if (injector && injector.has('app')) {
+                                    appService = injector.get('app');
+                                }
+                            } catch(e) {}
+                        }
+
+                        if (targetShortcode) {
+                            if (targetShortcode.options) {
+                                targetShortcode.options.name = cleanId;
+                                targetShortcode.options.icon = cleanId;
+                                targetShortcode.options.icon_type = iconPack;
+                            }
+                            if (typeof targetShortcode.apply === 'function') {
+                                targetShortcode.apply();
+                            }
+                        }
+
+                        if (uxOptionsCtrl && uxOptionsCtrl.model) {
+                            uxOptionsCtrl.model.name = cleanId;
+                            uxOptionsCtrl.model.icon = cleanId;
+                            uxOptionsCtrl.model.icon_type = iconPack;
+                        }
+
+                        if (appService && typeof appService.apply === 'function') {
+                            appService.apply();
+                        }
+
+                        if (scope) {
+                            scope.$evalAsync(function() {
+                                if (targetShortcode && targetShortcode.options) {
+                                    targetShortcode.options.name = cleanId;
+                                    targetShortcode.options.icon = cleanId;
+                                    targetShortcode.options.icon_type = iconPack;
+                                }
+                                if (uxOptionsCtrl && uxOptionsCtrl.model) {
+                                    uxOptionsCtrl.model.name = cleanId;
+                                    uxOptionsCtrl.model.icon = cleanId;
+                                    uxOptionsCtrl.model.icon_type = iconPack;
+                                }
+                                if (appService && typeof appService.apply === 'function') {
+                                    appService.apply();
+                                }
+                            });
                         }
                     }
                 }
+            } catch(err) {
+                console.warn('[VBC] Lỗi đồng bộ vào UX Builder window:', err);
             }
-        } catch(e) {
-            console.warn('[VBC] Lỗi cập nhật Scope:', e);
-        }
+        });
 
-        // 2. Cập nhật DOM inputs trong UX Builder sidebar
-        try {
-            var $nameInput = $('[ng-model*="shortcode.options.name"], [ng-model*="options.name"], input[name="name"]');
-            if ($nameInput.length > 0) {
-                $nameInput.val(cleanId).trigger('input').trigger('change');
-            }
-
-            if (pack) {
-                var $packSelect = $('[ng-model*="shortcode.options.icon_type"], [ng-model*="options.icon_type"], select[name="icon_type"]');
-                if ($packSelect.length > 0) {
-                    $packSelect.val(pack).trigger('change');
-                }
-            }
-
-            var $iconInput = $('[ng-model*="shortcode.options.icon"], [ng-model*="options.icon"], input[name="icon"]');
-            if ($iconInput.length > 0) {
-                $iconInput.val(cleanId).trigger('input').trigger('change');
-            }
-
-            // Cập nhật background thumbnail của ô xem trước ảnh trong sidebar nếu có
-            if (svgDataUri) {
-                $('.media-preview, .uxb-option-image .preview, [data-option="icon"] .preview').css('background-image', 'url("' + svgDataUri + '")').css('background-size', 'contain').css('background-repeat', 'no-repeat').css('background-position', 'center');
-            }
-        } catch(e) {
-            console.warn('[VBC] Lỗi cập nhật DOM inputs:', e);
-        }
-
-        // 3. Kích hoạt re-render Lucide trong preview
-        setTimeout(function() { triggerLucideEverywhere(); }, 80);
-        setTimeout(function() { triggerLucideEverywhere(); }, 300);
-        setTimeout(function() { triggerLucideEverywhere(); }, 600);
+        // 3. KÍCH HOẠT LUCIDE VÀ REFRESH TOÀN BỘ PREVIEW
+        triggerLucideEverywhere();
+        setTimeout(triggerLucideEverywhere, 80);
+        setTimeout(triggerLucideEverywhere, 200);
+        setTimeout(triggerLucideEverywhere, 500);
+        setTimeout(triggerLucideEverywhere, 1000);
     }
 
     // 4. TÍCH HỢP TAB "SVG ICON" VÀO WORDPRESS MEDIA MODAL (wp.media)

@@ -429,6 +429,115 @@
         return allIcons;
     }
 
+    // HÀM TẠO SVG DATA URI SẮC NÉT ĐỂ LÀM THUMBNAIL PREVIEW CHO FLATSOME SIDEBAR
+    function generateDataUriSvg(icon) {
+        if (!icon) return '';
+        var svgStr = '';
+        
+        // 1. Nếu là Lucide và có lucide.icons
+        if (icon.pack === 'lucide' && typeof lucide !== 'undefined' && lucide.icons && lucide.icons[icon.id]) {
+            try {
+                svgStr = lucide.icons[icon.id].toSvg({ width: 64, height: 64, color: '#2563eb', 'stroke-width': 2 });
+            } catch(e) {}
+        }
+
+        // 2. Thử lấy từ DOM preview canvas nếu có
+        if (!svgStr) {
+            var $svg = $('.vbc-sidebar-preview-canvas svg');
+            if ($svg.length > 0) {
+                svgStr = $svg.prop('outerHTML');
+            }
+        }
+
+        // 3. Fallback tạo SVG vector đẹp mắt
+        if (!svgStr) {
+            svgStr = '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>';
+        }
+
+        return 'data:image/svg+xml;utf8,' + encodeURIComponent(svgStr);
+    }
+
+    // HÀM KÍCH HOẠT LUCIDE TRÊN CẢ TRANG CHÍNH VÀ IFRAME PREVIEW CỦA FLATSOME
+    function triggerLucideEverywhere() {
+        if (typeof lucide !== 'undefined' && lucide.createIcons) {
+            try { lucide.createIcons(); } catch(e) {}
+        }
+        // Duyệt toàn bộ iframes (bao gồm iframe preview của UX Builder)
+        $('iframe').each(function() {
+            try {
+                var iframeWin = this.contentWindow;
+                if (iframeWin && iframeWin.lucide && iframeWin.lucide.createIcons) {
+                    iframeWin.lucide.createIcons();
+                }
+            } catch(e) {}
+        });
+    }
+
+    // HÀM ĐỒNG BỘ TRỰC TIẾP ICON VÀO ANGULARJS SCOPE & DOM CỦA FLATSOME UX BUILDER
+    function syncIconToUxBuilder(iconId, pack, name, svgDataUri) {
+        if (!iconId) return;
+        var cleanId = iconId.replace(/^icon:/, '').replace(/^svg:/, '').trim();
+
+        // 1. Cập nhật AngularJS Scope của element đang chọn trong UX Builder
+        try {
+            if (typeof angular !== 'undefined') {
+                var activeElem = document.querySelector('.uxb-options, [ng-controller], .sidebar-panel, #uxb-options');
+                if (activeElem) {
+                    var scope = angular.element(activeElem).scope();
+                    if (scope) {
+                        var targetOpts = null;
+                        if (scope.shortcode && scope.shortcode.options) {
+                            targetOpts = scope.shortcode.options;
+                        } else if (scope.options) {
+                            targetOpts = scope.options;
+                        }
+
+                        if (targetOpts) {
+                            targetOpts.name = cleanId;
+                            targetOpts.icon = cleanId;
+                            if (pack) targetOpts.icon_type = pack;
+                            try { scope.$apply(); } catch(err) {}
+                        }
+                    }
+                }
+            }
+        } catch(e) {
+            console.warn('[VBC] Lỗi cập nhật Scope:', e);
+        }
+
+        // 2. Cập nhật DOM inputs trong UX Builder sidebar
+        try {
+            var $nameInput = $('[ng-model*="shortcode.options.name"], [ng-model*="options.name"], input[name="name"]');
+            if ($nameInput.length > 0) {
+                $nameInput.val(cleanId).trigger('input').trigger('change');
+            }
+
+            if (pack) {
+                var $packSelect = $('[ng-model*="shortcode.options.icon_type"], [ng-model*="options.icon_type"], select[name="icon_type"]');
+                if ($packSelect.length > 0) {
+                    $packSelect.val(pack).trigger('change');
+                }
+            }
+
+            var $iconInput = $('[ng-model*="shortcode.options.icon"], [ng-model*="options.icon"], input[name="icon"]');
+            if ($iconInput.length > 0) {
+                $iconInput.val(cleanId).trigger('input').trigger('change');
+            }
+
+            // Cập nhật background thumbnail của ô xem trước ảnh trong sidebar nếu có
+            if (svgDataUri) {
+                $('.media-preview, .uxb-option-image .preview, [data-option="icon"] .preview').css('background-image', 'url("' + svgDataUri + '")').css('background-size', 'contain').css('background-repeat', 'no-repeat').css('background-position', 'center');
+            }
+        } catch(e) {
+            console.warn('[VBC] Lỗi cập nhật DOM inputs:', e);
+        }
+
+        // 3. Kích hoạt re-render Lucide trong preview
+        setTimeout(function() { triggerLucideEverywhere(); }, 80);
+        setTimeout(function() { triggerLucideEverywhere(); }, 300);
+        setTimeout(function() { triggerLucideEverywhere(); }, 600);
+    }
+
     // 4. TÍCH HỢP TAB "SVG ICON" VÀO WORDPRESS MEDIA MODAL (wp.media)
     var isMediaModalExtended = false;
 
@@ -461,6 +570,24 @@
             originalBindHandlers.apply(this, arguments);
             this.on('content:create:vbc_svg_icons', this.vbcRenderSvgIconTab, this);
             this.on('content:render:vbc_svg_icons', this.vbcRenderSvgIconTab, this);
+
+            // Tự động đồng bộ vào UX Builder khi người dùng bấm nút 'Use this image'
+            this.on('select', function() {
+                try {
+                    var state = this.state();
+                    if (state && state.get('selection')) {
+                        var first = state.get('selection').first();
+                        if (first) {
+                            var json = first.toJSON();
+                            if (json && (json.icon_name || (typeof json.id === 'string' && json.id.indexOf('.') === -1 && !/^\d+$/.test(json.id)))) {
+                                var iconId = json.icon_name || json.id;
+                                var pack = json.icon_pack || 'lucide';
+                                syncIconToUxBuilder(iconId, pack, json.title || iconId, json.url);
+                            }
+                        }
+                    }
+                } catch(e) {}
+            }, this);
         };
 
         // C. Renderer View cho Tab SVG Icon
@@ -652,16 +779,21 @@
                     lucide.createIcons({ root: self.el });
                 }
 
-                // Tạo đối tượng Attachment Model tương thích WordPress Media Selection
+                var svgDataUri = generateDataUriSvg(this.selectedIcon);
+
+                // Tạo đối tượng Attachment Model tương thích WordPress Media Selection & Flatsome
                 var attachment = new wp.media.model.Attachment({
-                    id: 'icon:' + iconId,
+                    id: iconId,
                     title: name,
                     filename: iconId + '.svg',
-                    url: 'icon:' + iconId,
+                    url: svgDataUri,
                     type: 'image',
                     subtype: 'svg+xml',
+                    icon_name: iconId,
+                    icon_pack: pack,
                     sizes: {
-                        full: { url: 'icon:' + iconId }
+                        full: { url: svgDataUri, width: 64, height: 64 },
+                        thumbnail: { url: svgDataUri, width: 64, height: 64 }
                     }
                 });
 
@@ -683,15 +815,23 @@
             applySelectionAndClose: function() {
                 if (!this.selectedIcon) return;
 
+                var iconId = this.selectedIcon.id;
+                var pack = this.selectedIcon.pack;
+                var name = this.selectedIcon.name;
+                var svgDataUri = generateDataUriSvg(this.selectedIcon);
+
                 var attachment = new wp.media.model.Attachment({
-                    id: 'icon:' + this.selectedIcon.id,
-                    title: this.selectedIcon.name,
-                    filename: this.selectedIcon.id + '.svg',
-                    url: 'icon:' + this.selectedIcon.id,
+                    id: iconId,
+                    title: name,
+                    filename: iconId + '.svg',
+                    url: svgDataUri,
                     type: 'image',
                     subtype: 'svg+xml',
+                    icon_name: iconId,
+                    icon_pack: pack,
                     sizes: {
-                        full: { url: 'icon:' + this.selectedIcon.id }
+                        full: { url: svgDataUri, width: 64, height: 64 },
+                        thumbnail: { url: svgDataUri, width: 64, height: 64 }
                     }
                 });
 
@@ -701,6 +841,9 @@
                         state.get('selection').reset([attachment]);
                     }
                 }
+
+                // ĐỒNG BỘ TRỰC TIẾP VÀO UX BUILDER (OPTIONS & LIVE PREVIEW)
+                syncIconToUxBuilder(iconId, pack, name, svgDataUri);
 
                 var $selectBtn = $('.media-button-select, .media-frame-toolbar .button-primary');
                 if ($selectBtn.length > 0) {
@@ -712,6 +855,11 @@
                     }
                     this.controller.close();
                 }
+
+                // Đồng bộ nhắc lại sau khi modal click hoàn tất
+                setTimeout(function() {
+                    syncIconToUxBuilder(iconId, pack, name, svgDataUri);
+                }, 150);
             },
 
             renderIconCardsHtml: function() {

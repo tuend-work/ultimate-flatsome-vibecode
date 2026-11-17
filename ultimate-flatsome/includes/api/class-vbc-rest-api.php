@@ -93,26 +93,46 @@ function vbc_authenticate_request($request) {
     if (!$token) {
         $token = $request->get_param('token');
     }
-    
+
     if (empty($token)) {
         return new WP_Error('vbc_unauthorized', 'Missing API token.', array('status' => 401));
     }
-    
+
+    // Kiểm tra cache trước để tránh DB query trên mỗi request API
+    $cache_key = 'vbc_token_' . hash('sha256', $token);
+    $cached_user_id = wp_cache_get($cache_key, 'vbc_auth');
+
+    if ($cached_user_id !== false) {
+        // Cache hit — xác minh user vẫn còn tồn tại và có quyền
+        $user = get_user_by('id', intval($cached_user_id));
+        if ($user && user_can($user, 'manage_options')) {
+            wp_set_current_user($user->ID);
+            return $user;
+        }
+        // User bị xóa hoặc mất quyền — xóa cache và fallback xuống DB
+        wp_cache_delete($cache_key, 'vbc_auth');
+    }
+
+    // Cache miss — query DB
     $users = get_users(array(
-        'meta_key' => 'vbc_api_token',
-        'meta_value' => $token,
-        'number' => 1,
+        'meta_key'    => 'vbc_api_token',
+        'meta_value'  => $token,
+        'number'      => 1,
         'count_total' => false,
     ));
-    
+
     if (empty($users)) {
         return new WP_Error('vbc_unauthorized', 'Invalid API token.', array('status' => 401));
     }
-    
+
     $user = $users[0];
     if (!user_can($user, 'manage_options') && !user_can($user, 'administrator')) {
         return new WP_Error('vbc_forbidden', 'Chỉ tài khoản Administrator mới có quyền truy cập API.', array('status' => 403));
     }
+
+    // Lưu cache trong 5 phút (300 giây)
+    wp_cache_set($cache_key, $user->ID, 'vbc_auth', 300);
+
     wp_set_current_user($user->ID);
     return $user;
 }

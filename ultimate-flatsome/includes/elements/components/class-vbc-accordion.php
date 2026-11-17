@@ -102,6 +102,26 @@ function vbc_accordion_item_shortcode($atts, $content = null) {
     $icon_color = !empty($atts['icon_color']) ? $atts['icon_color'] : '#F5568F';
     $border_color = !empty($atts['border_color']) ? $atts['border_color'] : '#edf2f7';
 
+    // Thu thập câu hỏi & câu trả lời để in JSON-LD Schema FAQPage vào footer
+    global $vbc_accumulated_faq_schema;
+    if (!is_array($vbc_accumulated_faq_schema)) {
+        $vbc_accumulated_faq_schema = array();
+    }
+    if (!empty($atts['title'])) {
+        $clean_answer = wp_strip_all_tags(do_shortcode(vbc_clean_inner_content($content)));
+        $clean_answer = trim(preg_replace('/\s+/', ' ', $clean_answer));
+        if (!empty($clean_answer)) {
+            $vbc_accumulated_faq_schema[] = array(
+                '@type'          => 'Question',
+                'name'           => esc_html(wp_strip_all_tags($atts['title'])),
+                'acceptedAnswer' => array(
+                    '@type' => 'Answer',
+                    'text'  => esc_html($clean_answer),
+                ),
+            );
+        }
+    }
+
     $html = '<details class="vbc-faq-item" style="border: 1.5px solid ' . esc_attr($border_color) . '; border-radius: 14px; margin-bottom: 14px; overflow: hidden; background: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.02); transition: all 0.2s;" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question"' . $open_attr . '>';
     $html .= '<summary style="color: ' . esc_attr($title_color) . '; font-size: ' . esc_attr($font_size) . '; font-weight: 800; cursor: pointer; outline: none; list-style: none; display: flex; justify-content: space-between; align-items: center; padding: 18px 24px; user-select: none;" itemprop="name">';
     $html .= '<span>' . esc_html($atts['title']) . '</span><span style="font-size: 22px; font-weight: 900; color: ' . esc_attr($icon_color) . '; line-height: 1; flex-shrink: 0; margin-left: 12px;">+</span>';
@@ -112,6 +132,22 @@ function vbc_accordion_item_shortcode($atts, $content = null) {
     $html .= '</details>';
 
     return $html;
+}
+
+/**
+ * Xuất mã JSON-LD FAQPage Schema vào wp_footer cho chuẩn SEO Google Rich Results
+ */
+add_action('wp_footer', 'vbc_print_faq_json_ld_schema', 100);
+function vbc_print_faq_json_ld_schema() {
+    global $vbc_accumulated_faq_schema;
+    if (!empty($vbc_accumulated_faq_schema) && is_array($vbc_accumulated_faq_schema) && !is_admin() && !isset($_GET['uxb_iframe'])) {
+        $schema = array(
+            '@context'   => 'https://schema.org',
+            '@type'      => 'FAQPage',
+            'mainEntity' => $vbc_accumulated_faq_schema,
+        );
+        echo "\n" . '<script type="application/ld+json" id="vbc-faq-schema">' . json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . '</script>' . "\n";
+    }
 }
 
 /**

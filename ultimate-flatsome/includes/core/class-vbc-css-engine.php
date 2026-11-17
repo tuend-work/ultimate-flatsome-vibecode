@@ -110,6 +110,7 @@ function vbc_compile_element_css(&$atts, $base_class = 'vbc-css') {
         'align_items'            => 'align-items',
         'flex_wrap'              => 'flex-wrap',
         'gap'                    => 'gap',
+        'order'                  => 'order',
         'grid_template_columns'  => 'grid-template-columns',
         'grid_columns'           => 'grid-template-columns',
         'grid_gap'               => 'gap',
@@ -226,6 +227,34 @@ function vbc_compile_element_css(&$atts, $base_class = 'vbc-css') {
         $responsive_css .= '@media (max-width: 549px) { .' . $unique_class . ' { ' . implode(' ', $styles_mobile) . ' } } ';
         $needs_class = true;
     }
+    // Xử lý Native Hover States (hover_color, hover_bg_color, hover_border_color, hover_transform, hover_box_shadow, hover_opacity)
+    $hover_map = array(
+        'hover_color'        => 'color',
+        'hover_bg_color'     => 'background-color',
+        'hover_bg'           => 'background-color',
+        'hover_background'   => 'background',
+        'hover_border_color' => 'border-color',
+        'hover_border'       => 'border',
+        'hover_transform'    => 'transform',
+        'hover_box_shadow'   => 'box-shadow',
+        'hover_opacity'      => 'opacity',
+    );
+    $styles_hover = array();
+    foreach ($hover_map as $hover_key => $css_prop) {
+        if (isset($atts[$hover_key]) && $atts[$hover_key] !== '') {
+            $val = $format_val($css_prop, $atts[$hover_key]);
+            $styles_hover[] = $css_prop . ': ' . $val . ' !important;';
+        }
+    }
+    if (!empty($styles_hover)) {
+        $responsive_css .= '.' . $unique_class . ':hover { ' . implode(' ', $styles_hover) . ' } ';
+        $needs_class = true;
+        // Tự động thêm transition mượt mà nếu phần tử chưa có
+        if (!isset($desktop_props_set['transition']) && strpos($inline_style, 'transition:') === false) {
+            $inline_style .= ' transition: all 0.25s ease;';
+        }
+    }
+
     if (!empty($atts['custom_css'])) {
         $raw_css = trim($atts['custom_css']);
         if (strpos($raw_css, '{') === false) {

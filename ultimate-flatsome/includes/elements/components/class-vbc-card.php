@@ -13,6 +13,7 @@ function vbc_card_shortcode($atts, $content = null) {
     $atts = shortcode_atts(array(
         'content' => '',
         'variant' => 'glass',
+        'hover_effect' => 'lift',
         'class' => '',
         'custom_class' => '',
         'custom_css' => '',
@@ -33,9 +34,38 @@ function vbc_card_shortcode($atts, $content = null) {
 
     $padding = !empty($atts['padding']) ? $atts['padding'] : '35px 30px';
     $radius = !empty($atts['border_radius']) ? $atts['border_radius'] : '20px';
-    $border = !empty($atts['border_color']) ? $atts['border_color'] : 'rgba(255,255,255,0.08)';
     $glow = !empty($atts['glow_color']) ? $atts['glow_color'] : 'rgba(239, 68, 68, 0.2)';
-    $bg = !empty($atts['background_color']) ? $atts['background_color'] : 'rgba(255, 255, 255, 0.03)';
+    $variant = strtolower(trim($atts['variant']));
+    $hover_effect = strtolower(trim($atts['hover_effect']));
+
+    // Cấu hình style mặc định theo từng Variant
+    if ($variant === 'flat') {
+        $bg = !empty($atts['background_color']) ? $atts['background_color'] : '#ffffff';
+        $border = !empty($atts['border_color']) ? $atts['border_color'] : '#e2e8f0';
+        $shadow = '0 4px 15px rgba(0, 0, 0, 0.04)';
+        $backdrop = '';
+    } elseif ($variant === 'bordered') {
+        $bg = !empty($atts['background_color']) ? $atts['background_color'] : 'transparent';
+        $border = !empty($atts['border_color']) ? $atts['border_color'] : '#cbd5e1';
+        $shadow = 'none';
+        $backdrop = '';
+    } elseif ($variant === 'elevated') {
+        $bg = !empty($atts['background_color']) ? $atts['background_color'] : '#ffffff';
+        $border = !empty($atts['border_color']) ? $atts['border_color'] : 'transparent';
+        $shadow = '0 20px 45px rgba(0, 0, 0, 0.08)';
+        $backdrop = '';
+    } elseif ($variant === 'gradient') {
+        $bg = !empty($atts['background_color']) ? $atts['background_color'] : 'linear-gradient(135deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 100%)';
+        $border = !empty($atts['border_color']) ? $atts['border_color'] : 'rgba(255, 255, 255, 0.12)';
+        $shadow = '0 15px 35px rgba(0, 0, 0, 0.3)';
+        $backdrop = 'backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); ';
+    } else {
+        // Mặc định: Glassmorphism
+        $bg = !empty($atts['background_color']) ? $atts['background_color'] : 'rgba(255, 255, 255, 0.03)';
+        $border = !empty($atts['border_color']) ? $atts['border_color'] : 'rgba(255, 255, 255, 0.08)';
+        $shadow = '0 15px 35px rgba(0, 0, 0, 0.4)';
+        $backdrop = 'backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); ';
+    }
 
     $res = vbc_compile_element_css($atts, 'vbc-card');
     $unique_class = $res['class'];
@@ -43,18 +73,25 @@ function vbc_card_shortcode($atts, $content = null) {
 
     $card_rules = '.' . $unique_class . ' { ';
     $card_rules .= 'background: ' . $bg . '; ';
-    $card_rules .= 'backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); ';
+    if ($backdrop) $card_rules .= $backdrop;
     $card_rules .= 'border: 1px solid ' . $border . '; ';
     $card_rules .= 'border-radius: ' . $radius . '; ';
     $card_rules .= 'padding: ' . $padding . '; ';
-    $card_rules .= 'box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4); ';
+    $card_rules .= 'box-shadow: ' . $shadow . '; ';
     $card_rules .= 'transition: all 0.3s ease; ';
     $card_rules .= '} ';
-    $card_rules .= '.' . $unique_class . ':hover { ';
-    $card_rules .= 'transform: translateY(-8px); ';
-    $card_rules .= 'border-color: ' . $glow . '; ';
-    $card_rules .= 'box-shadow: 0 20px 40px ' . $glow . '; ';
-    $card_rules .= '} ';
+
+    // Cấu hình Hiệu ứng Hover
+    if ($hover_effect === 'lift') {
+        $card_rules .= '.' . $unique_class . ':hover { transform: translateY(-8px); border-color: ' . $glow . '; box-shadow: 0 20px 40px ' . $glow . '; } ';
+    } elseif ($hover_effect === 'glow') {
+        $card_rules .= '.' . $unique_class . ':hover { border-color: ' . $glow . '; box-shadow: 0 0 35px ' . $glow . '; } ';
+    } elseif ($hover_effect === 'scale') {
+        $card_rules .= '.' . $unique_class . ':hover { transform: scale(1.025); border-color: ' . $glow . '; } ';
+    } elseif ($hover_effect === 'border') {
+        $card_rules .= '.' . $unique_class . ':hover { border-color: ' . $glow . '; } ';
+    }
+    // hover_effect === 'none' -> không thêm hover rule
 
     $card_rules = str_replace(array("\r", "\n"), ' ', $card_rules);
     $card_rules = preg_replace('/\s+/', ' ', $card_rules);

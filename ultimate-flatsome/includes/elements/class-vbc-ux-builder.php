@@ -448,6 +448,18 @@ function vbc_get_element_ux_builder_template($tag, $tag_type = 'container') {
         return '<div id="{{ shortcode.options.id || shortcode.$id }}" class="vbc-card {{ shortcode.options.class }} {{ shortcode.options.custom_class }}" ng-style="{\'background-color\': shortcode.options.card_bg, \'padding\': shortcode.options.card_padding, \'border-radius\': shortcode.options.card_radius}"><span ng-if="shortcode.options.content && (!shortcode.children || !shortcode.children.length)" ng-bind-html="shortcode.options.content | html"></span><content></content></div>';
     }
 
+    if ($tag === 'marquee') {
+        return '<div id="{{ shortcode.options.id || shortcode.$id }}" class="vbc-marquee-wrap {{ shortcode.options.class }} {{ shortcode.options.custom_class }}" style="overflow:hidden; display:flex; gap:{{ shortcode.options.gap || \'30px\' }}; padding:{{ shortcode.options.padding || \'20px 0\' }}; width:100%;"><content></content></div>';
+    }
+
+    if ($tag === 'badge') {
+        return '<span id="{{ shortcode.options.id || shortcode.$id }}" class="vbc-badge {{ shortcode.options.class }} {{ shortcode.options.custom_class }}" style="display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:9999px; font-weight:800; font-size:12px; background:#ef4444; color:#fff;"><span>{{ shortcode.options.text || "BADGE" }}</span></span>';
+    }
+
+    if ($tag === 'countdown') {
+        return '<div id="{{ shortcode.options.id || shortcode.$id }}" class="vbc-countdown-wrap {{ shortcode.options.class }} {{ shortcode.options.custom_class }}" style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;"><div style="background:#1e293b; color:#fff; border-radius:10px; padding:10px 14px; text-align:center; min-width:60px;"><div style="font-size:24px; font-weight:900;">03</div><div style="font-size:10px; text-transform:uppercase; color:#94a3b8;">Ngày</div></div><div style="background:#1e293b; color:#fff; border-radius:10px; padding:10px 14px; text-align:center; min-width:60px;"><div style="font-size:24px; font-weight:900;">12</div><div style="font-size:10px; text-transform:uppercase; color:#94a3b8;">Giờ</div></div><div style="background:#1e293b; color:#fff; border-radius:10px; padding:10px 14px; text-align:center; min-width:60px;"><div style="font-size:24px; font-weight:900;">45</div><div style="font-size:10px; text-transform:uppercase; color:#94a3b8;">Phút</div></div><div style="background:#1e293b; color:#fff; border-radius:10px; padding:10px 14px; text-align:center; min-width:60px;"><div style="font-size:24px; font-weight:900;">59</div><div style="font-size:10px; text-transform:uppercase; color:#94a3b8;">Giây</div></div></div>';
+    }
+
     if (in_array($tag, array('h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span', 'i', 'b', 'strong', 'em', 'u'))) {
         return '<' . $tag . ' id="{{ shortcode.options.id || shortcode.$id }}" class="{{ shortcode.options.class }} {{ shortcode.options.custom_class }}" ng-style="{\'color\': shortcode.options.color, \'display\': shortcode.options.display, \'width\': shortcode.options.width, \'height\': shortcode.options.height, \'min-width\': (shortcode.options.minWidth || shortcode.options.min_width), \'font-size\': (shortcode.options.fontSize || shortcode.options.font_size), \'font-weight\': (shortcode.options.fontWeight || shortcode.options.font_weight), \'line-height\': (shortcode.options.lineHeight || shortcode.options.line_height), \'letter-spacing\': (shortcode.options.letterSpacing || shortcode.options.letter_spacing), \'text-align\': (shortcode.options.textAlign || shortcode.options.text_align), \'text-transform\': (shortcode.options.textTransform || shortcode.options.text_transform), \'background-color\': (shortcode.options.backgroundColor || shortcode.options.bgColor || shortcode.options.bg_color || shortcode.options.bg), \'border\': shortcode.options.border, \'border-radius\': (shortcode.options.borderRadius || shortcode.options.border_radius), \'box-shadow\': (shortcode.options.boxShadow || shortcode.options.box_shadow), \'align-items\': (shortcode.options.alignItems || shortcode.options.align_items), \'justify-content\': (shortcode.options.justifyContent || shortcode.options.justify_content), \'padding\': shortcode.options.padding, \'margin\': shortcode.options.margin}"><span ng-if="shortcode.options.text" ng-bind-html="shortcode.options.text | html"></span><span ng-if="!shortcode.options.text && shortcode.content" ng-bind-html="shortcode.content | html"></span></' . $tag . '>';
     }
@@ -902,7 +914,23 @@ function vbc_register_ux_builder_elements() {
                 'default' => 'glass',
                 'options' => array(
                     'glass' => 'Kính mờ (Glassmorphism)',
-                    'custom' => 'Tùy chỉnh',
+                    'flat' => 'Phẳng hiện đại (Flat)',
+                    'bordered' => 'Khung viền (Bordered)',
+                    'gradient' => 'Gradient bóng bẩy (Gradient)',
+                    'elevated' => 'Đổ bóng nổi bật (Elevated)',
+                    'custom' => 'Tùy chỉnh màu riêng (Custom)',
+                ),
+            ),
+            'hover_effect' => array(
+                'type' => 'select',
+                'heading' => 'Hiệu ứng Hover',
+                'default' => 'lift',
+                'options' => array(
+                    'lift' => 'Bay lên & Phát sáng (Lift)',
+                    'glow' => 'Phát sáng viền & bóng (Glow)',
+                    'scale' => 'Phóng to nhẹ (Scale)',
+                    'border' => 'Đổi màu viền (Border)',
+                    'none' => 'Không hiệu ứng (None)',
                 ),
             ),
             'padding' => array(
@@ -1400,10 +1428,45 @@ function vbc_register_ux_builder_elements() {
                 'heading' => 'Giao diện mẫu (Variant)',
                 'default' => 'danger',
                 'options' => array(
-                    'danger' => 'Gradient Đỏ',
+                    'danger' => 'Gradient Đỏ Rực (Danger)',
+                    'primary' => 'Gradient Đỏ Sáng (Primary)',
+                    'success' => 'Gradient Xanh Ngọc (Success)',
                     'glass' => 'Kính mờ (Glassmorphism)',
-                    'custom' => 'Tùy chỉnh màu riêng',
+                    'outline' => 'Khung viền tinh gọn (Outline)',
+                    'custom' => 'Tùy chỉnh màu riêng (Custom)',
                 ),
+            ),
+            'icon' => array(
+                'type' => 'textfield',
+                'heading' => 'Icon (Tên Lucide/SVG)',
+                'default' => '',
+                'description' => 'Ví dụ: arrow-right, phone, shopping-bag, check, download',
+            ),
+            'icon_position' => array(
+                'type' => 'select',
+                'heading' => 'Vị trí Icon',
+                'default' => 'left',
+                'options' => array(
+                    'left' => 'Bên trái chữ',
+                    'right' => 'Bên phải chữ',
+                ),
+                'conditions' => 'icon !== ""',
+            ),
+            'icon_animation' => array(
+                'type' => 'select',
+                'heading' => 'Hiệu ứng Icon Hover',
+                'default' => 'none',
+                'options' => array(
+                    'none' => 'Không hiệu ứng',
+                    'slide' => 'Trượt nhẹ sang ngang (Slide)',
+                    'bounce' => 'Nhấp nhô liên tục (Bounce)',
+                ),
+                'conditions' => 'icon !== ""',
+            ),
+            'shimmer' => array(
+                'type' => 'checkbox',
+                'heading' => 'Hiệu ứng Quét sáng (Shimmer Glow)',
+                'default' => 'false',
             ),
             'padding' => array(
                 'type' => 'textfield',
@@ -1967,6 +2030,193 @@ function vbc_register_ux_builder_elements() {
                     ),
                 ),
             ),
+        ),
+    ));
+
+    // Đăng ký VBC Marquee (Infinite Logo Ticker)
+    vbc_add_ux_builder_shortcode_with_inners('vbc_marquee', array(
+        'name' => 'VBC Marquee (Logo Ticker)',
+        'category' => 'VibeCode Components',
+        'type' => 'container',
+        'options' => array(
+            'speed' => array(
+                'type' => 'textfield',
+                'heading' => 'Tốc độ cuộn',
+                'default' => '25s',
+                'description' => 'Ví dụ: 15s (nhanh), 25s (vừa), 40s (chậm)',
+            ),
+            'direction' => array(
+                'type' => 'select',
+                'heading' => 'Hướng cuộn',
+                'default' => 'left',
+                'options' => array(
+                    'left' => 'Từ phải sang trái (Mặc định)',
+                    'right' => 'Từ trái sang phải',
+                ),
+            ),
+            'pause_on_hover' => array(
+                'type' => 'select',
+                'heading' => 'Dừng khi rê chuột (Pause on hover)',
+                'default' => 'true',
+                'options' => array(
+                    'true' => 'Bật',
+                    'false' => 'Tắt',
+                ),
+            ),
+            'gap' => array(
+                'type' => 'textfield',
+                'heading' => 'Khoảng cách giữa các mục',
+                'default' => '40px',
+            ),
+            'gradient_edges' => array(
+                'type' => 'select',
+                'heading' => 'Làm mờ chuyển tiếp 2 cạnh',
+                'default' => 'true',
+                'options' => array(
+                    'true' => 'Bật (Mặc định)',
+                    'false' => 'Tắt',
+                ),
+            ),
+            'padding' => array(
+                'type' => 'textfield',
+                'heading' => 'Padding',
+                'default' => '20px 0',
+            ),
+            'background_color' => array(
+                'type' => 'colorpicker',
+                'heading' => 'Màu nền',
+                'default' => '',
+            ),
+            'id' => array('type' => 'textfield', 'heading' => 'Element ID', 'default' => ''),
+            'class' => array('type' => 'textfield', 'heading' => 'CSS Class', 'default' => ''),
+            'custom_class' => array('type' => 'textfield', 'heading' => 'Custom Class (Bí danh)', 'default' => ''),
+            'custom_css' => array('type' => 'textarea', 'heading' => 'Custom CSS', 'default' => ''),
+        ),
+    ));
+
+    // Đăng ký VBC Badge (Huy Hiệu / Status Tag)
+    vbc_add_ux_builder_shortcode_with_inners('vbc_badge', array(
+        'name' => 'VBC Badge (Huy Hiệu)',
+        'category' => 'VibeCode Components',
+        'type' => 'container',
+        'options' => array(
+            'text' => array(
+                'type' => 'textfield',
+                'heading' => 'Nội dung chữ',
+                'default' => 'HOT',
+            ),
+            'variant' => array(
+                'type' => 'select',
+                'heading' => 'Biến thể (Variant)',
+                'default' => 'gradient',
+                'options' => array(
+                    'gradient' => 'Gradient bóng bẩy',
+                    'glass' => 'Kính mờ (Glassmorphism)',
+                    'soft' => 'Màu nền dịu nhẹ (Soft)',
+                    'solid' => 'Màu đơn sắc (Solid)',
+                    'outline' => 'Khung viền (Outline)',
+                ),
+            ),
+            'color_scheme' => array(
+                'type' => 'select',
+                'heading' => 'Tông màu chủ đạo',
+                'default' => 'danger',
+                'options' => array(
+                    'danger' => 'Đỏ nổi bật (Danger)',
+                    'primary' => 'Xanh dương (Primary)',
+                    'success' => 'Xanh lá ngọc (Success)',
+                    'warning' => 'Cam vàng (Warning)',
+                    'purple' => 'Tím hoàng gia (Purple)',
+                ),
+            ),
+            'pulse' => array(
+                'type' => 'select',
+                'heading' => 'Chấm nhịp đập động (Pulse Effect)',
+                'default' => 'false',
+                'options' => array(
+                    'false' => 'Tắt',
+                    'true' => 'Bật nhịp đập phát sáng',
+                ),
+            ),
+            'icon' => array(
+                'type' => 'textfield',
+                'heading' => 'Icon kèm theo',
+                'default' => '',
+                'description' => 'Tên icon (ví dụ: flame, zap, check, tag, percent)',
+            ),
+            'size' => array(
+                'type' => 'select',
+                'heading' => 'Kích cỡ',
+                'default' => 'sm',
+                'options' => array(
+                    'sm' => 'Nhỏ (Small)',
+                    'md' => 'Vừa (Medium)',
+                    'lg' => 'Lớn (Large)',
+                ),
+            ),
+            'margin' => array('type' => 'textfield', 'heading' => 'Margin', 'default' => ''),
+            'id' => array('type' => 'textfield', 'heading' => 'Element ID', 'default' => ''),
+            'class' => array('type' => 'textfield', 'heading' => 'CSS Class', 'default' => ''),
+            'custom_class' => array('type' => 'textfield', 'heading' => 'Custom Class (Bí danh)', 'default' => ''),
+            'custom_css' => array('type' => 'textarea', 'heading' => 'Custom CSS', 'default' => ''),
+        ),
+    ));
+
+    // Đăng ký VBC Countdown (Đồng hồ đếm ngược)
+    vbc_add_ux_builder_shortcode_with_inners('vbc_countdown', array(
+        'name' => 'VBC Countdown (Đếm Ngược)',
+        'category' => 'VibeCode Components',
+        'type' => 'container',
+        'options' => array(
+            'due_date' => array(
+                'type' => 'textfield',
+                'heading' => 'Thời gian hết hạn',
+                'default' => '+3 days',
+                'description' => 'Định dạng YYYY-MM-DD HH:MM:SS (ví dụ: 2026-12-31 23:59:59) hoặc +3 days',
+            ),
+            'style' => array(
+                'type' => 'select',
+                'heading' => 'Kiểu hiển thị',
+                'default' => 'boxes',
+                'options' => array(
+                    'boxes' => 'Các khối hộp bo tròn (Boxes)',
+                    'minimal' => 'Tối giản không viền (Minimal)',
+                ),
+            ),
+            'show_days' => array('type' => 'select', 'heading' => 'Hiện Ngày', 'default' => 'true', 'options' => array('true' => 'Bật', 'false' => 'Tắt')),
+            'show_hours' => array('type' => 'select', 'heading' => 'Hiện Giờ', 'default' => 'true', 'options' => array('true' => 'Bật', 'false' => 'Tắt')),
+            'show_minutes' => array('type' => 'select', 'heading' => 'Hiện Phút', 'default' => 'true', 'options' => array('true' => 'Bật', 'false' => 'Tắt')),
+            'show_seconds' => array('type' => 'select', 'heading' => 'Hiện Giây', 'default' => 'true', 'options' => array('true' => 'Bật', 'false' => 'Tắt')),
+            'box_bg' => array(
+                'type' => 'colorpicker',
+                'heading' => 'Màu nền hộp số',
+                'default' => '#1e293b',
+            ),
+            'digit_color' => array(
+                'type' => 'colorpicker',
+                'heading' => 'Màu chữ số',
+                'default' => '#ffffff',
+            ),
+            'label_color' => array(
+                'type' => 'colorpicker',
+                'heading' => 'Màu nhãn chữ (Ngày, Giờ...)',
+                'default' => '#94a3b8',
+            ),
+            'border_radius' => array(
+                'type' => 'textfield',
+                'heading' => 'Bo góc hộp',
+                'default' => '14px',
+            ),
+            'expired_text' => array(
+                'type' => 'textfield',
+                'heading' => 'Thông báo khi hết hạn',
+                'default' => 'Ưu đãi đã kết thúc!',
+            ),
+            'margin' => array('type' => 'textfield', 'heading' => 'Margin', 'default' => ''),
+            'id' => array('type' => 'textfield', 'heading' => 'Element ID', 'default' => ''),
+            'class' => array('type' => 'textfield', 'heading' => 'CSS Class', 'default' => ''),
+            'custom_class' => array('type' => 'textfield', 'heading' => 'Custom Class (Bí danh)', 'default' => ''),
+            'custom_css' => array('type' => 'textarea', 'heading' => 'Custom CSS', 'default' => ''),
         ),
     ));
 }

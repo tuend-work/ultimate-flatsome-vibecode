@@ -1,6 +1,6 @@
 ---
 name: vbc-elements
-version: 2.5.74
+version: 2.5.75
 plugin_min_version: 2.5.0
 compatibility: "Flatsome >= 3.16.0"
 description: >-
@@ -80,6 +80,18 @@ Cung cấp tài liệu tra cứu chuẩn xác nhất về cú pháp, thuộc tí
    - **BẮT BUỘC**: Sử dụng khi nhận diện khu vực là row bài viết blog, tin tức hoặc danh sách sản phẩm / khóa học thay vì dựng cột tĩnh lặp lại.
    - **Cú pháp Blog Grid:** `[vbc_post post_type="post" posts_per_page="3" columns="3" layout="grid" image_height="220px" title_tag="h3" button_text="Xem Chi Tiết"]`
    - **Cú pháp Product Grid:** `[vbc_post post_type="product" posts_per_page="4" columns="4" layout="grid" fields="thumbnail:100%, categories:100%, title:100%, price:50%, button:50%" button_text="Mua Ngay"]`
+
+6. **Các Thành Phần Tối Ưu Chuyển Đổi (High-Converting CRO Components)**:
+   - `[vbc_card variant="glass|flat|bordered|gradient|elevated" hover_effect="lift|glow|scale|border|none"]`: Thẻ card nội dung chuyên nghiệp với 5 phong cách và 5 hiệu ứng hover.
+   - `[vbc_button text="Xem Thêm" variant="danger|primary|success|glass|outline" icon="arrow-right" icon_position="right" icon_animation="slide" shimmer="true"]`: Nút bấm chuyển đổi cao kèm icon vector và hiệu ứng quét sáng.
+   - `[vbc_marquee speed="25s" direction="left" gap="40px" pause_on_hover="true"]`: Dải logo đối tác / chứng nhận trượt vô tận không giật lag.
+   - `[vbc_badge text="HOT" variant="gradient|soft|glass" color_scheme="danger|primary|success|purple" pulse="true" icon="flame"]`: Huy hiệu trạng thái, nhãn giảm giá nhịp đập thu hút thị giác.
+   - `[vbc_countdown due_date="2026-12-31 23:59:59" style="boxes" box_bg="#1e293b" digit_color="#ffffff"]`: Đồng hồ đếm ngược ưu đãi Flash Sale thời gian thực.
+   - `[vbc_accordion faq_schema="true"]`: Khối hỏi đáp FAQ tự động sinh mã JSON-LD Schema `FAQPage` cho Google Rich Results.
+
+7. **Thuộc tính Hover & Thứ tự Responsive Nâng Cao (CSS Engine)**:
+   - **Hover Native**: Hỗ trợ trực tiếp trên mọi phần tử `vbc_*`: `hover_color`, `hover_bg_color`, `hover_border_color`, `hover_transform`, `hover_box_shadow`, `hover_opacity`.
+   - **Order Responsive**: `order`, `order__md`, `order__sm` giúp đảo vị trí cột linh hoạt trên di động (ví dụ đưa Form lên trước Ảnh).
 
 ## ⚠️ QUY TẮC BẮT BUỘC: CÚ PHÁP SHORTCODE & XỬ LÝ NỘI DUNG
 

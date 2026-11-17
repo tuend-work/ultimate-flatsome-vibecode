@@ -57,6 +57,9 @@ class Ultimate_Flatsome_VibeCode_Core {
         require_once $inc_dir . 'elements/components/class-vbc-slider.php';
         require_once $inc_dir . 'elements/components/class-vbc-fullpage.php';
         require_once $inc_dir . 'elements/components/class-vbc-post.php';
+        require_once $inc_dir . 'elements/components/class-vbc-marquee.php';
+        require_once $inc_dir . 'elements/components/class-vbc-badge.php';
+        require_once $inc_dir . 'elements/components/class-vbc-countdown.php';
 
         // 4. Icons System & Lazy Loading
         require_once $inc_dir . 'icons/class-vbc-icon-manager.php';

@@ -1,6 +1,6 @@
 ---
 name: clone-landingpage
-version: 2.5.74
+version: 2.5.75
 plugin_min_version: 2.5.0
 compatibility: "Flatsome >= 3.16.0"
 description: >-

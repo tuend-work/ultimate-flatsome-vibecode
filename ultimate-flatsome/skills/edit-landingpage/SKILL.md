@@ -1,6 +1,6 @@
 ---
 name: edit-landingpage
-version: 2.5.74
+version: 2.5.75
 plugin_min_version: 2.5.0
 compatibility: "Flatsome >= 3.16.0"
 description: Chỉnh sửa và nâng cấp Landing Page có sẵn trên WordPress Flatsome bằng cách tải mã shortcode gốc từ REST API, phân tích và sửa đổi sections theo yêu cầu người dùng, đảm bảo 100% chuẩn VBC Elements & Suffix Nesting, xuất bản lại lên WordPress và đối soát 3 Trụ Cột QA.

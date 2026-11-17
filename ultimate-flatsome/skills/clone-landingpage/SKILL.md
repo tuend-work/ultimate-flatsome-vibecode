@@ -1,5 +1,8 @@
 ---
 name: clone-landingpage
+version: 2.5.74
+plugin_min_version: 2.5.0
+compatibility: "Flatsome >= 3.16.0"
 description: >-
   Tự động sao chép (clone) toàn bộ giao diện và nội dung từ một trang web bất kỳ sang WordPress Flatsome bằng 100% phần tử Ultimate Flatsome VibeCode Elements do AI trực tiếp sinh ra dựa trên ảnh chụp màn hình toàn trang qua trình duyệt thật Antigravity. Hỗ trợ 2 chế độ kiến trúc: Landing Page độc lập (Page) và Hệ thống CPT động kèm Custom Fields & Admin Meta Box (Tours, Hotels, Real Estate, Products, Courses, Services, Medical).
 ---

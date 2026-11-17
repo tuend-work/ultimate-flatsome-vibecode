@@ -1,5 +1,8 @@
 ---
 name: vbc-elements
+version: 2.5.74
+plugin_min_version: 2.5.0
+compatibility: "Flatsome >= 3.16.0"
 description: >-
   Cẩm nang tra cứu và sử dụng toàn bộ hệ thống Shortcodes của Ultimate Flatsome VibeCode Elements. Sử dụng khi cần viết shortcode VBC ([vbc_div], [vbc_box], [vbc_block], [vbc_container], [vbc_h1]-[vbc_h6], [vbc_p], [vbc_a], [vbc_icon]), tra cứu cú pháp CSS selector hoặc tích hợp component.
 ---

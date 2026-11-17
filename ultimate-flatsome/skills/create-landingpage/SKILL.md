@@ -1,5 +1,8 @@
 ---
 name: create-landingpage
+version: 2.5.74
+plugin_min_version: 2.5.0
+compatibility: "Flatsome >= 3.16.0"
 description: >-
   Thiết kế và xây dựng Landing Page mới chuyên nghiệp trên WordPress Flatsome từ ý tưởng, bản thảo hoặc yêu cầu của người dùng bằng 100% phần tử Ultimate Flatsome VibeCode Elements do AI trực tiếp thiết kế. Sử dụng khi người dùng yêu cầu tạo mới landing page, thiết kế trang bán hàng, giới thiệu dịch vụ.
 ---

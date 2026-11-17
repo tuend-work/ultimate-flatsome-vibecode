@@ -1,5 +1,8 @@
 ---
 name: recheck-url
+version: 2.5.74
+plugin_min_version: 2.5.0
+compatibility: "Flatsome >= 3.16.0"
 description: >-
   Kiểm tra chất lượng toàn diện 3 Trụ Cột (3-Pillar QA Audit): Ảnh chụp Full-Screen/Section, Full Rendered HTML DOM từ trình duyệt, và Raw Shortcode Content/Meta từ REST API. Đảm bảo frontend chuyên nghiệp, chuẩn thẩm mỹ, độ tương đồng thị giác VSI >= 90%, 0 lỗi shortcode và tự động yêu cầu AI sinh lại code mới nếu có sai khác.
 ---

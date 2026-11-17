@@ -57,6 +57,173 @@ if ( ! function_exists( 'vbc_get_current_or_sample_post_id' ) ) {
     }
 }
 
+/**
+ * Resolve dynamic content từ post meta, ACF, hoặc các nguồn động khác.
+ *
+ * Được tách ra từ vbc_shortcode_renderer để dễ đọc và dễ test riêng lẻ.
+ *
+ * @param array $atts    Shortcode attributes đã được parse.
+ * @param int   $post_id ID của post hiện tại (hoặc sample post).
+ * @return string        Nội dung động đã resolved, hoặc chuỗi rỗng.
+ */
+function vbc_resolve_dynamic_content( array $atts, int $post_id ): string {
+    $source = isset( $atts['content_source'] ) ? $atts['content_source'] : 'default';
+
+    switch ( $source ) {
+        case 'post_title':
+        case 'title':
+            return get_the_title( $post_id );
+
+        case 'post_excerpt':
+        case 'excerpt':
+            return get_the_excerpt( $post_id );
+
+        case 'post_content':
+        case 'content':
+            $p = get_post( $post_id );
+            return $p ? apply_filters( 'the_content', $p->post_content ) : '';
+
+        case 'post_date':
+        case 'date':
+            return get_the_date( '', $post_id );
+
+        case 'post_author':
+        case 'author':
+            $auth_id = get_post_field( 'post_author', $post_id );
+            return get_the_author_meta( 'display_name', $auth_id ) ?: get_the_author();
+
+        case 'manual':
+            return strval( isset( $atts['content_manual'] ) ? $atts['content_manual'] : '' );
+
+        case 'post_meta':
+            $meta_key = trim( isset( $atts['meta_key'] ) ? $atts['meta_key'] : '' );
+            if ( empty( $meta_key ) ) {
+                return '';
+            }
+            $meta_key_lower = strtolower( $meta_key );
+            if ( $meta_key_lower === 'post_title' || $meta_key_lower === 'title' ) {
+                return get_the_title( $post_id );
+            }
+            if ( $meta_key_lower === 'post_excerpt' || $meta_key_lower === 'excerpt' ) {
+                return get_the_excerpt( $post_id );
+            }
+            if ( $meta_key_lower === 'post_content' || $meta_key_lower === 'content' ) {
+                $p = get_post( $post_id );
+                return $p ? apply_filters( 'the_content', $p->post_content ) : '';
+            }
+            if ( $meta_key_lower === 'post_date' || $meta_key_lower === 'date' ) {
+                return get_the_date( '', $post_id );
+            }
+            if ( $meta_key_lower === 'post_author' || $meta_key_lower === 'author' ) {
+                $auth_id = get_post_field( 'post_author', $post_id );
+                return get_the_author_meta( 'display_name', $auth_id ) ?: get_the_author();
+            }
+            if ( $meta_key_lower === 'post_url' || $meta_key_lower === 'permalink' ) {
+                return get_permalink( $post_id );
+            }
+            if ( $meta_key_lower === 'id' || $meta_key_lower === 'post_id' ) {
+                return strval( $post_id );
+            }
+            $val = get_post_meta( $post_id, $meta_key, true );
+            if ( ( $val === '' || $val === false || $val === null ) && $post_id > 0 ) {
+                $p_obj = get_post( $post_id );
+                if ( $p_obj && isset( $p_obj->$meta_key ) ) {
+                    $val = $p_obj->$meta_key;
+                }
+            }
+            return strval( $val );
+
+        case 'acf':
+            $acf_key = trim( isset( $atts['acf_key'] ) ? $atts['acf_key'] : '' );
+            if ( empty( $acf_key ) ) {
+                return '';
+            }
+            if ( function_exists( 'get_field' ) ) {
+                $val = get_field( $acf_key, $post_id );
+            } else {
+                $val = get_post_meta( $post_id, $acf_key, true );
+            }
+            if ( is_array( $val ) || is_object( $val ) ) {
+                return json_encode( $val );
+            }
+            return strval( $val );
+
+        default:
+            return '';
+    }
+}
+
+/**
+ * Thay thế các placeholder động {post_title}, {{date}}, {meta:key}, {acf:key}…
+ * trong một chuỗi nội dung bằng giá trị thực từ post.
+ *
+ * Được tách ra từ vbc_shortcode_renderer để dễ đọc và dễ test riêng lẻ.
+ *
+ * @param string $content Chuỗi đầu vào có thể chứa placeholders.
+ * @param int    $post_id ID post hiện tại.
+ * @return string         Chuỗi đã được thay thế placeholder.
+ */
+function vbc_replace_placeholders( string $content, int $post_id ): string {
+    if ( strpos( $content, '{' ) === false ) {
+        return $content;
+    }
+
+    return preg_replace_callback(
+        '/\{+([a-zA-Z0-9_\-:]+)\}+/',
+        function ( $matches ) use ( $post_id ) {
+            $tag = strtolower( trim( $matches[1] ) );
+
+            if ( $tag === 'post_title' || $tag === 'title' ) {
+                return get_the_title( $post_id );
+            }
+            if ( $tag === 'post_excerpt' || $tag === 'excerpt' ) {
+                return get_the_excerpt( $post_id );
+            }
+            if ( $tag === 'post_content' || $tag === 'content' ) {
+                $p = get_post( $post_id );
+                return $p ? apply_filters( 'the_content', $p->post_content ) : '';
+            }
+            if ( $tag === 'post_date' || $tag === 'date' ) {
+                return get_the_date( '', $post_id );
+            }
+            if ( $tag === 'post_author' || $tag === 'author' ) {
+                $auth_id = get_post_field( 'post_author', $post_id );
+                return get_the_author_meta( 'display_name', $auth_id ) ?: get_the_author();
+            }
+            if ( $tag === 'post_url' || $tag === 'permalink' ) {
+                return get_permalink( $post_id );
+            }
+            if ( $tag === 'post_thumbnail' || $tag === 'thumbnail' ) {
+                return get_the_post_thumbnail_url( $post_id, 'full' ) ?: '';
+            }
+            if ( $tag === 'category' || $tag === 'categories' ) {
+                $cats = get_the_category( $post_id );
+                return ! empty( $cats ) ? $cats[0]->name : '';
+            }
+            if ( $tag === 'comments_count' ) {
+                return sprintf(
+                    _n( '%s bình luận', '%s bình luận', get_comments_number( $post_id ), 'vibecode' ),
+                    number_format_i18n( get_comments_number( $post_id ) )
+                );
+            }
+            if ( strpos( $tag, 'meta:' ) === 0 ) {
+                return get_post_meta( $post_id, substr( $tag, 5 ), true );
+            }
+            if ( strpos( $tag, 'acf:' ) === 0 ) {
+                $acf_key = substr( $tag, 4 );
+                if ( function_exists( 'get_field' ) ) {
+                    $val = get_field( $acf_key, $post_id );
+                    return is_array( $val ) ? json_encode( $val ) : strval( $val );
+                }
+                return get_post_meta( $post_id, $acf_key, true );
+            }
+
+            return $matches[0]; // Placeholder không nhận ra — giữ nguyên
+        },
+        $content
+    );
+}
+
 function vbc_register_shortcodes() {
     $tags = array(
         'div', 'box', 'block', 'container', 'p', 'i', 'span', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
@@ -487,123 +654,23 @@ function vbc_shortcode_renderer($atts, $content = null, $tag = '') {
     }
 
     // 4. Render các thẻ Container
-    // Xử lý dữ liệu động
-    $dynamic_content = '';
-    $current_post_id = vbc_get_current_or_sample_post_id(!empty($_GET['post']) ? intval($_GET['post']) : 0);
+    // Resolve dữ liệu động qua helper (tách biệt để dễ test)
+    $current_post_id = vbc_get_current_or_sample_post_id( ! empty( $_GET['post'] ) ? intval( $_GET['post'] ) : 0 );
+    $dynamic_content = vbc_resolve_dynamic_content( $atts, $current_post_id );
 
-    if ($atts['content_source'] === 'post_title' || $atts['content_source'] === 'title') {
-        $dynamic_content = get_the_title($current_post_id);
-    } elseif ($atts['content_source'] === 'post_excerpt' || $atts['content_source'] === 'excerpt') {
-        $dynamic_content = get_the_excerpt($current_post_id);
-    } elseif ($atts['content_source'] === 'post_content' || $atts['content_source'] === 'content') {
-        $p = get_post($current_post_id);
-        $dynamic_content = $p ? apply_filters('the_content', $p->post_content) : '';
-    } elseif ($atts['content_source'] === 'post_date' || $atts['content_source'] === 'date') {
-        $dynamic_content = get_the_date('', $current_post_id);
-    } elseif ($atts['content_source'] === 'post_author' || $atts['content_source'] === 'author') {
-        $auth_id = get_post_field('post_author', $current_post_id);
-        $dynamic_content = get_the_author_meta('display_name', $auth_id) ?: get_the_author();
-    } elseif ($atts['content_source'] === 'manual') {
-        $dynamic_content = $atts['content_manual'];
-    } elseif ($atts['content_source'] === 'post_meta') {
-        $meta_key = trim($atts['meta_key']);
-        if (!empty($meta_key)) {
-            $meta_key_lower = strtolower($meta_key);
-            if ($meta_key_lower === 'post_title' || $meta_key_lower === 'title') {
-                $dynamic_content = get_the_title($current_post_id);
-            } elseif ($meta_key_lower === 'post_excerpt' || $meta_key_lower === 'excerpt') {
-                $dynamic_content = get_the_excerpt($current_post_id);
-            } elseif ($meta_key_lower === 'post_content' || $meta_key_lower === 'content') {
-                $p = get_post($current_post_id);
-                $dynamic_content = $p ? apply_filters('the_content', $p->post_content) : '';
-            } elseif ($meta_key_lower === 'post_date' || $meta_key_lower === 'date') {
-                $dynamic_content = get_the_date('', $current_post_id);
-            } elseif ($meta_key_lower === 'post_author' || $meta_key_lower === 'author') {
-                $auth_id = get_post_field('post_author', $current_post_id);
-                $dynamic_content = get_the_author_meta('display_name', $auth_id) ?: get_the_author();
-            } elseif ($meta_key_lower === 'post_url' || $meta_key_lower === 'permalink') {
-                $dynamic_content = get_permalink($current_post_id);
-            } elseif ($meta_key_lower === 'id' || $meta_key_lower === 'post_id') {
-                $dynamic_content = $current_post_id;
-            } else {
-                $dynamic_content = get_post_meta($current_post_id, $meta_key, true);
-                if (($dynamic_content === '' || $dynamic_content === false || $dynamic_content === null) && $current_post_id > 0) {
-                    $p_obj = get_post($current_post_id);
-                    if ($p_obj && isset($p_obj->$meta_key)) {
-                        $dynamic_content = $p_obj->$meta_key;
-                    }
-                }
-            }
-        }
-    } elseif ($atts['content_source'] === 'acf') {
-        $acf_key = trim($atts['acf_key']);
-        if (!empty($acf_key)) {
-            if (function_exists('get_field')) {
-                $dynamic_content = get_field($acf_key, $current_post_id);
-            } else {
-                $dynamic_content = get_post_meta($current_post_id, $acf_key, true);
-            }
-        }
-    }
+    $inner_content_to_render = ! empty( $atts['content'] )
+        ? $atts['content']
+        : ( ! empty( $atts['text'] )
+            ? $atts['text']
+            : ( ! empty( $atts['title'] ) && in_array( $html_tag, array( 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'a', 'span', 'p', 'b', 'strong' ) )
+                ? $atts['title']
+                : $content
+            )
+        );
+    $inner_content_to_render = vbc_clean_inner_content( $inner_content_to_render );
 
-    if (is_array($dynamic_content) || is_object($dynamic_content)) {
-        $dynamic_content = json_encode($dynamic_content);
-    } else {
-        $dynamic_content = strval($dynamic_content);
-    }
-
-    $inner_content_to_render = !empty($atts['content']) ? $atts['content'] : (!empty($atts['text']) ? $atts['text'] : (!empty($atts['title']) && in_array($html_tag, array('h1','h2','h3','h4','h5','h6','a','span','p','b','strong')) ? $atts['title'] : $content));
-    $inner_content_to_render = vbc_clean_inner_content($inner_content_to_render);
-
-    // Tự động thay thế placeholders động nếu có: {post_title}, {{post_title}}, {date}, {{date}}, etc.
-    if (!empty($inner_content_to_render) && strpos($inner_content_to_render, '{') !== false) {
-        $inner_content_to_render = preg_replace_callback('/\{+([a-zA-Z0-9_\-:]+)\}+/', function($matches) use ($current_post_id) {
-            $tag = strtolower(trim($matches[1]));
-            if ($tag === 'post_title' || $tag === 'title') {
-                return get_the_title($current_post_id);
-            }
-            if ($tag === 'post_excerpt' || $tag === 'excerpt') {
-                return get_the_excerpt($current_post_id);
-            }
-            if ($tag === 'post_content' || $tag === 'content') {
-                $p = get_post($current_post_id);
-                return $p ? apply_filters('the_content', $p->post_content) : '';
-            }
-            if ($tag === 'post_date' || $tag === 'date') {
-                return get_the_date('', $current_post_id);
-            }
-            if ($tag === 'post_author' || $tag === 'author') {
-                $auth_id = get_post_field('post_author', $current_post_id);
-                return get_the_author_meta('display_name', $auth_id) ?: get_the_author();
-            }
-            if ($tag === 'post_url' || $tag === 'permalink') {
-                return get_permalink($current_post_id);
-            }
-            if ($tag === 'post_thumbnail' || $tag === 'thumbnail') {
-                return get_the_post_thumbnail_url($current_post_id, 'full') ?: '';
-            }
-            if ($tag === 'category' || $tag === 'categories') {
-                $cats = get_the_category($current_post_id);
-                return !empty($cats) ? $cats[0]->name : '';
-            }
-            if ($tag === 'comments_count') {
-                return sprintf( _n( '%s bình luận', '%s bình luận', get_comments_number($current_post_id), 'vibecode' ), number_format_i18n( get_comments_number($current_post_id) ) );
-            }
-            if (strpos($tag, 'meta:') === 0) {
-                $meta_key = substr($tag, 5);
-                return get_post_meta($current_post_id, $meta_key, true);
-            }
-            if (strpos($tag, 'acf:') === 0) {
-                $acf_key = substr($tag, 4);
-                if (function_exists('get_field')) {
-                    $val = get_field($acf_key, $current_post_id);
-                    return is_array($val) ? json_encode($val) : strval($val);
-                }
-                return get_post_meta($current_post_id, $acf_key, true);
-            }
-            return $matches[0];
-        }, $inner_content_to_render);
-    }
+    // Thay thế placeholders động {post_title}, {{date}}, {meta:key}… qua helper
+    $inner_content_to_render = vbc_replace_placeholders( $inner_content_to_render, $current_post_id );
 
     $children = do_shortcode($inner_content_to_render);
     if (strpos($children, '[vbc_') !== false) {
